@@ -80,6 +80,22 @@ class DiscoveryPipeline {
   final Map<String, Endpoint> _found = {};
   final Set<String> _visited = {};
   int _pagesFetched = 0;
+  bool _cancelled = false;
+
+  /// Stops the run at the next checkpoint. Whatever has already been found is
+  /// kept and returned — a user pressing "stop" wants the partial list, not an
+  /// empty one.
+  void cancel() {
+    _cancelled = true;
+    for (final MapEntry(key: id, value: state) in _states.entries) {
+      if (state.status == EngineStatus.running || state.status == EngineStatus.queued) {
+        _states[id] = state.copyWith(status: EngineStatus.idle);
+      }
+    }
+    _emit();
+  }
+
+  bool get isCancelled => _cancelled;
 
   /// Runs discovery to completion and returns the ranked endpoints.
   Future<List<Endpoint>> run() async {
@@ -87,6 +103,7 @@ class DiscoveryPipeline {
     _found.clear();
     _visited.clear();
     _pagesFetched = 0;
+    _cancelled = false;
 
     final keywords = generator.generate(limit: config.keywordLimit);
     for (final e in engines) {
@@ -97,6 +114,7 @@ class DiscoveryPipeline {
     // Engines run a few at a time. Sequential wastes the whole run on one slow
     // engine; all at once looks like a burst and gets everything blocked.
     await _forEachLimited(engines, config.engineConcurrency, (engine) async {
+      if (_cancelled) return;
       await _runEngine(engine, keywords);
     });
 
@@ -114,6 +132,7 @@ class DiscoveryPipeline {
 
     var produced = 0;
     for (final keyword in phrases) {
+      if (_cancelled) return;
       if (produced >= config.perEngineResultCap) break;
       if (_pagesFetched >= config.maxPagesTotal) break;
 
@@ -145,7 +164,7 @@ class DiscoveryPipeline {
       _emit();
     }
 
-    if (_states[engine.id]?.status == EngineStatus.running) {
+    if (!_cancelled && _states[engine.id]?.status == EngineStatus.running) {
       _setState(engine.id, status: EngineStatus.done);
     }
   }
@@ -155,6 +174,7 @@ class DiscoveryPipeline {
     var added = 0;
 
     await _forEachLimited(links, config.pageConcurrency, (url) async {
+      if (_cancelled) return;
       if (!_visited.add(_canonical(url))) return;
       if (_pagesFetched >= config.maxPagesTotal) return;
       _pagesFetched++;

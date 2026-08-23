@@ -1,5 +1,9 @@
 import 'package:flutter/widgets.dart';
 
+import '../core/discovery/engines.dart';
+import '../features/discovery/discovery_controller.dart';
+import '../features/discovery/engine_row_status.dart';
+
 import '../core/theme/tokens.dart';
 import '../core/theme/typography.dart';
 import '../core/util/fa.dart';
@@ -11,25 +15,19 @@ import '../core/widgets/mono.dart';
 import '../core/widgets/phone_frame.dart';
 import '../core/widgets/status_hero.dart';
 import '../core/widgets/surfaces.dart';
-
 /// 01 · Search — pick engines and keywords, start a run.
+///
+/// Renders from a [DiscoveryController] when given one, and from the design's
+/// static values otherwise. The gallery relies on the second form: a canvas of
+/// 22 screens must not fire off 22 network runs to draw itself.
 class SearchScreen extends StatelessWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, this.controller, this.onSearch});
 
-  static const _engines = [
-    ('DuckDuckGo', true),
-    ('Google', true),
-    ('Bing', true),
-    ('Yahoo', true),
-    ('Brave', true),
-    ('Ecosia', true),
-    ('Startpage', true),
-    ('Yandex', true),
-    ('Baidu', false),
-    ('Kagi', false),
-  ];
+  final DiscoveryController? controller;
+  final VoidCallback? onSearch;
 
-  static const _keywords = [
+  /// The five phrases the design shows when there is no live run.
+  static const _demoKeywords = [
     'free v2ray config',
     'vless reality',
     'socks5 list',
@@ -39,6 +37,21 @@ class SearchScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = controller;
+    if (c == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) => _build(context, c),
+    );
+  }
+
+  Widget _build(BuildContext context, DiscoveryController? c) {
+    final enabledIds = c?.enabledEngines ??
+        {for (final e in kEngines) if (e.enabledByDefault) e.id};
+
+    final keywords =
+        c == null ? _demoKeywords : c.keywords.take(5).map((k) => k.text).toList();
+
     return PhoneFrame(
       nav: const BottomNav(items: Navs.items, activeIndex: Navs.search),
       child: Column(
@@ -57,18 +70,18 @@ class SearchScreen extends StatelessWidget {
             trailing: const RoundIconButton(AppIcons.settings),
           ),
           const SizedBox(height: S.x18),
-          _SearchField(),
+          _SearchField(value: c?.leadKeyword ?? _demoKeywords.first),
           const SizedBox(height: S.x12),
           Wrap(
             spacing: S.x8,
             runSpacing: S.x8,
-            children: [for (final k in _keywords) AppChip(k, selected: true)],
+            children: [for (final k in keywords) AppChip(k, selected: true)],
           ),
           const SizedBox(height: S.x22),
           SectionTitle(
             'موتورهای جست‌وجو',
             trailing: FaCounter(
-              faRatio(8, 10),
+              faRatio(enabledIds.length, kEngines.length),
               style: T.chip.copyWith(color: C.primaryMuted, fontSize: 13),
             ),
           ),
@@ -76,23 +89,52 @@ class SearchScreen extends StatelessWidget {
             spacing: S.x8,
             runSpacing: S.x8,
             children: [
-              for (final (name, enabled) in _engines)
-                if (enabled)
-                  AppChip(name,
-                      mono: true, selected: true, leading: const StatusDot(C.success))
+              for (final engine in kEngines)
+                if (enabledIds.contains(engine.id))
+                  AppChip(
+                    engine.name,
+                    mono: true,
+                    selected: true,
+                    leading: StatusDot(_dotFor(engine)),
+                    onTap: c == null ? null : () => c.toggleEngine(engine.id),
+                  )
                 else
-                  DisabledChip(name),
+                  GestureDetector(
+                    onTap: c == null ? null : () => c.toggleEngine(engine.id),
+                    child: DisabledChip(engine.name),
+                  ),
             ],
           ),
           const SizedBox(height: S.x24),
-          const PrimaryButton('جست‌وجو'),
+          PrimaryButton(
+            c != null && c.isRunning ? 'در حال جست‌وجو…' : 'جست‌وجو',
+            onTap: onSearch,
+          ),
+          if (c?.error != null) ...[
+            const SizedBox(height: S.x12),
+            Text(c!.error!, style: T.small.copyWith(color: C.danger)),
+          ],
         ],
       ),
     );
   }
+
+  /// Engines that a plain client usually cannot scrape are marked amber rather
+  /// than hidden: the user can still enable them, but the colour says not to
+  /// expect much.
+  Color _dotFor(SearchEngine engine) => switch (engine.viability) {
+        ScrapeViability.good => C.success,
+        ScrapeViability.fair => C.success,
+        ScrapeViability.poor => C.warning,
+        ScrapeViability.needsApiKey => C.danger,
+      };
 }
 
 class _SearchField extends StatelessWidget {
+  const _SearchField({required this.value});
+
+  final String value;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -107,8 +149,10 @@ class _SearchField extends StatelessWidget {
           const AppIcon(AppIcons.search, size: 16, color: C.muted),
           const SizedBox(width: S.x10),
           Expanded(
-            child: MonoText('free v2ray config',
-                style: T.monoValue.copyWith(color: C.heading)),
+            child: MonoText(value,
+                style: T.monoValue.copyWith(color: C.heading),
+                softWrap: false,
+                overflow: TextOverflow.ellipsis),
           ),
         ],
       ),
@@ -118,9 +162,13 @@ class _SearchField extends StatelessWidget {
 
 /// 02 · Scanning — progress of a run.
 class ScanningScreen extends StatelessWidget {
-  const ScanningScreen({super.key});
+  const ScanningScreen({super.key, this.controller, this.onStop});
 
-  static const _rows = [
+  final DiscoveryController? controller;
+  final VoidCallback? onStop;
+
+  /// The design's frozen mid-run state, used on the canvas.
+  static const _demoRows = [
     ('DuckDuckGo', '۱۴ نتیجه', C.success),
     ('Google', '۱۱ نتیجه', C.success),
     ('Brave', '۹ نتیجه', C.success),
@@ -131,26 +179,59 @@ class ScanningScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = controller;
+    if (c == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) => _build(context, c),
+    );
+  }
+
+  Widget _build(BuildContext context, DiscoveryController? c) {
+    final rows = c == null
+        ? _demoRows
+        : [
+            for (final state in c.engineStates.values)
+              (
+                engineById(state.id)?.name ?? state.id,
+                engineRowStatus(state).label,
+                engineRowStatus(state).color,
+              ),
+          ];
+
+    final found = c?.found ?? 47;
+    final reporting = c?.enginesReporting ?? 5;
+    final running = c == null || c.isRunning;
+
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ScreenHeader(
-            leading: Text('در حال جست‌وجو', style: T.screenTitle),
-            trailing: const TextLink('توقف', color: C.primary),
+            leading: Text(running ? 'در حال جست‌وجو' : 'جست‌وجو تمام شد',
+                style: T.screenTitle),
+            trailing: running
+                ? TextLink('توقف', color: C.primary, onTap: onStop)
+                : null,
           ),
           const SizedBox(height: S.x24),
-          const Center(child: StatusHero(state: HeroState.working)),
+          Center(
+            child: StatusHero(
+              state: running ? HeroState.working : HeroState.ready,
+            ),
+          ),
           const SizedBox(height: S.x18),
           Center(
             child: HeroCaption(
-              title: '${fa(47)} کانفیگ',
+              title: '${fa(found)} کانفیگ',
               titleStyle: T.onboardTitle,
-              body: 'تا اینجا از ${fa(5)} موتور',
+              body: running
+                  ? 'تا اینجا از ${fa(reporting)} موتور'
+                  : 'از ${fa(reporting)} موتور',
             ),
           ),
           const SizedBox(height: S.x24),
-          for (final (name, status, color) in _rows)
+          for (final (name, status, color) in rows)
             Container(
               padding: const EdgeInsets.symmetric(vertical: S.x12),
               decoration: const BoxDecoration(border: hairlineBottom),
@@ -164,6 +245,10 @@ class ScanningScreen extends StatelessWidget {
                 ],
               ),
             ),
+          if (c?.error != null) ...[
+            const SizedBox(height: S.x16),
+            Text(c!.error!, style: T.small.copyWith(color: C.danger)),
+          ],
         ],
       ),
     );

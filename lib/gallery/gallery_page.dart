@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../core/theme/tokens.dart';
 import '../core/theme/typography.dart';
 import '../core/util/fa.dart';
+import '../core/widgets/buttons.dart';
 import '../core/widgets/phone_frame.dart';
+import '../features/discovery/discovery_flow.dart';
 import 'screen_catalog.dart';
 
 /// The design canvas: every screen laid out side by side, the way the prototype
@@ -23,6 +25,22 @@ class GalleryPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _CanvasHeader(),
+              const SizedBox(height: S.x16),
+              // The canvas is static by design; this is the one way into a real
+              // run, so the screens can be judged against live data too.
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: GhostButton(
+                  'اجرای واقعی جست‌وجو (۰۱ → ۰۲)',
+                  large: true,
+                  color: C.primaryMuted,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const DiscoveryFlowPage(),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: S.x24),
               Wrap(
                 spacing: S.x24,
