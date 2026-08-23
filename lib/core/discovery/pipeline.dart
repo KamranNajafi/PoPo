@@ -65,6 +65,7 @@ class DiscoveryPipeline {
     this.generator = const KeywordGenerator(),
     this.extractor = const Extractor(),
     List<SearchEngine>? engines,
+    this.keywords,
   }) : engines = engines ?? kEngines.where((e) => e.enabledByDefault).toList();
 
   final Fetcher fetcher;
@@ -72,6 +73,10 @@ class DiscoveryPipeline {
   final KeywordGenerator generator;
   final Extractor extractor;
   final List<SearchEngine> engines;
+
+  /// Phrases to search. When null the generator supplies them; callers pass this
+  /// to search a user-edited list instead.
+  final List<Keyword>? keywords;
 
   final _progress = StreamController<DiscoveryProgress>.broadcast();
   Stream<DiscoveryProgress> get progress => _progress.stream;
@@ -105,7 +110,7 @@ class DiscoveryPipeline {
     _pagesFetched = 0;
     _cancelled = false;
 
-    final keywords = generator.generate(limit: config.keywordLimit);
+    final phrases = keywords ?? generator.generate(limit: config.keywordLimit);
     for (final e in engines) {
       _states[e.id] = EngineState(id: e.id, status: EngineStatus.queued);
     }
@@ -115,7 +120,7 @@ class DiscoveryPipeline {
     // engine; all at once looks like a burst and gets everything blocked.
     await _forEachLimited(engines, config.engineConcurrency, (engine) async {
       if (_cancelled) return;
-      await _runEngine(engine, keywords);
+      await _runEngine(engine, phrases);
     });
 
     await _progress.close();

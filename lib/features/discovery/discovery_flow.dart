@@ -6,12 +6,13 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../core/discovery/models.dart';
 import '../../core/discovery/pipeline.dart';
-import '../../core/util/fa.dart';
+import '../../l10n/app_localizations.dart';
 import '../../core/widgets/buttons.dart';
 import '../../core/widgets/mono.dart';
 import '../../core/widgets/phone_frame.dart';
 import '../../core/widgets/surfaces.dart';
 import '../../screens/advanced_core.dart';
+import '../../app_scope.dart';
 import 'discovery_controller.dart';
 
 /// The live 01 → 02 flow, against the real network.
@@ -26,21 +27,29 @@ class DiscoveryFlowPage extends StatefulWidget {
 }
 
 class _DiscoveryFlowPageState extends State<DiscoveryFlowPage> {
-  late final DiscoveryController _controller;
+  late DiscoveryController _controller;
 
   /// Kept modest on purpose: a first real run should cost a handful of requests,
   /// not a few hundred. The settings screen owns these numbers later.
   static const _config = DiscoveryConfigPreset.firstRun;
 
+  DiscoveryController? _built;
+
   @override
-  void initState() {
-    super.initState();
-    _controller = DiscoveryController(config: _config);
+  Widget build(BuildContext context) {
+    // Built here rather than in initState so it can pick up the keyword store
+    // from the scope above.
+    _built ??= DiscoveryController(
+      config: _config,
+      keywordStore: AppScope.maybeOf(context)?.keywordStore,
+    );
+    _controller = _built!;
+    return _page(context);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _built?.dispose();
     super.dispose();
   }
 
@@ -56,8 +65,7 @@ class _DiscoveryFlowPageState extends State<DiscoveryFlowPage> {
     ));
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _page(BuildContext context) {
     return Scaffold(
       backgroundColor: C.page,
       body: SafeArea(
@@ -103,7 +111,7 @@ class _ScanningRoute extends StatelessWidget {
                     if (!controller.isRunning) ...[
                       const SizedBox(height: S.x12),
                       PrimaryButton(
-                        'دیدن ${fa(controller.results.length)} نتیجه',
+                        L.of(context).seeResults(controller.results.length),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) =>
@@ -136,6 +144,7 @@ class _RawResultsRoute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return Scaffold(
       backgroundColor: C.page,
       body: SafeArea(
@@ -148,17 +157,12 @@ class _RawResultsRoute extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('${fa(results.length)} مورد پیدا شد', style: T.screenTitle),
+                    Text(l.foundCount(results.length), style: T.screenTitle),
                     const SizedBox(height: 6),
-                    Text('هنوز تست نشده‌اند — فقط استخراج و رتبه‌بندی اولیه.',
-                        style: T.small),
+                    Text(l.notTestedYet, style: T.small),
                     const SizedBox(height: S.x16),
                     if (results.isEmpty)
-                      Text(
-                        'چیزی پیدا نشد. موتورهای بیشتری روشن کنید یا بعداً '
-                        'دوباره تلاش کنید.',
-                        style: T.caption,
-                      ),
+                      Text(l.nothingFoundBody, style: T.caption),
                     for (final e in results.take(50)) ...[
                       ListCard(
                         padding: const EdgeInsets.all(13),
@@ -186,7 +190,7 @@ class _RawResultsRoute extends StatelessWidget {
                             MonoText('${e.protocol.name} · ${e.host}:${e.port}',
                                 style: T.monoSub),
                             const SizedBox(height: 3),
-                            Text('${fa(e.sources.length)} منبع', style: T.small),
+                            Text(l.sourcesCount(e.sources.length), style: T.small),
                           ],
                         ),
                       ),

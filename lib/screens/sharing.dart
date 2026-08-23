@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../core/theme/tokens.dart';
 import '../core/theme/typography.dart';
 import '../core/util/fa.dart';
+import '../l10n/app_localizations.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/controls.dart';
 import '../core/widgets/icons.dart';
@@ -20,18 +21,19 @@ class ProxyServerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ScreenHeader(
-            leading: Text('اشتراک اتصال', style: T.screenTitle),
+            leading: Text(l.shareConnection, style: T.screenTitle),
             trailing: const AppToggle(true),
           ),
           const SizedBox(height: S.x24),
           const Center(child: StatusHero(state: HeroState.ready, size: 96)),
           const SizedBox(height: S.x18),
-          Center(child: Text('سرور روشن است', style: T.connectedHero)),
+          Center(child: Text(l.serverOn, style: T.connectedHero)),
           const SizedBox(height: S.x10),
           const Center(
             child: MonoText(
@@ -45,21 +47,19 @@ class ProxyServerScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Center(
-            child: Text('${fa(3)} دستگاه وصل است · ۱.۴ GB امروز', style: T.small),
-          ),
+          Center(child: Text(l.shareDevicesAndUsage(3, '1.4 GB'), style: T.small)),
           const SizedBox(height: S.x22),
-          const MetaRow('آدرس پروکسی', '192.168.43.1'),
-          const MetaRow('پورت HTTP', '8888'),
-          const MetaRow('پورت SOCKS5', '1080'),
-          const MetaRow('نام کاربری', 'popo'),
-          const MetaRow('رمز', '•••• ••••', showDivider: false),
+          MetaRow(l.metaProxyAddress, '192.168.43.1'),
+          MetaRow(l.metaHttpPort, '8888'),
+          MetaRow(l.metaSocksPort, '1080'),
+          MetaRow(l.metaUsername, 'popo'),
+          MetaRow(l.metaPassword, '•••• ••••', showDivider: false),
           const SizedBox(height: S.x18),
-          const PrimaryButton('نمایش کد QR اتصال'),
+          PrimaryButton(l.showConnectionQr),
           const SizedBox(height: S.x10),
-          const SplitRow(
-            start: SecondaryButton('تغییر رمز'),
-            end: SecondaryButton('روشن‌کردن هات‌اسپات'),
+          SplitRow(
+            start: SecondaryButton(l.changePassword),
+            end: SecondaryButton(l.turnOnHotspot),
           ),
         ],
       ),
@@ -71,21 +71,25 @@ class ProxyServerScreen extends StatelessWidget {
 class ConnectedDevicesScreen extends StatelessWidget {
   const ConnectedDevicesScreen({super.key});
 
-  static const _devices = [
-    (AppIcons.laptop, 'لپ‌تاپ کار', '192.168.43.24', 'فعال', C.success, '۸۴۰ MB امروز'),
-    (AppIcons.tv, 'تلویزیون پذیرایی', '192.168.43.31', 'فعال', C.success, '۴۹۰ MB امروز'),
-    (AppIcons.phone, 'موبایل دوم', '192.168.43.47', 'در انتظار تأیید', C.warning, '—'),
-  ];
+  static List<(IconData, String, String, String, Color, String)> _devices(L l) => [
+        (AppIcons.laptop, l.deviceWorkLaptop, '192.168.43.24', l.deviceActive,
+            C.success, l.deviceUsageToday('840 MB')),
+        (AppIcons.tv, l.deviceLivingRoomTv, '192.168.43.31', l.deviceActive,
+            C.success, l.deviceUsageToday('490 MB')),
+        (AppIcons.phone, l.deviceSecondPhone, '192.168.43.47',
+            l.devicePendingApproval, C.warning, '—'),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('دستگاه‌های وصل', style: T.screenTitle),
+          Text(l.connectedDevices, style: T.screenTitle),
           const SizedBox(height: S.x16),
-          for (final (icon, name, ip, state, color, usage) in _devices) ...[
+          for (final (icon, name, ip, state, color, usage) in _devices(l)) ...[
             ListCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,12 +118,12 @@ class ConnectedDevicesScreen extends StatelessWidget {
                     children: [
                       Flexible(child: Text(usage, style: T.small)),
                       const SizedBox(width: S.x8),
-                      const Row(
+                      Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          GhostButton('محدودکردن'),
-                          SizedBox(width: S.x8),
-                          GhostButton.destructive('قطع'),
+                          GhostButton(l.deviceLimit),
+                          const SizedBox(width: S.x8),
+                          GhostButton.destructive(l.deviceDisconnect),
                         ],
                       ),
                     ],
@@ -130,7 +134,7 @@ class ConnectedDevicesScreen extends StatelessWidget {
             const SizedBox(height: S.x12),
           ],
           const SizedBox(height: S.x8),
-          const SecondaryButton('فقط دستگاه‌های تأییدشده وصل شوند'),
+          SecondaryButton(l.onlyApprovedDevices),
         ],
       ),
     );
@@ -141,20 +145,22 @@ class ConnectedDevicesScreen extends StatelessWidget {
 class PairingGuideScreen extends StatelessWidget {
   const PairingGuideScreen({super.key});
 
-  static const _steps = [
-    ('هات‌اسپات گوشی را روشن کنید', 'از تنظیمات گوشی، اشتراک اینترنت را فعال کنید.'),
-    ('روی دستگاه دوم به تنظیمات Wi-Fi بروید', 'به همان هات‌اسپات وصل شوید.'),
-    ('پروکسی را روی Manual بگذارید', 'آدرس و پورت زیر را وارد کنید.'),
-    ('ذخیره کنید یا QR را اسکن کنید', 'بعد از ذخیره، اینترنت از تونل عبور می‌کند.'),
-  ];
+  static List<(String, String)> _steps(L l) => [
+        (l.pairStep1Title, l.pairStep1Body),
+        (l.pairStep2Title, l.pairStep2Body),
+        (l.pairStep3Title, l.pairStep3Body),
+        (l.pairStep4Title, l.pairStep4Body),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
+    final steps = _steps(l);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('راهنمای اتصال', style: T.screenTitle),
+          Text(l.pairingTitle, style: T.screenTitle),
           const SizedBox(height: S.x18),
           Center(
             child: Container(
@@ -170,7 +176,7 @@ class PairingGuideScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: S.x22),
-          for (var i = 0; i < _steps.length; i++) ...[
+          for (var i = 0; i < steps.length; i++) ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -183,7 +189,7 @@ class PairingGuideScreen extends StatelessWidget {
                     border: Border.all(color: C.accentBorder),
                   ),
                   child: Center(
-                    child: Text(fa(i + 1),
+                    child: Text(formatNumber(context, i + 1),
                         style: T.chip.copyWith(color: C.primaryMuted, fontSize: 13)),
                   ),
                 ),
@@ -192,9 +198,9 @@ class PairingGuideScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_steps[i].$1, style: T.stepTitle),
+                      Text(steps[i].$1, style: T.stepTitle),
                       const SizedBox(height: 3),
-                      Text(_steps[i].$2, style: T.caption),
+                      Text(steps[i].$2, style: T.caption),
                       if (i == 2) ...[
                         const SizedBox(height: S.x8),
                         const SunkenBlock(
@@ -216,7 +222,7 @@ class PairingGuideScreen extends StatelessWidget {
             const SizedBox(height: S.x16),
           ],
           const SizedBox(height: S.x4),
-          const PrimaryButton('کپی آدرس و پورت'),
+          PrimaryButton(l.copyAddressPort),
         ],
       ),
     );
@@ -227,24 +233,25 @@ class PairingGuideScreen extends StatelessWidget {
 class SplitTunnelScreen extends StatelessWidget {
   const SplitTunnelScreen({super.key});
 
-  static const _apps = [
-    (AppIcons.browser, 'مرورگر', 'از تونل عبور می‌کند', true),
-    (AppIcons.chat, 'پیام‌رسان', 'از تونل عبور می‌کند', true),
-    (AppIcons.bank, 'بانک', 'مستقیم وصل می‌شود', false),
-    (AppIcons.video, 'پخش ویدیو', 'مستقیم وصل می‌شود', false),
-  ];
+  static List<(IconData, String, String, bool)> _apps(L l) => [
+        (AppIcons.browser, l.appBrowser, l.routedThroughTunnel, true),
+        (AppIcons.chat, l.appMessenger, l.routedThroughTunnel, true),
+        (AppIcons.bank, l.appBank, l.routedDirect, false),
+        (AppIcons.video, l.appVideo, l.routedDirect, false),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('تفکیک ترافیک', style: T.screenTitle),
+          Text(l.splitTitle, style: T.screenTitle),
           const SizedBox(height: 6),
-          Text('انتخاب کنید کدام برنامه از تونل رد شود.', style: T.caption),
+          Text(l.splitBody, style: T.caption),
           const SizedBox(height: S.x16),
-          for (final (icon, name, note, on) in _apps)
+          for (final (icon, name, note, on) in _apps(l))
             Container(
               padding: const EdgeInsets.symmetric(vertical: 13),
               decoration: const BoxDecoration(border: hairlineBottom),
@@ -267,9 +274,9 @@ class SplitTunnelScreen extends StatelessWidget {
               ),
             ),
           const SizedBox(height: S.x22),
-          const SplitRow(
-            start: SecondaryButton('همه از تونل'),
-            end: SecondaryButton('هیچ‌کدام'),
+          SplitRow(
+            start: SecondaryButton(l.allThroughTunnel),
+            end: SecondaryButton(l.noneThroughTunnel),
           ),
         ],
       ),
@@ -281,12 +288,12 @@ class SplitTunnelScreen extends StatelessWidget {
 class SecurityScreen extends StatelessWidget {
   const SecurityScreen({super.key});
 
-  static const _rows = [
-    ('قطع اینترنت هنگام افت تونل', 'Kill switch', true),
-    ('DNS امن', '1.1.1.1 · DoH', true),
-    ('اتصال خودکار هنگام روشن شدن', 'همیشه', true),
-    ('همگام‌سازی لیست‌ها بین دستگاه‌ها', 'موبایل و دسکتاپ', false),
-  ];
+  static List<(String, String, bool)> _rows(L l) => [
+        (l.settingKillSwitch, l.settingKillSwitchNote, true),
+        (l.settingSecureDns, l.settingSecureDnsNote, true),
+        (l.settingAutoConnect, l.settingAutoConnectNote, true),
+        (l.settingSyncLists, l.settingSyncListsNote, false),
+      ];
 
   static const _log = [
     ('12:04:11', 'tunnel up · vless/reality · nl-ams', C.success),
@@ -298,16 +305,17 @@ class SecurityScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('امنیت و همگام‌سازی', style: T.screenTitle),
+          Text(l.securityTitle, style: T.screenTitle),
           const SizedBox(height: S.x14),
-          for (final (label, caption, on) in _rows)
+          for (final (label, caption, on) in _rows(l))
             SettingRow(label: label, caption: caption, trailing: AppToggle(on)),
           const SizedBox(height: S.x22),
-          const SectionTitle('لاگ اتصال'),
+          SectionTitle(l.connectionLog),
           SunkenBlock(
             child: Directionality(
               textDirection: TextDirection.ltr,

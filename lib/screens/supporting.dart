@@ -2,7 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import '../core/theme/tokens.dart';
 import '../core/theme/typography.dart';
-import '../core/util/fa.dart';
+import '../core/util/locale_controller.dart';
+import '../l10n/app_localizations.dart';
 import '../core/widgets/bottom_nav.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/controls.dart';
@@ -14,74 +15,110 @@ import '../core/widgets/surfaces.dart';
 
 /// 05 · Settings.
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    this.onOpenKeywords,
+    this.onOpenLanguage,
+    this.keywordCount,
+  });
 
-  static const _rows = [
-    ('جست‌وجوی خودکار', 'هر ۶ ساعت', true),
-    ('سقف نتایج هر موتور', '۵۰ مورد', true),
-    ('تایم‌اوت تست', '۵ ثانیه', true),
-    ('حذف خودکار کانفیگ مرده', 'پس از ۲ تست ناموفق', true),
-    ('حالت ساده', 'یک دکمه، بدون تنظیمات', false),
-  ];
+  /// Null on the design canvas, where the rows are display-only.
+  final VoidCallback? onOpenKeywords;
+  final VoidCallback? onOpenLanguage;
+
+  /// The live phrase count, when there is a store to read it from.
+  final int? keywordCount;
+
+  static List<(String, String, bool)> _rows(L l) => [
+        (l.settingAutoSearch, l.settingEveryHours(6), true),
+        (l.settingPerEngineCap, l.settingItems(50), true),
+        (l.settingTestTimeout, l.settingSeconds(5), true),
+        (l.settingAutoRemoveDead, l.settingAfterFailedTests(2), true),
+        (l.settingSimpleMode, l.settingSimpleModeNote, false),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('تنظیمات', style: T.screenTitle),
+          Text(l.settings, style: T.screenTitle),
           const SizedBox(height: S.x14),
-          for (final (label, caption, on) in _rows)
+          for (final (label, caption, on) in _rows(l))
             SettingRow(label: label, caption: caption, trailing: AppToggle(on)),
-          const SettingRow(
-            label: 'تم',
-            caption: 'کهربا · تیره',
-            trailing: AppIcon(AppIcons.swap, size: 18, color: C.muted),
+          SettingRow(
+            label: l.settingKeywords,
+            caption: keywordCount == null
+                ? l.keywordsIntro
+                : l.settingKeywordsValue(keywordCount!),
+            trailing: _chevron(onOpenKeywords),
+          ),
+          SettingRow(
+            label: l.settingLanguage,
+            // Listed in its own language: a user who cannot read the current
+            // one must still be able to find theirs.
+            caption: kLanguageNames[languageCode] ?? languageCode,
+            trailing: _chevron(onOpenLanguage),
+          ),
+          SettingRow(
+            label: l.settingTheme,
+            caption: l.settingThemeValue,
+            trailing: const AppIcon(AppIcons.swap, size: 18, color: C.muted),
           ),
           const SizedBox(height: S.x24),
-          const DestructiveButton('پاک‌کردن همهٔ نتایج'),
+          DestructiveButton(l.clearAllResults),
         ],
       ),
     );
   }
+
+  Widget _chevron(VoidCallback? onTap) => GestureDetector(
+        onTap: onTap,
+        child: AppIcon(AppIcons.swap,
+            size: 18, color: onTap == null ? C.muted : C.primaryMuted),
+      );
 }
 
 /// 06 · Saved + bulk actions.
 class SavedScreen extends StatelessWidget {
   const SavedScreen({super.key});
 
-  static const _rows = [
-    ('هلند · آمستردام', 'VLESS · Reality', '42 ms', C.success, true),
-    ('آلمان · فرانکفورت', 'VMess · WS+TLS', '78 ms', C.success, true),
-    ('لهستان · ورشو', 'HTTPS · 185.244.10.9:8080', '154 ms', C.warning, false),
-    ('ترکیه · استانبول', 'Trojan · gRPC', '—', C.danger, false),
-  ];
+  static List<(String, String, String, Color, bool)> _rows(L l) => [
+        (l.placeNlAmsterdam, 'VLESS · Reality', '42 ms', C.success, true),
+        (l.placeDeFrankfurt, 'VMess · WS+TLS', '78 ms', C.success, true),
+        (l.placePlWarsaw, 'HTTPS · 185.244.10.9:8080', '154 ms', C.warning, false),
+        (l.placeTrIstanbul, 'Trojan · gRPC', '—', C.danger, false),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
-      nav: const BottomNav(items: Navs.items, activeIndex: Navs.saved),
+      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.saved),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ScreenHeader(
-            leading: Text('ذخیره‌شده‌ها', style: T.screenTitle),
-            trailing: Text('${fa(2)} انتخاب‌شده', style: T.small),
+            leading: Text(l.savedTitle, style: T.screenTitle),
+            trailing: Text(l.selectedCount(2), style: T.small),
           ),
           const SizedBox(height: S.x16),
-          const Wrap(
+          Wrap(
             spacing: S.x8,
             runSpacing: S.x8,
             children: [
-              AppChip('کپی همه', filled: true),
-              AppChip('خروجی سابسکریپشن'),
-              AppChip('QR'),
-              AppChip('تست همه'),
+              AppChip(l.copyAll, filled: true),
+              AppChip(l.exportSubscription),
+              AppChip(l.qr),
+              AppChip(l.testAll),
             ],
           ),
           const SizedBox(height: S.x16),
-          for (final (name, proto, ping, color, checked) in _rows) ...[
+          for (final (name, proto, ping, color, checked) in _rows(l)) ...[
             ListCard(
               padding: const EdgeInsets.all(13),
               child: Row(
@@ -111,120 +148,49 @@ class SavedScreen extends StatelessWidget {
   }
 }
 
-/// 07 · Keywords. Compiled out of the Apple builds along with discovery.
-class KeywordsScreen extends StatelessWidget {
-  const KeywordsScreen({super.key});
-
-  static const _keywords = [
-    'free v2ray config',
-    'vless reality',
-    'socks5 list',
-    'کانفیگ رایگان',
-    'subscription link',
-    'trojan server',
-  ];
-
-  static const _sets = [
-    ('ست v2ray', '۱۲ عبارت', true),
-    ('ست پروکسی socks/http', '۹ عبارت', true),
-    ('ست کانال‌های تلگرام', '۷ عبارت', false),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return PhoneFrame(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('عبارت‌های کلیدی', style: T.screenTitle),
-          const SizedBox(height: S.x16),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 13, horizontal: S.x16),
-            decoration: BoxDecoration(
-              color: C.surfaceElevated,
-              borderRadius: R.pill,
-              border: hairlineBorder(),
-            ),
-            child: Row(
-              children: [
-                const AppIcon(AppIcons.search, size: 16, color: C.muted),
-                const SizedBox(width: S.x10),
-                Expanded(child: Text('افزودن عبارت تازه…', style: T.caption)),
-              ],
-            ),
-          ),
-          const SizedBox(height: S.x14),
-          Wrap(
-            spacing: S.x8,
-            runSpacing: S.x8,
-            children: [
-              for (final k in _keywords)
-                AppChip(
-                  k,
-                  selected: true,
-                  trailing: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: C.primaryMuted),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: S.x24),
-          const SectionTitle('ست‌های آماده'),
-          for (final (name, count, on) in _sets)
-            SettingRow(label: name, caption: count, trailing: AppToggle(on)),
-        ],
-      ),
-    );
-  }
-}
-
 /// 08 · Proxy detail.
 class ProxyDetailScreen extends StatelessWidget {
   const ProxyDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('جزئیات پروکسی', style: T.screenTitle),
+          Text(l.proxyDetailTitle, style: T.screenTitle),
           const SizedBox(height: S.x24),
           const Center(child: MonoText('51.15.42.7:1080', style: T.monoHero)),
           const SizedBox(height: S.x10),
           Center(
-            child: Text('فنلاند · هلسینکی',
+            child: Text(l.placeFiHelsinki,
                 style: T.buttonSecondary.copyWith(fontSize: 15)),
           ),
           const SizedBox(height: S.x14),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _Badge('پورت باز', C.success),
-              SizedBox(width: S.x8),
-              _Badge('Elite', C.primaryMuted),
+              _Badge(l.badgePortOpen, C.success),
+              const SizedBox(width: S.x8),
+              const _Badge('Elite', C.primaryMuted),
             ],
           ),
           const SizedBox(height: S.x22),
-          const MetaRow('نوع', 'SOCKS5'),
-          const MetaRow('آدرس', '51.15.42.7 : 1080'),
-          const MetaRow('آنونیمیتی', 'Elite'),
-          const MetaRow('پشتیبانی HTTPS', 'yes'),
-          const MetaRow('آخرین تست پورت', 'open · 126 ms', showDivider: false),
+          MetaRow(l.metaType, 'SOCKS5'),
+          MetaRow(l.metaAddress, '51.15.42.7 : 1080'),
+          MetaRow(l.metaAnonymity, 'Elite'),
+          MetaRow(l.metaHttpsSupport, 'yes'),
+          MetaRow(l.metaLastPortTest, 'open · 126 ms', showDivider: false),
           const SizedBox(height: S.x18),
-          const PrimaryButton('کپی ip:port'),
+          PrimaryButton(l.copyIpPort),
           const SizedBox(height: S.x10),
-          const SplitRow(
-            start: SecondaryButton('تست پورت'),
-            end: SecondaryButton('بازکردن در V2rayNG'),
+          SplitRow(
+            start: SecondaryButton(l.testPort),
+            end: SecondaryButton(l.openInV2rayNG),
           ),
           const SizedBox(height: S.x14),
-          const Center(child: TextLink('گزارش خراب‌بودن', color: C.danger)),
+          Center(child: TextLink(l.reportBroken, color: C.danger)),
         ],
       ),
     );
@@ -253,21 +219,22 @@ class _Badge extends StatelessWidget {
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
-  static const _runs = [
-    ('امروز ۱۴:۲۰', '۱۲۸ نتیجه · ۳۱ سالم · ۸ موتور'),
-    ('دیروز ۰۹:۰۵', '۹۴ نتیجه · ۲۲ سالم · ۸ موتور'),
-    ('۳ روز پیش', '۱۵۱ نتیجه · ۴۰ سالم · ۱۰ موتور'),
-  ];
+  static List<(String, String)> _runs(L l) => [
+        (l.historyToday('14:20'), l.runSummary(128, 31, 8)),
+        (l.historyYesterday('09:05'), l.runSummary(94, 22, 8)),
+        (l.historyDaysAgo(3), l.runSummary(151, 40, 10)),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('تاریخچه', style: T.screenTitle),
+          Text(l.historyTitle, style: T.screenTitle),
           const SizedBox(height: S.x14),
-          for (final (at, meta) in _runs)
+          for (final (at, meta) in _runs(l))
             Container(
               padding: const EdgeInsets.symmetric(vertical: S.x14),
               decoration: const BoxDecoration(border: hairlineBottom),
@@ -284,15 +251,15 @@ class HistoryScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: S.x8),
-                  const GhostButton('اجرای دوباره'),
+                  GhostButton(l.runAgain),
                 ],
               ),
             ),
           const SizedBox(height: S.x24),
-          const SectionTitle('ایمپورت'),
-          const SplitRow(
-            start: SecondaryButton('لینک سابسکریپشن'),
-            end: SecondaryButton('از کلیپ‌بورد'),
+          SectionTitle(l.importTitle),
+          SplitRow(
+            start: SecondaryButton(l.subscriptionLink),
+            end: SecondaryButton(l.fromClipboard),
           ),
         ],
       ),
@@ -304,36 +271,37 @@ class HistoryScreen extends StatelessWidget {
 class ErrorStatesScreen extends StatelessWidget {
   const ErrorStatesScreen({super.key});
 
-  static const _states = [
-    (
-      C.muted,
-      'نتیجه‌ای پیدا نشد',
-      'عبارت‌های کلیدی را کم‌تر خاص کنید یا موتور بیشتری روشن کنید.',
-      'تغییر عبارت‌ها'
-    ),
-    (
-      C.danger,
-      'اینترنت قطع است',
-      'اتصال دستگاه را بررسی کنید و دوباره تلاش کنید.',
-      'تلاش دوباره'
-    ),
-    (
-      C.warning,
-      'Yandex کپچا خواست',
-      'این موتور موقتاً کنار گذاشته شد؛ بقیه ادامه دادند.',
-      'رد کردن این موتور'
-    ),
-  ];
+  static List<(Color, String, String, String)> _states(L l) => [
+        (
+          C.muted,
+          l.emptyNoResultsTitle,
+          l.emptyNoResultsBody,
+          l.emptyNoResultsAction,
+        ),
+        (
+          C.danger,
+          l.errorOfflineTitle,
+          l.errorOfflineBody,
+          l.errorOfflineAction,
+        ),
+        (
+          C.warning,
+          l.errorCaptchaTitle('Yandex'),
+          l.errorCaptchaBody,
+          l.errorCaptchaAction,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('حالت‌های خالی و خطا', style: T.screenTitle),
+          Text(l.errorStatesTitle, style: T.screenTitle),
           const SizedBox(height: S.x16),
-          for (final (dot, title, body, action) in _states) ...[
+          for (final (dot, title, body, action) in _states(l)) ...[
             ListCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,6 +337,7 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       simpleMode: true,
       child: Column(
@@ -377,10 +346,10 @@ class OnboardingScreen extends StatelessWidget {
           const SizedBox(height: S.x20),
           const Center(child: AppMark(size: 88, radius: 26)),
           const SizedBox(height: S.x22),
-          Center(child: Text('لیست‌های رایگان، یک‌جا', style: T.onboardTitle)),
+          Center(child: Text(l.onboardTitle, style: T.onboardTitle)),
           const SizedBox(height: S.x14),
           Text(
-            'PoPo سرورهای عمومی را جمع می‌کند، سرعتشان را می‌سنجد\nو سریع‌ترین را به شما می‌دهد.',
+            l.onboardBody,
             style: T.caption,
             textAlign: TextAlign.center,
           ),
@@ -397,21 +366,17 @@ class OnboardingScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('یک نکتهٔ مهم',
+                Text(l.warningTitle,
                     style: T.listTitle.copyWith(color: C.warning)),
                 const SizedBox(height: S.x8),
-                Text(
-                  'این سرورها را افراد ناشناس روی اینترنت گذاشته‌اند. برای عبور از '
-                  'محدودیت خوب‌اند، ولی نام کاربری و رمز بانکی خود را روی آن‌ها وارد نکنید.',
-                  style: T.caption,
-                ),
+                Text(l.warningBody, style: T.caption),
               ],
             ),
           ),
           const SizedBox(height: S.x24),
-          const PrimaryButton('متوجه شدم، شروع کنیم'),
+          PrimaryButton(l.gotIt),
           const SizedBox(height: S.x14),
-          const Center(child: TextLink('رد کردن')),
+          Center(child: TextLink(l.skip)),
         ],
       ),
     );

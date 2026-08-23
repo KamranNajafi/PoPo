@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 import '../core/theme/tokens.dart';
+import '../core/util/fa.dart';
+import '../l10n/app_localizations.dart';
 import '../core/theme/typography.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/icons.dart';
@@ -12,31 +14,32 @@ import '../core/widgets/surfaces.dart';
 class DesktopScreen extends StatelessWidget {
   const DesktopScreen({super.key});
 
-  static const _nav = [
-    (AppIcons.dashboard, 'داشبورد', true),
-    (AppIcons.results, 'نتایج', false),
-    (AppIcons.bookmark, 'ذخیره‌ها', false),
-    (AppIcons.share, 'اشتراک اتصال', false),
-    (AppIcons.history, 'تاریخچه', false),
-    (AppIcons.simple, 'حالت ساده', false),
-    (AppIcons.settings, 'تنظیمات', false),
-  ];
+  static List<(IconData, String, bool)> _nav(L l) => [
+        (AppIcons.dashboard, l.desktopNavDashboard, true),
+        (AppIcons.results, l.navResults, false),
+        (AppIcons.bookmark, l.navSaved, false),
+        (AppIcons.share, l.desktopNavShare, false),
+        (AppIcons.history, l.desktopNavHistory, false),
+        (AppIcons.simple, l.desktopNavSimple, false),
+        (AppIcons.settings, l.desktopNavSettings, false),
+      ];
 
-  static const _stats = [
-    ('کانفیگ سالم', '۳۱'),
-    ('پروکسی سالم', '۵۸'),
-    ('دستگاه‌های وصل', '۳'),
-    ('مصرف امروز', '۱.۴ GB'),
-  ];
+  static List<(String, String)> _stats(BuildContext context, L l) => [
+        (l.statHealthyConfigs, formatNumber(context, 31)),
+        (l.statHealthyProxies, formatNumber(context, 58)),
+        (l.statConnectedDevices, formatNumber(context, 3)),
+        (l.statUsageToday, '${formatNumber(context, 1.4)} GB'),
+      ];
 
-  static const _fastest = [
-    ('هلند · آمستردام', 'VLESS · Reality', '42 ms', C.success),
-    ('آلمان · فرانکفورت', 'VMess · WS+TLS', '78 ms', C.success),
-    ('فنلاند · هلسینکی', 'SOCKS5 · 51.15.42.7:1080', '126 ms', C.warning),
-  ];
+  static List<(String, String, String, Color)> _fastest(L l) => [
+        (l.placeNlAmsterdam, 'VLESS · Reality', '42 ms', C.success),
+        (l.placeDeFrankfurt, 'VMess · WS+TLS', '78 ms', C.success),
+        (l.placeFiHelsinki, 'SOCKS5 · 51.15.42.7:1080', '126 ms', C.warning),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return Container(
       constraints: const BoxConstraints(minHeight: 380),
       decoration: const BoxDecoration(
@@ -71,7 +74,7 @@ class DesktopScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: S.x20),
-                      for (final (icon, label, active) in _nav)
+                      for (final (icon, label, active) in _nav(l))
                         Container(
                           margin: const EdgeInsets.only(bottom: 4),
                           padding: const EdgeInsets.symmetric(
@@ -120,7 +123,7 @@ class DesktopScreen extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('متصل · هلند', style: T.hero),
+                                  Text(l.desktopConnectedTo(l.placeNl), style: T.hero),
                                   const SizedBox(height: 4),
                                   const MonoText('42 ms · 00:37:12',
                                       style: T.monoName),
@@ -128,11 +131,11 @@ class DesktopScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: S.x12),
-                            const SizedBox(
-                                width: 130, child: PrimaryButton('قطع اتصال')),
+                            SizedBox(width: 130, child: PrimaryButton(l.disconnect)),
                             const SizedBox(width: S.x10),
-                            const SizedBox(
-                                width: 130, child: SecondaryButton('ستاپ دوباره')),
+                            SizedBox(
+                                width: 130,
+                                child: SecondaryButton(l.redoSetupShort)),
                           ],
                         ),
                         const SizedBox(height: S.x22),
@@ -145,7 +148,7 @@ class DesktopScreen extends StatelessWidget {
                               spacing: S.x14,
                               runSpacing: S.x14,
                               children: [
-                                for (final (label, value) in _stats)
+                                for (final (label, value) in _stats(context, l))
                                   SizedBox(
                                     width: (constraints.maxWidth -
                                             S.x14 * (columns - 1)) /
@@ -169,8 +172,8 @@ class DesktopScreen extends StatelessWidget {
                           },
                         ),
                         const SizedBox(height: S.x22),
-                        const SectionTitle('سریع‌ترین گزینه‌ها'),
-                        for (final (name, proto, ping, color) in _fastest) ...[
+                        SectionTitle(l.fastestOptions),
+                        for (final (name, proto, ping, color) in _fastest(l)) ...[
                           Container(
                             padding: const EdgeInsets.all(S.x12),
                             decoration: BoxDecoration(
@@ -253,29 +256,30 @@ class _WindowChrome extends StatelessWidget {
 class TrayScreen extends StatelessWidget {
   const TrayScreen({super.key});
 
-  static const _menu = [
-    ('قطع اتصال', '42 ms', true),
-    ('تعویض سرور', '', false),
-    ('ستاپ دوباره', '', false),
-    ('اشتراک اتصال · روشن', '', false),
-    ('خروج', '', false),
-  ];
+  static List<(String, String, bool)> _menu(L l) => [
+        (l.disconnect, '42 ms', true),
+        (l.traySwitchServer, '', false),
+        (l.redoSetupShort, '', false),
+        (l.trayShareOn, '', false),
+        (l.trayExit, '', false),
+      ];
 
-  static const _platforms = [
-    ('Android', 'کوییک‌تایل و ویجت'),
-    ('iOS', 'میان‌بر و ویجت'),
-    ('Windows', 'سینی سیستم'),
-    ('macOS', 'نوار منو'),
-    ('Linux', 'CLI و GUI'),
-  ];
+  static List<(String, String)> _platforms(L l) => [
+        ('Android', l.surfaceAndroid),
+        ('iOS', l.surfaceIos),
+        ('Windows', l.surfaceWindows),
+        ('macOS', l.surfaceMacos),
+        ('Linux', l.surfaceLinux),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrameless(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('سینی سیستم و کوییک‌تایل', style: T.screenTitle),
+          Text(l.trayTitle, style: T.screenTitle),
           const SizedBox(height: S.x16),
           Container(
             padding: const EdgeInsets.all(6),
@@ -286,7 +290,7 @@ class TrayScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                for (final (label, meta, highlighted) in _menu)
+                for (final (label, meta, highlighted) in _menu(l))
                   Container(
                     padding: const EdgeInsets.symmetric(
                         vertical: S.x10, horizontal: S.x12),
@@ -317,18 +321,22 @@ class TrayScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: S.x18),
-          const Row(
+          Row(
             children: [
-              Expanded(child: _QuickTile(title: 'PoPo', state: 'متصل', active: true)),
-              SizedBox(width: S.x12),
               Expanded(
                   child: _QuickTile(
-                      title: 'اشتراک', state: '۳ دستگاه', active: false)),
+                      title: 'PoPo', state: l.connected, active: true)),
+              const SizedBox(width: S.x12),
+              Expanded(
+                  child: _QuickTile(
+                      title: l.tileShare,
+                      state: l.devicesCount(3),
+                      active: false)),
             ],
           ),
           const SizedBox(height: S.x22),
-          const SectionTitle('روی هر پلتفرم'),
-          for (final (platform, surface) in _platforms)
+          SectionTitle(l.perPlatform),
+          for (final (platform, surface) in _platforms(l))
             Container(
               padding: const EdgeInsets.symmetric(vertical: S.x12),
               decoration: const BoxDecoration(border: hairlineBottom),
@@ -336,7 +344,13 @@ class TrayScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   MonoText(platform, style: T.monoName.copyWith(color: C.heading)),
-                  Text(surface, style: T.caption),
+                  const SizedBox(width: S.x12),
+                  // Surface names run much longer in English than in Persian,
+                  // so this side has to be able to give.
+                  Flexible(
+                    child: Text(surface,
+                        style: T.caption, textAlign: TextAlign.end),
+                  ),
                 ],
               ),
             ),

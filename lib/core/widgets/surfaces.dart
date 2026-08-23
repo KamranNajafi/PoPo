@@ -138,8 +138,11 @@ class SectionTitle extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: T.listTitle),
-          ?trailing,
+          Flexible(
+            child: Text(title,
+                style: T.listTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+          if (trailing != null) ...[const SizedBox(width: S.x8), trailing!],
         ],
       ),
     );

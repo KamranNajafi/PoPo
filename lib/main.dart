@@ -1,51 +1,79 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'app_scope.dart';
 import 'core/theme/tokens.dart';
 import 'core/theme/typography.dart';
+import 'core/util/locale_controller.dart';
+import 'core/util/prefs.dart';
+import 'features/keywords/keyword_store.dart';
 import 'gallery/gallery_page.dart';
+import 'l10n/app_localizations.dart';
+
 export 'gallery/gallery_page.dart' show ScreenPage;
 
-void main() => runApp(const PoPoApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPrefs.load();
+  runApp(PoPoApp(prefs: prefs));
+}
 
-class PoPoApp extends StatelessWidget {
-  const PoPoApp({super.key});
+class PoPoApp extends StatefulWidget {
+  const PoPoApp({super.key, required this.prefs});
+
+  final Prefs prefs;
+
+  @override
+  State<PoPoApp> createState() => _PoPoAppState();
+}
+
+class _PoPoAppState extends State<PoPoApp> {
+  late final LocaleController _locale = LocaleController(widget.prefs);
+  late final KeywordStore _keywords = KeywordStore(prefs: widget.prefs);
+
+  @override
+  void dispose() {
+    _locale.dispose();
+    _keywords.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'PoPo',
-      debugShowCheckedModeBanner: false,
+    return AppScope(
+      prefs: widget.prefs,
+      localeController: _locale,
+      keywordStore: _keywords,
+      child: ListenableBuilder(
+        listenable: _locale,
+        builder: (context, _) => MaterialApp(
+          title: 'PoPo',
+          debugShowCheckedModeBanner: false,
 
-      // The whole UI is Persian and right-to-left. Technical values opt back out
-      // individually through MonoText rather than the layout opting in.
-      locale: const Locale('fa'),
-      supportedLocales: const [Locale('fa'), Locale('en')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      builder: (context, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: child!,
-      ),
+          // Text direction is not hardcoded: Flutter derives it from the active
+          // locale, so Persian lays out RTL and English LTR without either being
+          // a special case. Technical values opt back into LTR individually
+          // through MonoText.
+          locale: _locale.locale,
+          supportedLocales: L.supportedLocales,
+          localizationsDelegates: L.localizationsDelegates,
 
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: C.page,
-        fontFamily: kSans,
-        colorScheme: const ColorScheme.dark(
-          primary: C.primary,
-          secondary: C.primaryMuted,
-          surface: C.surface,
-          error: C.danger,
-          onPrimary: C.onPrimary,
-          onSurface: C.heading,
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: C.page,
+            fontFamily: kSans,
+            colorScheme: const ColorScheme.dark(
+              primary: C.primary,
+              secondary: C.primaryMuted,
+              surface: C.surface,
+              error: C.danger,
+              onPrimary: C.onPrimary,
+              onSurface: C.heading,
+            ),
+          ),
+          home: const GalleryPage(),
         ),
       ),
-      home: const GalleryPage(),
     );
   }
 }

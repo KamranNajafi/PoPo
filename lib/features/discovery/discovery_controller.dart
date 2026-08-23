@@ -8,9 +8,14 @@ import '../../core/discovery/http_fetcher.dart';
 import '../../core/discovery/keywords.dart';
 import '../../core/discovery/models.dart';
 import '../../core/discovery/pipeline.dart';
+import '../keywords/keyword_store.dart';
 
 /// Phase of a discovery run, as the UI sees it.
 enum RunPhase { idle, running, done, cancelled, failed }
+
+/// Why a run could not proceed. Kept as an enum so the message is chosen where
+/// the localizations are available, not here.
+enum RunError { noEnginesEnabled, runFailed }
 
 /// Owns one discovery run: which engines are on, which phrases were generated,
 /// and the live state of the run.
@@ -23,12 +28,30 @@ class DiscoveryController extends ChangeNotifier {
     Fetcher? fetcher,
     this.config = const DiscoveryConfig(),
     this.generator = const KeywordGenerator(),
+    this.keywordStore,
   }) : _fetcher = fetcher ?? HttpFetcher() {
     _enabled = {
       for (final e in kEngines)
         if (e.enabledByDefault) e.id,
     };
-    _keywords = generator.generate(limit: config.keywordLimit);
+    keywordStore?.addListener(_onKeywordsChanged);
+    _refreshKeywords();
+  }
+
+  /// When present, the user's edited phrases replace the generator's own — that
+  /// is the whole point of making them editable.
+  final KeywordStore? keywordStore;
+
+  void _onKeywordsChanged() {
+    _refreshKeywords();
+    notifyListeners();
+  }
+
+  void _refreshKeywords() {
+    final store = keywordStore;
+    _keywords = store == null
+        ? generator.generate(limit: config.keywordLimit)
+        : store.effective.take(config.keywordLimit).toList();
   }
 
   final Fetcher _fetcher;
@@ -46,7 +69,8 @@ class DiscoveryController extends ChangeNotifier {
   List<Endpoint> _results = const [];
   int _found = 0;
   int _pagesFetched = 0;
-  String? _error;
+  RunError? _errorKind;
+  String? _errorDetail;
 
   // --- Read by the screens ---------------------------------------------------
 
@@ -58,7 +82,12 @@ class DiscoveryController extends ChangeNotifier {
   List<Endpoint> get results => List.unmodifiable(_results);
   int get found => _found;
   int get pagesFetched => _pagesFetched;
-  String? get error => _error;
+  /// What went wrong, as a kind rather than a message: the controller has no
+  /// BuildContext, so it must not decide what the user reads.
+  RunError? get errorKind => _errorKind;
+
+  /// The raw exception text, for the log — never shown as the primary message.
+  String? get errorDetail => _errorDetail;
 
   /// Engines that have reported at least one result this run.
   int get enginesReporting =>
@@ -86,13 +115,14 @@ class DiscoveryController extends ChangeNotifier {
     final engines = kEngines.where((e) => _enabled.contains(e.id)).toList();
     if (engines.isEmpty) {
       _phase = RunPhase.failed;
-      _error = 'هیچ موتوری روشن نیست.';
+      _errorKind = RunError.noEnginesEnabled;
       notifyListeners();
       return;
     }
 
     _phase = RunPhase.running;
-    _error = null;
+    _errorKind = null;
+    _errorDetail = null;
     _results = const [];
     _found = 0;
     _pagesFetched = 0;
@@ -106,6 +136,7 @@ class DiscoveryController extends ChangeNotifier {
       config: config,
       generator: generator,
       engines: engines,
+      keywords: _keywords,
     );
     _pipeline = pipeline;
 
@@ -122,7 +153,8 @@ class DiscoveryController extends ChangeNotifier {
       _found = results.length;
       _phase = pipeline.isCancelled ? RunPhase.cancelled : RunPhase.done;
     } on Object catch (e) {
-      _error = '$e';
+      _errorKind = RunError.runFailed;
+      _errorDetail = '$e';
       _phase = RunPhase.failed;
     } finally {
       await _subscription?.cancel();
@@ -139,6 +171,7 @@ class DiscoveryController extends ChangeNotifier {
 
   @override
   void dispose() {
+    keywordStore?.removeListener(_onKeywordsChanged);
     _subscription?.cancel();
     _pipeline?.cancel();
     if (_fetcher case final HttpFetcher f) f.close();

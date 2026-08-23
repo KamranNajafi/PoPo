@@ -7,6 +7,7 @@ import '../features/discovery/engine_row_status.dart';
 import '../core/theme/tokens.dart';
 import '../core/theme/typography.dart';
 import '../core/util/fa.dart';
+import '../l10n/app_localizations.dart';
 import '../core/widgets/bottom_nav.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/controls.dart';
@@ -26,7 +27,8 @@ class SearchScreen extends StatelessWidget {
   final DiscoveryController? controller;
   final VoidCallback? onSearch;
 
-  /// The five phrases the design shows when there is no live run.
+  /// The five phrases the design shows when there is no live run. These are
+  /// search terms, not UI copy, so they are not translated.
   static const _demoKeywords = [
     'free v2ray config',
     'vless reality',
@@ -46,6 +48,7 @@ class SearchScreen extends StatelessWidget {
   }
 
   Widget _build(BuildContext context, DiscoveryController? c) {
+    final l = L.of(context);
     final enabledIds = c?.enabledEngines ??
         {for (final e in kEngines) if (e.enabledByDefault) e.id};
 
@@ -53,7 +56,7 @@ class SearchScreen extends StatelessWidget {
         c == null ? _demoKeywords : c.keywords.take(5).map((k) => k.text).toList();
 
     return PhoneFrame(
-      nav: const BottomNav(items: Navs.items, activeIndex: Navs.search),
+      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.search),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -79,9 +82,10 @@ class SearchScreen extends StatelessWidget {
           ),
           const SizedBox(height: S.x22),
           SectionTitle(
-            'موتورهای جست‌وجو',
-            trailing: FaCounter(
-              faRatio(enabledIds.length, kEngines.length),
+            l.searchEngines,
+            trailing: RatioText(
+              '${formatNumber(context, enabledIds.length)} / '
+              '${formatNumber(context, kEngines.length)}',
               style: T.chip.copyWith(color: C.primaryMuted, fontSize: 13),
             ),
           ),
@@ -107,12 +111,13 @@ class SearchScreen extends StatelessWidget {
           ),
           const SizedBox(height: S.x24),
           PrimaryButton(
-            c != null && c.isRunning ? 'در حال جست‌وجو…' : 'جست‌وجو',
+            c != null && c.isRunning ? l.searchRunning : l.searchAction,
             onTap: onSearch,
           ),
-          if (c?.error != null) ...[
+          if (c?.errorKind != null) ...[
             const SizedBox(height: S.x12),
-            Text(c!.error!, style: T.small.copyWith(color: C.danger)),
+            Text(runErrorMessage(l, c!.errorKind!),
+                style: T.small.copyWith(color: C.danger)),
           ],
         ],
       ),
@@ -168,14 +173,14 @@ class ScanningScreen extends StatelessWidget {
   final VoidCallback? onStop;
 
   /// The design's frozen mid-run state, used on the canvas.
-  static const _demoRows = [
-    ('DuckDuckGo', '۱۴ نتیجه', C.success),
-    ('Google', '۱۱ نتیجه', C.success),
-    ('Brave', '۹ نتیجه', C.success),
-    ('Bing', 'در حال جست‌وجو', C.primary),
-    ('Startpage', 'در صف', C.muted),
-    ('Yandex', 'بلاک شد', C.danger),
-  ];
+  static List<(String, String, Color)> _demoRows(L l) => [
+        ('DuckDuckGo', l.engineResults(14), C.success),
+        ('Google', l.engineResults(11), C.success),
+        ('Brave', l.engineResults(9), C.success),
+        ('Bing', l.engineSearching, C.primary),
+        ('Startpage', l.engineQueued, C.muted),
+        ('Yandex', l.engineBlocked, C.danger),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -188,14 +193,15 @@ class ScanningScreen extends StatelessWidget {
   }
 
   Widget _build(BuildContext context, DiscoveryController? c) {
+    final l = L.of(context);
     final rows = c == null
-        ? _demoRows
+        ? _demoRows(l)
         : [
             for (final state in c.engineStates.values)
               (
                 engineById(state.id)?.name ?? state.id,
-                engineRowStatus(state).label,
-                engineRowStatus(state).color,
+                engineRowStatus(l, state).label,
+                engineRowStatus(l, state).color,
               ),
           ];
 
@@ -208,10 +214,10 @@ class ScanningScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ScreenHeader(
-            leading: Text(running ? 'در حال جست‌وجو' : 'جست‌وجو تمام شد',
+            leading: Text(running ? l.scanningTitle : l.scanFinished,
                 style: T.screenTitle),
             trailing: running
-                ? TextLink('توقف', color: C.primary, onTap: onStop)
+                ? TextLink(l.stop, color: C.primary, onTap: onStop)
                 : null,
           ),
           const SizedBox(height: S.x24),
@@ -223,11 +229,9 @@ class ScanningScreen extends StatelessWidget {
           const SizedBox(height: S.x18),
           Center(
             child: HeroCaption(
-              title: '${fa(found)} کانفیگ',
+              title: l.configsFound(found),
               titleStyle: T.onboardTitle,
-              body: running
-                  ? 'تا اینجا از ${fa(reporting)} موتور'
-                  : 'از ${fa(reporting)} موتور',
+              body: running ? l.soFarFromEngines(reporting) : l.fromEngines(reporting),
             ),
           ),
           const SizedBox(height: S.x24),
@@ -245,9 +249,10 @@ class ScanningScreen extends StatelessWidget {
                 ],
               ),
             ),
-          if (c?.error != null) ...[
+          if (c?.errorKind != null) ...[
             const SizedBox(height: S.x16),
-            Text(c!.error!, style: T.small.copyWith(color: C.danger)),
+            Text(runErrorMessage(l, c!.errorKind!),
+                style: T.small.copyWith(color: C.danger)),
           ],
         ],
       ),
@@ -319,12 +324,12 @@ class ResultCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
-                child: Text('منبع: $source',
+                child: Text(L.of(context).sourceLabel(source),
                     style: T.monoSub.copyWith(fontFamily: kSans),
                     overflow: TextOverflow.ellipsis),
               ),
               const SizedBox(width: S.x8),
-              const GhostButton('کپی'),
+              GhostButton(L.of(context).copy),
             ],
           ),
         ],
@@ -337,42 +342,44 @@ class ResultCard extends StatelessWidget {
 class ResultsScreen extends StatelessWidget {
   const ResultsScreen({super.key});
 
-  static const _filters = [
-    'همه',
-    'VLESS',
-    'VMess',
-    'Shadowsocks',
-    'Trojan',
-    'HTTP/S',
-    'SOCKS5',
-  ];
+  static List<String> _filters(L l) => [
+        l.filterAll,
+        'VLESS',
+        'VMess',
+        'Shadowsocks',
+        'Trojan',
+        'HTTP/S',
+        'SOCKS5',
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
+    final filters = _filters(l);
     return PhoneFrame(
-      nav: const BottomNav(items: Navs.items, activeIndex: Navs.results),
+      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.results),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ScreenHeader(
-            leading: Text('${fa(128)} نتیجه', style: T.screenTitle),
-            trailing: Text('مرتب‌سازی: پینگ', style: T.small),
+            leading: Text(l.resultsCount(128), style: T.screenTitle),
+            trailing: Text(l.sortByPing, style: T.small),
           ),
           const SizedBox(height: S.x16),
-          const _SegmentedTabs(labels: ['کانفیگ‌ها', 'پروکسی‌ها'], activeIndex: 0),
+          _SegmentedTabs(labels: [l.tabConfigs, l.tabProxies], activeIndex: 0),
           const SizedBox(height: S.x14),
           SizedBox(
             height: 32,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: _filters.length,
+              itemCount: filters.length,
               separatorBuilder: (_, _) => const SizedBox(width: S.x8),
-              itemBuilder: (_, i) => AppChip(_filters[i], selected: i == 0),
+              itemBuilder: (_, i) => AppChip(filters[i], selected: i == 0),
             ),
           ),
           const SizedBox(height: S.x14),
-          const ResultCard(
-            place: 'هلند · آمستردام',
+          ResultCard(
+            place: l.placeNlAmsterdam,
             protocol: 'VLESS · TCP · Reality',
             ping: '42 ms',
             pingColor: C.success,
@@ -380,8 +387,8 @@ class ResultsScreen extends StatelessWidget {
             source: 'DuckDuckGo',
           ),
           const SizedBox(height: S.x10),
-          const ResultCard(
-            place: 'فنلاند · هلسینکی',
+          ResultCard(
+            place: l.placeFiHelsinki,
             protocol: 'SOCKS5 · 51.15.42.7:1080',
             ping: '126 ms',
             pingColor: C.warning,
@@ -389,8 +396,8 @@ class ResultsScreen extends StatelessWidget {
             source: 'Brave',
           ),
           const SizedBox(height: S.x10),
-          const ResultCard(
-            place: 'لهستان · ورشو',
+          ResultCard(
+            place: l.placePlWarsaw,
             protocol: 'HTTPS · 185.244.10.9:8080',
             ping: '154 ms',
             pingColor: C.warning,
@@ -398,8 +405,8 @@ class ResultsScreen extends StatelessWidget {
             source: 'Google',
           ),
           const SizedBox(height: S.x10),
-          const ResultCard(
-            place: 'ترکیه · استانبول',
+          ResultCard(
+            place: l.placeTrIstanbul,
             protocol: 'Trojan · gRPC',
             ping: '318 ms',
             pingColor: C.danger,
@@ -464,12 +471,13 @@ class ConfigDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ScreenHeader(
-            leading: Text('جزئیات کانفیگ', style: T.screenTitle),
+            leading: Text(l.configDetailTitle, style: T.screenTitle),
             trailing: const RoundIconButton(AppIcons.bookmark, square: true),
           ),
           const SizedBox(height: S.x24),
@@ -497,27 +505,27 @@ class ConfigDetailScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Text('هلند · آمستردام', style: T.hero),
+                Text(l.placeNlAmsterdam, style: T.hero),
                 const SizedBox(height: 5),
                 const MonoText('VLESS · TCP · Reality', style: T.monoName),
               ],
             ),
           ),
           const SizedBox(height: S.x22),
-          const MetaRow('پروتکل', 'VLESS / Reality'),
-          const MetaRow('آی‌پی و پورت', '185.***.**.12 : 443'),
-          const MetaRow('آخرین تست موفق', '2 min ago · 42 ms'),
-          const MetaRow('منبع', 'DuckDuckGo · gist.github', showDivider: false),
+          MetaRow(l.metaProtocol, 'VLESS / Reality'),
+          MetaRow(l.metaIpPort, '185.***.**.12 : 443'),
+          MetaRow(l.metaLastSuccess, '2 min ago · 42 ms'),
+          MetaRow(l.metaSource, 'DuckDuckGo · gist.github', showDivider: false),
           const SizedBox(height: S.x16),
           const SunkenBlock(
             child: MonoText(_raw, style: T.monoRaw, textAlign: TextAlign.left),
           ),
           const SizedBox(height: S.x16),
-          const PrimaryButton('کپی لینک'),
+          PrimaryButton(l.copyLink),
           const SizedBox(height: S.x10),
-          const SplitRow(
-            start: SecondaryButton('تست دوباره'),
-            end: SecondaryButton('ذخیره'),
+          SplitRow(
+            start: SecondaryButton(l.testAgain),
+            end: SecondaryButton(l.save),
           ),
         ],
       ),

@@ -1,0 +1,501 @@
+{
+  "@@locale": "en",
+  "appName": "PoPo",
+  "navSearch": "Search",
+  "navResults": "Results",
+  "navSaved": "Saved",
+  "copy": "Copy",
+  "cancel": "Cancel",
+  "save": "Save",
+  "connect": "Connect",
+  "disconnect": "Disconnect",
+  "stop": "Stop",
+  "skip": "Skip",
+  "searchEngines": "Search engines",
+  "searchAction": "Search",
+  "searchRunning": "Searching…",
+  "noEnginesEnabled": "No engines are enabled.",
+  "scanningTitle": "Searching",
+  "scanFinished": "Search finished",
+  "configsFound": "{count, plural, =1{1 config} other{{count} configs}}",
+  "@configsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "soFarFromEngines": "So far from {count} engines",
+  "@soFarFromEngines": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "fromEngines": "From {count} engines",
+  "@fromEngines": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "engineResults": "{count, plural, =1{1 result} other{{count} results}}",
+  "@engineResults": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "engineNoResults": "No results",
+  "engineSearching": "Searching",
+  "engineQueued": "Queued",
+  "engineBlocked": "Blocked",
+  "engineCaptcha": "Asked for a captcha",
+  "engineUnavailable": "Unavailable",
+  "engineStopped": "Stopped",
+  "resultsCount": "{count, plural, =1{1 result} other{{count} results}}",
+  "@resultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sortByPing": "Sort: ping",
+  "tabConfigs": "Configs",
+  "tabProxies": "Proxies",
+  "filterAll": "All",
+  "sourceLabel": "Source: {name}",
+  "@sourceLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "configDetailTitle": "Config detail",
+  "metaProtocol": "Protocol",
+  "metaIpPort": "IP and port",
+  "metaLastSuccess": "Last successful test",
+  "metaSource": "Source",
+  "copyLink": "Copy link",
+  "testAgain": "Test again",
+  "simpleIntro": "Press one button and it will find the best way to connect, then connect you.",
+  "startSetup": "Start setup",
+  "advancedMode": "Advanced mode",
+  "pleaseWait": "One moment",
+  "stepOfSteps": "Step {current} of {total}",
+  "@stepOfSteps": {
+    "placeholders": {
+      "current": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "stepSearchTitle": "Searching the engines",
+  "stepSearchNote": "{engines} engines · {results} results",
+  "@stepSearchNote": {
+    "placeholders": {
+      "engines": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "results": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "stepHealthTitle": "Checking health and speed",
+  "stepHealthNote": "{count} healthy",
+  "@stepHealthNote": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "stepPickTitle": "Picking the best option",
+  "stepPickNote": "Lowest ping",
+  "stateDone": "Done",
+  "stateRunning": "In progress",
+  "stateWaiting": "Waiting",
+  "ready": "Ready",
+  "readyBody": "A fast server was found.\nPress the button below to connect.",
+  "pickManually": "Pick from the list yourself",
+  "connected": "You are connected",
+  "pickServer": "Pick a server",
+  "redoSetup": "Run setup again for a fresh list",
+  "settings": "Settings",
+  "settingAutoSearch": "Automatic search",
+  "settingEveryHours": "Every {count} hours",
+  "@settingEveryHours": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "settingPerEngineCap": "Result cap per engine",
+  "settingItems": "{count} items",
+  "@settingItems": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "settingTestTimeout": "Test timeout",
+  "settingSeconds": "{count} seconds",
+  "@settingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "settingAutoRemoveDead": "Remove dead configs automatically",
+  "settingAfterFailedTests": "After {count} failed tests",
+  "@settingAfterFailedTests": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "settingSimpleMode": "Simple mode",
+  "settingSimpleModeNote": "One button, no settings",
+  "settingTheme": "Theme",
+  "settingThemeValue": "Amber · dark",
+  "settingLanguage": "Language",
+  "settingKeywords": "Search phrases",
+  "settingKeywordsValue": "{count} phrases",
+  "@settingKeywordsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "clearAllResults": "Clear all results",
+  "savedTitle": "Saved",
+  "selectedCount": "{count} selected",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "copyAll": "Copy all",
+  "exportSubscription": "Export subscription",
+  "qr": "QR",
+  "testAll": "Test all",
+  "keywordsTitle": "Search phrases",
+  "keywordsIntro": "These are what the app searches for. Edit them to change what it finds.",
+  "addKeywordHint": "Add a new phrase…",
+  "addKeyword": "Add",
+  "generatedPhrases": "Generated automatically",
+  "customPhrases": "Yours",
+  "presetSets": "Preset sets",
+  "phrasesCount": "{count} phrases",
+  "@phrasesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "setProtocolNames": "Protocol names",
+  "setFreshness": "Month and year",
+  "setPersian": "Persian phrases",
+  "setSiteScoped": "Site-scoped (github, t.me)",
+  "setRawLinks": "Raw subscription links",
+  "restoreDefaults": "Restore defaults",
+  "keywordAlreadyExists": "That phrase is already in the list.",
+  "noCustomKeywords": "You have not added any phrases yet.",
+  "proxyDetailTitle": "Proxy detail",
+  "badgePortOpen": "Port open",
+  "metaType": "Type",
+  "metaAddress": "Address",
+  "metaAnonymity": "Anonymity",
+  "metaHttpsSupport": "HTTPS support",
+  "metaLastPortTest": "Last port test",
+  "copyIpPort": "Copy ip:port",
+  "testPort": "Test port",
+  "openInV2rayNG": "Open in V2rayNG",
+  "reportBroken": "Report as broken",
+  "historyTitle": "History",
+  "runSummary": "{results} results · {healthy} healthy · {engines} engines",
+  "@runSummary": {
+    "placeholders": {
+      "results": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "healthy": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "engines": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "runAgain": "Run again",
+  "importTitle": "Import",
+  "subscriptionLink": "Subscription link",
+  "fromClipboard": "From clipboard",
+  "historyToday": "Today {time}",
+  "@historyToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historyYesterday": "Yesterday {time}",
+  "@historyYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historyDaysAgo": "{count} days ago",
+  "@historyDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "errorStatesTitle": "Empty and error states",
+  "emptyNoResultsTitle": "Nothing found",
+  "emptyNoResultsBody": "Make the phrases less specific, or enable more engines.",
+  "emptyNoResultsAction": "Change phrases",
+  "errorOfflineTitle": "No internet",
+  "errorOfflineBody": "Check the device connection and try again.",
+  "errorOfflineAction": "Try again",
+  "errorCaptchaTitle": "{engine} asked for a captcha",
+  "@errorCaptchaTitle": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "errorCaptchaBody": "That engine was skipped for now; the rest carried on.",
+  "errorCaptchaAction": "Skip this engine",
+  "onboardTitle": "Free lists, in one place",
+  "onboardBody": "PoPo collects public servers, measures their speed and hands you the fastest.",
+  "warningTitle": "One important note",
+  "warningBody": "Strangers put these servers on the internet. They are fine for getting around a block, but do not enter your banking username or password over them.",
+  "gotIt": "Got it, let's start",
+  "shareConnection": "Share connection",
+  "serverOn": "The server is on",
+  "shareDevicesAndUsage": "{devices} devices connected · {usage} today",
+  "@shareDevicesAndUsage": {
+    "placeholders": {
+      "devices": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "usage": {
+        "type": "String"
+      }
+    }
+  },
+  "metaProxyAddress": "Proxy address",
+  "metaHttpPort": "HTTP port",
+  "metaSocksPort": "SOCKS5 port",
+  "metaUsername": "Username",
+  "metaPassword": "Password",
+  "showConnectionQr": "Show connection QR",
+  "changePassword": "Change password",
+  "turnOnHotspot": "Turn on hotspot",
+  "connectedDevices": "Connected devices",
+  "deviceWorkLaptop": "Work laptop",
+  "deviceLivingRoomTv": "Living room TV",
+  "deviceSecondPhone": "Second phone",
+  "deviceActive": "Active",
+  "devicePendingApproval": "Awaiting approval",
+  "deviceUsageToday": "{usage} today",
+  "@deviceUsageToday": {
+    "placeholders": {
+      "usage": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceLimit": "Limit",
+  "deviceDisconnect": "Disconnect",
+  "onlyApprovedDevices": "Only approved devices may connect",
+  "pairingTitle": "Connection guide",
+  "pairStep1Title": "Turn on the phone's hotspot",
+  "pairStep1Body": "Enable internet sharing in the phone's settings.",
+  "pairStep2Title": "Open Wi-Fi settings on the second device",
+  "pairStep2Body": "Connect it to that same hotspot.",
+  "pairStep3Title": "Set the proxy to Manual",
+  "pairStep3Body": "Enter the address and port below.",
+  "pairStep4Title": "Save, or scan the QR",
+  "pairStep4Body": "Once saved, its traffic goes through the tunnel.",
+  "copyAddressPort": "Copy address and port",
+  "splitTitle": "Split tunneling",
+  "splitBody": "Choose which apps go through the tunnel.",
+  "appBrowser": "Browser",
+  "appMessenger": "Messenger",
+  "appBank": "Bank",
+  "appVideo": "Video streaming",
+  "routedThroughTunnel": "Goes through the tunnel",
+  "routedDirect": "Connects directly",
+  "allThroughTunnel": "All through tunnel",
+  "noneThroughTunnel": "None",
+  "securityTitle": "Security and sync",
+  "settingKillSwitch": "Cut internet if the tunnel drops",
+  "settingKillSwitchNote": "Kill switch",
+  "settingSecureDns": "Secure DNS",
+  "settingSecureDnsNote": "1.1.1.1 · DoH",
+  "settingAutoConnect": "Connect automatically at startup",
+  "settingAutoConnectNote": "Always",
+  "settingSyncLists": "Sync lists between devices",
+  "settingSyncListsNote": "Mobile and desktop",
+  "connectionLog": "Connection log",
+  "desktopNavDashboard": "Dashboard",
+  "desktopNavShare": "Share connection",
+  "desktopNavHistory": "History",
+  "desktopNavSimple": "Simple mode",
+  "desktopNavSettings": "Settings",
+  "desktopConnectedTo": "Connected · {country}",
+  "@desktopConnectedTo": {
+    "placeholders": {
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "statHealthyConfigs": "Healthy configs",
+  "statHealthyProxies": "Healthy proxies",
+  "statConnectedDevices": "Connected devices",
+  "statUsageToday": "Usage today",
+  "fastestOptions": "Fastest options",
+  "redoSetupShort": "Run setup again",
+  "trayTitle": "Tray and quick tile",
+  "traySwitchServer": "Switch server",
+  "trayShareOn": "Share connection · on",
+  "trayExit": "Exit",
+  "tileShare": "Share",
+  "devicesCount": "{count} devices",
+  "@devicesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "perPlatform": "On each platform",
+  "surfaceAndroid": "Quick tile and widget",
+  "surfaceIos": "Shortcut and widget",
+  "surfaceWindows": "System tray",
+  "surfaceMacos": "Menu bar",
+  "surfaceLinux": "CLI and GUI",
+  "galleryTitle": "PoPo — phase 0",
+  "gallerySubtitle": "{count} screens, built from the design system's tokens. No network, no server — interface only.",
+  "@gallerySubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "runRealSearch": "Run a real search (01 → 02)",
+  "availAndroidDesktop": "Android and desktop",
+  "availAndroidOnly": "Android only",
+  "availDesktopOnly": "Desktop only",
+  "seeResults": "See {count} results",
+  "@seeResults": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "foundCount": "{count} found",
+  "@foundCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "notTestedYet": "Not tested yet — extraction and initial ranking only.",
+  "nothingFoundBody": "Nothing was found. Enable more engines, or try again later.",
+  "sourcesCount": "{count} sources",
+  "@sourcesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "screenSearch": "Search",
+  "screenScanning": "Searching",
+  "screenResults": "Results",
+  "screenConfigDetail": "Config detail",
+  "screenSimpleStart": "Start",
+  "screenSimpleSteps": "Steps",
+  "screenSimpleReady": "Ready",
+  "screenSimpleConnected": "Connected",
+  "screenSettings": "Settings",
+  "screenSaved": "Saved",
+  "screenKeywords": "Search phrases",
+  "screenProxyDetail": "Proxy detail",
+  "screenHistory": "History and import",
+  "screenErrors": "Empty and error",
+  "screenOnboarding": "Onboarding",
+  "screenProxyServer": "Proxy server",
+  "screenDevices": "Connected devices",
+  "screenPairing": "Connection guide",
+  "screenSplitTunnel": "Split tunneling",
+  "screenSecurity": "Security and sync",
+  "screenDesktop": "Desktop",
+  "screenTray": "Tray and quick tile",
+  "runErrorNoEngines": "No engines are enabled.",
+  "runErrorFailed": "The search could not be completed.",
+  "placeNlAmsterdam": "Netherlands · Amsterdam",
+  "placeDeFrankfurt": "Germany · Frankfurt",
+  "placeFiHelsinki": "Finland · Helsinki",
+  "placePlWarsaw": "Poland · Warsaw",
+  "placeTrIstanbul": "Türkiye · Istanbul",
+  "placeNl": "Netherlands",
+  "listSeparator": ", ",
+  "languageSystem": "Follow the device"
+}

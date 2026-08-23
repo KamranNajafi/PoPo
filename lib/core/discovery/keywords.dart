@@ -139,9 +139,54 @@ class KeywordGenerator {
       add('"$protocol://" list', 1.1, {'raw'});
     }
 
-    final sorted = out.values.toList()
-      ..sort((a, b) => b.weight.compareTo(a.weight));
-    return sorted.take(limit).toList();
+    return _diversify(out.values.toList(), limit);
+  }
+
+  /// Takes [limit] phrases spread across the axes rather than the top [limit] by
+  /// weight.
+  ///
+  /// Straight weight ordering is wrong here: site-scoped phrases carry the
+  /// highest weights, so they crowd out every Persian and freshness phrase
+  /// before the cap is reached. That both narrows discovery to one kind of
+  /// source and makes the per-category switches in settings do nothing. Instead
+  /// each axis contributes in turn, best-first within the axis.
+  List<Keyword> _diversify(List<Keyword> all, int limit) {
+    final groups = <String, List<Keyword>>{};
+    for (final keyword in all) {
+      groups.putIfAbsent(_axisOf(keyword), () => []).add(keyword);
+    }
+    for (final group in groups.values) {
+      group.sort((a, b) => b.weight.compareTo(a.weight));
+    }
+
+    // Strongest axis first, so the round-robin still leads with the best phrase.
+    final axes = groups.keys.toList()
+      ..sort((a, b) => groups[b]!.first.weight.compareTo(groups[a]!.first.weight));
+
+    final out = <Keyword>[];
+    for (var round = 0; out.length < limit; round++) {
+      var addedThisRound = false;
+      for (final axis in axes) {
+        final group = groups[axis]!;
+        if (round >= group.length) continue;
+        out.add(group[round]);
+        addedThisRound = true;
+        if (out.length == limit) break;
+      }
+      if (!addedThisRound) break; // every axis exhausted
+    }
+
+    out.sort((a, b) => b.weight.compareTo(a.weight));
+    return out;
+  }
+
+  /// The axis a phrase belongs to, most specific first — a phrase tagged both
+  /// `site` and `protocol` is a site phrase.
+  String _axisOf(Keyword keyword) {
+    for (final axis in const ['site', 'raw', 'persian', 'fresh', 'protocol']) {
+      if (keyword.tags.contains(axis)) return axis;
+    }
+    return 'other';
   }
 
   static const _months = [

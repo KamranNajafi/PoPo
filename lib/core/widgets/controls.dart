@@ -162,9 +162,21 @@ class AppChip extends StatelessWidget {
         ? T.monoName.copyWith(color: fg)
         : T.chip.copyWith(color: fg, fontWeight: FontWeight.w500);
 
-    final text = mono
-        ? Directionality(textDirection: TextDirection.ltr, child: Text(label, style: style))
-        : Text(label, style: style);
+    // Chips carry user-supplied and generated search phrases, which can be far
+    // longer than the design's samples. A pill that cannot shrink overflows the
+    // row, so the label is flexible and truncates rather than the chip growing
+    // past the screen.
+    final labelText = Text(
+      label,
+      style: style,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+    final text = Flexible(
+      child: mono
+          ? Directionality(textDirection: TextDirection.ltr, child: labelText)
+          : labelText,
+    );
 
     return GestureDetector(
       onTap: onTap,

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../core/theme/tokens.dart';
+import '../l10n/app_localizations.dart';
 import '../core/theme/typography.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/controls.dart';
@@ -16,6 +17,7 @@ class SimpleStartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       simpleMode: true,
       child: Column(
@@ -27,14 +29,14 @@ class SimpleStartScreen extends StatelessWidget {
           const Center(child: Text('PoPo', style: T.wordmark)),
           const SizedBox(height: S.x14),
           Text(
-            'یک دکمه را بزنید تا خودش بهترین راه اتصال را\nپیدا کند و وصل شوید.',
+            l.simpleIntro,
             style: T.simpleBody,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 44),
-          const PrimaryButton('شروع ستاپ', oversized: true),
+          PrimaryButton(l.startSetup, oversized: true),
           const SizedBox(height: S.x18),
-          const Center(child: TextLink('حالت پیشرفته')),
+          Center(child: TextLink(l.advancedMode)),
         ],
       ),
     );
@@ -45,14 +47,18 @@ class SimpleStartScreen extends StatelessWidget {
 class SimpleStepsScreen extends StatelessWidget {
   const SimpleStepsScreen({super.key});
 
-  static const _steps = [
-    ('جست‌وجو در موتورها', '۱۰ موتور · ۱۲۸ نتیجه', 'انجام شد', StepState.done, C.success),
-    ('بررسی سلامت و سرعت', '۳۱ مورد سالم', 'در حال انجام', StepState.running, C.primary),
-    ('انتخاب بهترین گزینه', 'کم‌ترین پینگ', 'در انتظار', StepState.waiting, C.muted),
-  ];
+  static List<(String, String, String, StepState, Color)> _steps(L l) => [
+        (l.stepSearchTitle, l.stepSearchNote(10, 128), l.stateDone,
+            StepState.done, C.success),
+        (l.stepHealthTitle, l.stepHealthNote(31), l.stateRunning,
+            StepState.running, C.primary),
+        (l.stepPickTitle, l.stepPickNote, l.stateWaiting,
+            StepState.waiting, C.muted),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       simpleMode: true,
       child: Column(
@@ -63,13 +69,13 @@ class SimpleStepsScreen extends StatelessWidget {
           const SizedBox(height: S.x22),
           Center(
             child: HeroCaption(
-              title: 'کمی صبر کنید',
+              title: l.pleaseWait,
               titleStyle: T.hero,
-              body: 'مرحلهٔ ۲ از ۳',
+              body: l.stepOfSteps(2, 3),
             ),
           ),
           const SizedBox(height: S.x26),
-          for (final (title, note, state, circle, color) in _steps) ...[
+          for (final (title, note, state, circle, color) in _steps(l)) ...[
             ListCard(
               child: Row(
                 children: [
@@ -93,7 +99,7 @@ class SimpleStepsScreen extends StatelessWidget {
             const SizedBox(height: S.x10),
           ],
           const SizedBox(height: S.x14),
-          const SecondaryButton('انصراف'),
+          SecondaryButton(l.cancel),
         ],
       ),
     );
@@ -106,6 +112,7 @@ class SimpleReadyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       simpleMode: true,
       child: Column(
@@ -114,10 +121,10 @@ class SimpleReadyScreen extends StatelessWidget {
           const SizedBox(height: 36),
           const Center(child: StatusHero(state: HeroState.ready, size: 112)),
           const SizedBox(height: S.x22),
-          Center(child: Text('آماده است', style: T.simpleHero)),
+          Center(child: Text(l.ready, style: T.simpleHero)),
           const SizedBox(height: S.x14),
           Text(
-            'یک سرور سریع پیدا شد.\nبرای وصل شدن دکمهٔ زیر را بزنید.',
+            l.readyBody,
             style: T.simpleBody,
             textAlign: TextAlign.center,
           ),
@@ -134,9 +141,9 @@ class SimpleReadyScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 40),
-          const PrimaryButton('اتصال', oversized: true),
+          PrimaryButton(l.connect, oversized: true),
           const SizedBox(height: S.x12),
-          const SecondaryButton('انتخاب دستی از لیست'),
+          SecondaryButton(l.pickManually),
         ],
       ),
     );
@@ -147,14 +154,15 @@ class SimpleReadyScreen extends StatelessWidget {
 class SimpleConnectedScreen extends StatelessWidget {
   const SimpleConnectedScreen({super.key});
 
-  static const _servers = [
-    ('هلند · آمستردام', '42 ms', C.success, true),
-    ('آلمان · فرانکفورت', '78 ms', C.success, false),
-    ('فنلاند · هلسینکی', '126 ms', C.warning, false),
-  ];
+  static List<(String, String, Color, bool)> _servers(L l) => [
+        (l.placeNlAmsterdam, '42 ms', C.success, true),
+        (l.placeDeFrankfurt, '78 ms', C.success, false),
+        (l.placeFiHelsinki, '126 ms', C.warning, false),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return PhoneFrame(
       simpleMode: true,
       child: Column(
@@ -163,7 +171,7 @@ class SimpleConnectedScreen extends StatelessWidget {
           const SizedBox(height: S.x14),
           const Center(child: StatusHero(state: HeroState.working, size: 104)),
           const SizedBox(height: S.x18),
-          Center(child: Text('متصل هستید', style: T.simpleHero)),
+          Center(child: Text(l.connected, style: T.simpleHero)),
           const SizedBox(height: S.x10),
           const Center(
             child: MonoText(
@@ -177,8 +185,8 @@ class SimpleConnectedScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: S.x24),
-          const SectionTitle('انتخاب سرور'),
-          for (final (name, ping, color, selected) in _servers)
+          SectionTitle(l.pickServer),
+          for (final (name, ping, color, selected) in _servers(l))
             Container(
               padding: const EdgeInsets.symmetric(vertical: S.x12),
               decoration: const BoxDecoration(border: hairlineBottom),
@@ -192,14 +200,14 @@ class SimpleConnectedScreen extends StatelessWidget {
               ),
             ),
           const SizedBox(height: S.x24),
-          const PrimaryButton('قطع اتصال', oversized: true, showConnectedDot: true),
+          PrimaryButton(l.disconnect, oversized: true, showConnectedDot: true),
           const SizedBox(height: S.x12),
-          const GhostButton(
-            'ستاپ دوباره و لیست تازه',
+          GhostButton(
+            l.redoSetup,
             expand: true,
             large: true,
             color: C.primaryMuted,
-            leading: AppIcon(AppIcons.refresh, size: 16, color: C.primaryMuted),
+            leading: const AppIcon(AppIcons.refresh, size: 16, color: C.primaryMuted),
           ),
         ],
       ),

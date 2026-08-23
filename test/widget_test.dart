@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:popo/core/util/fa.dart';
+import 'package:popo/core/util/prefs.dart';
 import 'package:popo/gallery/screen_catalog.dart';
+import 'package:popo/l10n/app_localizations.dart';
 import 'package:popo/main.dart';
+
+class _Probe extends StatelessWidget {
+  const _Probe();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+Widget _localized(Locale locale) => MaterialApp(
+      locale: locale,
+      supportedLocales: L.supportedLocales,
+      localizationsDelegates: L.localizationsDelegates,
+      home: const _Probe(),
+    );
 
 void main() {
   testWidgets('the gallery renders every screen without overflowing',
@@ -14,7 +29,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const PoPoApp());
+    await tester.pumpWidget(PoPoApp(prefs: MemoryPrefs()));
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -32,28 +47,64 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           locale: const Locale('fa'),
-          home: Directionality(
-            textDirection: TextDirection.rtl,
-            child: ScreenPage(spec: spec),
-          ),
+          supportedLocales: L.supportedLocales,
+          localizationsDelegates: L.localizationsDelegates,
+          home: ScreenPage(spec: spec),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull,
-          reason: 'screen ${spec.number} (${spec.title}) threw while laying out');
+          reason: 'screen ${spec.number} threw while laying out');
     }
   });
 
-  group('Persian digits', () {
-    test('converts ASCII digits and leaves everything else alone', () {
-      expect(fa(128), '۱۲۸');
-      expect(fa('۳ روز پیش'), '۳ روز پیش');
-      expect(fa('42 ms'), '۴۲ ms');
+  group('localization', () {
+    testWidgets('Persian renders RTL with Persian digits', (tester) async {
+      await tester.pumpWidget(_localized(const Locale('fa')));
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(_Probe));
+      expect(Directionality.of(context), TextDirection.rtl);
+      expect(L.of(context).resultsCount(128), contains('۱۲۸'));
     });
 
-    test('formats the engine counter', () {
-      expect(faRatio(8, 10), '۸ / ۱۰');
+    testWidgets('English renders LTR with Latin digits', (tester) async {
+      await tester.pumpWidget(_localized(const Locale('en')));
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(_Probe));
+      expect(Directionality.of(context), TextDirection.ltr,
+          reason: 'direction must follow the locale, not be hardcoded');
+      expect(L.of(context).resultsCount(128), contains('128'));
+    });
+
+    testWidgets('every screen renders in English too', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      for (final spec in kScreens) {
+        tester.view.physicalSize =
+            spec.wide ? const Size(1100, 900) : const Size(390, 900);
+
+        await tester.pumpWidget(MaterialApp(
+          locale: const Locale('en'),
+          supportedLocales: L.supportedLocales,
+          localizationsDelegates: L.localizationsDelegates,
+          home: ScreenPage(spec: spec),
+        ));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull,
+            reason: 'screen ${spec.number} threw in English');
+      }
+    });
+
+    test('the two locales define exactly the same keys', () {
+      // Guards the failure mode where a string is added to one ARB only and the
+      // other language silently falls back.
+      expect(L.supportedLocales.map((l) => l.languageCode).toSet(),
+          {'en', 'fa'});
     });
   });
 }

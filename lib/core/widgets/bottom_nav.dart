@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../../l10n/app_localizations.dart';
+
 import '../theme/tokens.dart';
 import '../theme/typography.dart';
 import 'icons.dart';
@@ -65,13 +67,14 @@ class _NavEntry extends StatelessWidget {
   }
 }
 
-/// The three nav configurations the design uses.
+/// The nav configuration the design uses. Labels are localized, so this is a
+/// function of the strings rather than a const list.
 abstract final class Navs {
-  static const items = [
-    NavItem('جست‌وجو', AppIcons.search),
-    NavItem('نتایج', AppIcons.results),
-    NavItem('ذخیره‌ها', AppIcons.bookmark),
-  ];
+  static List<NavItem> items(L l) => [
+        NavItem(l.navSearch, AppIcons.search),
+        NavItem(l.navResults, AppIcons.results),
+        NavItem(l.navSaved, AppIcons.bookmark),
+      ];
 
   static const search = 0;
   static const results = 1;

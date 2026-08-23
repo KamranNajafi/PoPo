@@ -1,9 +1,14 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
+import '../l10n/app_localizations.dart';
 
 import '../screens/advanced_core.dart';
 import '../screens/cross_platform.dart';
 import '../screens/sharing.dart';
 import '../screens/simple_mode.dart';
+import '../app_scope.dart';
+import '../features/keywords/keywords_screen.dart';
+import '../features/settings/language_screen.dart';
 import '../screens/supporting.dart';
 
 /// Which builds a screen ships in.
@@ -36,7 +41,9 @@ class ScreenSpec {
   });
 
   final String number;
-  final String title;
+
+  /// Reads the screen's name out of the active localizations.
+  final String Function(L) title;
   final WidgetBuilder builder;
   final Availability availability;
 
@@ -45,79 +52,79 @@ class ScreenSpec {
 }
 
 /// Every screen in the design, in the order the canvas lays them out.
-const kScreens = <ScreenSpec>[
+final kScreens = <ScreenSpec>[
   // Advanced core
   ScreenSpec(
     number: '01',
-    title: 'جست‌وجو',
+    title: (l) => l.screenSearch,
     builder: _search,
     availability: Availability.noApple,
   ),
   ScreenSpec(
     number: '02',
-    title: 'در حال جست‌وجو',
+    title: (l) => l.screenScanning,
     builder: _scanning,
     availability: Availability.noApple,
   ),
-  ScreenSpec(number: '03', title: 'نتایج', builder: _results),
-  ScreenSpec(number: '04', title: 'جزئیات کانفیگ', builder: _configDetail),
+  ScreenSpec(number: '03', title: (l) => l.screenResults, builder: _results),
+  ScreenSpec(number: '04', title: (l) => l.screenConfigDetail, builder: _configDetail),
 
   // Simple mode
-  ScreenSpec(number: 'S1', title: 'شروع', builder: _simpleStart),
-  ScreenSpec(number: 'S2', title: 'مراحل', builder: _simpleSteps),
-  ScreenSpec(number: 'S3', title: 'آماده', builder: _simpleReady),
-  ScreenSpec(number: 'S4', title: 'متصل', builder: _simpleConnected),
+  ScreenSpec(number: 'S1', title: (l) => l.screenSimpleStart, builder: _simpleStart),
+  ScreenSpec(number: 'S2', title: (l) => l.screenSimpleSteps, builder: _simpleSteps),
+  ScreenSpec(number: 'S3', title: (l) => l.screenSimpleReady, builder: _simpleReady),
+  ScreenSpec(number: 'S4', title: (l) => l.screenSimpleConnected, builder: _simpleConnected),
 
   // Supporting
-  ScreenSpec(number: '05', title: 'تنظیمات', builder: _settings),
-  ScreenSpec(number: '06', title: 'ذخیره‌شده‌ها', builder: _saved),
+  ScreenSpec(number: '05', title: (l) => l.screenSettings, builder: _settings),
+  ScreenSpec(number: '06', title: (l) => l.screenSaved, builder: _saved),
   ScreenSpec(
     number: '07',
-    title: 'عبارت‌های کلیدی',
+    title: (l) => l.screenKeywords,
     builder: _keywords,
     availability: Availability.noApple,
   ),
-  ScreenSpec(number: '08', title: 'جزئیات پروکسی', builder: _proxyDetail),
-  ScreenSpec(number: '09', title: 'تاریخچه و ایمپورت', builder: _history),
-  ScreenSpec(number: '10', title: 'خالی و خطا', builder: _errors),
-  ScreenSpec(number: '11', title: 'آنبوردینگ', builder: _onboarding),
+  ScreenSpec(number: '08', title: (l) => l.screenProxyDetail, builder: _proxyDetail),
+  ScreenSpec(number: '09', title: (l) => l.screenHistory, builder: _history),
+  ScreenSpec(number: '10', title: (l) => l.screenErrors, builder: _errors),
+  ScreenSpec(number: '11', title: (l) => l.screenOnboarding, builder: _onboarding),
 
   // Connection sharing
   ScreenSpec(
     number: '12',
-    title: 'سرور پروکسی',
+    title: (l) => l.screenProxyServer,
     builder: _proxyServer,
     availability: Availability.noApple,
   ),
   ScreenSpec(
     number: '13',
-    title: 'دستگاه‌های وصل',
+    title: (l) => l.screenDevices,
     builder: _devices,
     availability: Availability.noApple,
   ),
   ScreenSpec(
     number: '14',
-    title: 'راهنمای اتصال',
+    title: (l) => l.screenPairing,
     builder: _pairing,
     availability: Availability.noApple,
   ),
   ScreenSpec(
     number: '15',
-    title: 'تفکیک ترافیک',
+    title: (l) => l.screenSplitTunnel,
     builder: _splitTunnel,
     availability: Availability.androidOnly,
   ),
-  ScreenSpec(number: '16', title: 'امنیت و همگام‌سازی', builder: _security),
+  ScreenSpec(number: '16', title: (l) => l.screenSecurity, builder: _security),
 
   // Cross-platform
   ScreenSpec(
     number: '17',
-    title: 'دسکتاپ',
+    title: (l) => l.screenDesktop,
     builder: _desktop,
     availability: Availability.desktopOnly,
     wide: true,
   ),
-  ScreenSpec(number: '18', title: 'سینی و کوییک‌تایل', builder: _tray),
+  ScreenSpec(number: '18', title: (l) => l.screenTray, builder: _tray),
 ];
 
 Widget _search(BuildContext _) => const SearchScreen();
@@ -128,9 +135,61 @@ Widget _simpleStart(BuildContext _) => const SimpleStartScreen();
 Widget _simpleSteps(BuildContext _) => const SimpleStepsScreen();
 Widget _simpleReady(BuildContext _) => const SimpleReadyScreen();
 Widget _simpleConnected(BuildContext _) => const SimpleConnectedScreen();
-Widget _settings(BuildContext _) => const SettingsScreen();
+/// Settings is live wherever an [AppScope] is above it: the phrase count is
+/// real and the two rows navigate. On the bare canvas it falls back to display.
+Widget _settings(BuildContext context) {
+  final scope = AppScope.maybeOf(context);
+  if (scope == null) return const SettingsScreen();
+
+  return SettingsScreen(
+    keywordCount: scope.keywordStore.effective.length,
+    onOpenKeywords: () => Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _framed(KeywordsScreen(store: scope.keywordStore)),
+      ),
+    ),
+    onOpenLanguage: () => Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _framed(LanguageScreen(controller: scope.localeController)),
+      ),
+    ),
+  );
+}
+
+Widget _keywordsLive(BuildContext context) {
+  final scope = AppScope.maybeOf(context);
+  return KeywordsScreen(store: scope?.keywordStore);
+}
+
+/// Centres a screen on the page background, the way ScreenPage does.
+Widget _framed(Widget child) => Builder(
+      builder: (context) => Scaffold(
+        backgroundColor: const Color(0xFF121016),
+        body: SafeArea(
+          child: Column(
+            children: [
+              const Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: BackButton(color: Color(0xFFB8AFC4)),
+              ),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 390),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: child,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
 Widget _saved(BuildContext _) => const SavedScreen();
-Widget _keywords(BuildContext _) => const KeywordsScreen();
+Widget _keywords(BuildContext context) => _keywordsLive(context);
 Widget _proxyDetail(BuildContext _) => const ProxyDetailScreen();
 Widget _history(BuildContext _) => const HistoryScreen();
 Widget _errors(BuildContext _) => const ErrorStatesScreen();

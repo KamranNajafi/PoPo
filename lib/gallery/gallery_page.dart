@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/tokens.dart';
 import '../core/theme/typography.dart';
-import '../core/util/fa.dart';
+import '../l10n/app_localizations.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/phone_frame.dart';
 import '../features/discovery/discovery_flow.dart';
@@ -16,6 +16,7 @@ class GalleryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return Scaffold(
       backgroundColor: C.page,
       body: SafeArea(
@@ -31,7 +32,7 @@ class GalleryPage extends StatelessWidget {
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: GhostButton(
-                  'اجرای واقعی جست‌وجو (۰۱ → ۰۲)',
+                  l.runRealSearch,
                   large: true,
                   color: C.primaryMuted,
                   onTap: () => Navigator.of(context).push(
@@ -49,7 +50,7 @@ class GalleryPage extends StatelessWidget {
                   for (final spec in kScreens)
                     GalleryTile(
                       number: spec.number,
-                      title: spec.title,
+                      title: spec.title(l),
                       width: spec.wide ? 690 : 330,
                       child: _Openable(spec: spec),
                     ),
@@ -101,12 +102,18 @@ class ScreenPage extends StatelessWidget {
                   horizontal: S.x16, vertical: S.x10),
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_forward_rounded,
-                        color: C.body, size: 20),
+                  // BackButton rather than a hardcoded arrow: the direction it
+                  // points has to follow the locale, and pinning it to RTL made
+                  // it point the wrong way in English.
+                  const BackButton(color: C.body),
+                  Expanded(
+                    child: Text(
+                      '${spec.number} · ${spec.title(L.of(context))}',
+                      style: T.listTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  Text('${spec.number} · ${spec.title}', style: T.listTitle),
                 ],
               ),
             ),
@@ -135,16 +142,13 @@ class _CanvasHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('PoPo — فاز ۰', style: T.simpleHero),
+        Text(l.galleryTitle, style: T.simpleHero),
         const SizedBox(height: 6),
-        Text(
-          '${fa(kScreens.length)} صفحه، ساخته‌شده از توکن‌های دیزاین‌سیستم. '
-          'بدون شبکه، بدون سرور — فقط رابط کاربری.',
-          style: T.caption,
-        ),
+        Text(l.gallerySubtitle(kScreens.length), style: T.caption),
       ],
     );
   }
@@ -153,19 +157,20 @@ class _CanvasHeader extends StatelessWidget {
 class _Legend extends StatelessWidget {
   const _Legend();
 
-  static const _entries = [
-    (Availability.noApple, 'اندروید و دسکتاپ', C.warning),
-    (Availability.androidOnly, 'فقط اندروید', C.primary),
-    (Availability.desktopOnly, 'فقط دسکتاپ', C.primaryMuted),
-  ];
+  static List<(Availability, String, Color)> _entries(L l) => [
+        (Availability.noApple, l.availAndroidDesktop, C.warning),
+        (Availability.androidOnly, l.availAndroidOnly, C.primary),
+        (Availability.desktopOnly, l.availDesktopOnly, C.primaryMuted),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return Wrap(
       spacing: S.x18,
       runSpacing: S.x10,
       children: [
-        for (final (availability, label, color) in _entries)
+        for (final (availability, label, color) in _entries(l))
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -176,7 +181,7 @@ class _Legend extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '$label · ${kScreens.where((s) => s.availability == availability).map((s) => s.number).join('، ')}',
+                '$label · ${kScreens.where((s) => s.availability == availability).map((s) => s.number).join(l.listSeparator)}',
                 style: T.small,
               ),
             ],

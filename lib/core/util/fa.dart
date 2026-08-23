@@ -1,38 +1,38 @@
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
-/// Persian numerals.
+import '../../l10n/app_localizations.dart';
+
+/// Locale-aware number formatting.
 ///
-/// The design shows every user-facing number in Persian digits (۱۲۸ نتیجه) while
-/// every technical value stays Latin (`42 ms`, `192.168.43.1 : 8888`). Those are
-/// two different decisions, so they get two different call sites: [fa] converts,
-/// [MonoText] deliberately does not.
-const _fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-
-/// Converts the ASCII digits in [input] to Persian digits.
-String fa(Object? input) {
-  final s = '$input';
-  final buf = StringBuffer();
-  for (final rune in s.runes) {
-    if (rune >= 0x30 && rune <= 0x39) {
-      buf.write(_fa[rune - 0x30]);
-    } else {
-      buf.writeCharCode(rune);
-    }
-  }
-  return buf.toString();
-}
-
-/// `۸ / ۱۰` style counters.
-String faRatio(int a, int b) => '${fa(a)} / ${fa(b)}';
-
-/// A counter rendered with Persian digits.
+/// The design shows Persian numerals, but that is a property of the Persian
+/// locale rather than of the app: `intl` renders ۱۲۸ under `fa` and 128 under
+/// `en` from the same call. Hardcoding Persian digits would have made the
+/// English build wrong.
 ///
-/// Two things make this its own widget. Persian digits force the sans face,
-/// because IBM Plex Mono has no glyphs for them. And a bare "۸ / ۱۰" inside an
-/// RTL paragraph is reordered by the bidi algorithm into "۱۰ / ۸", so the run
-/// has to be pinned LTR to keep the pair in the order it was written.
-class FaCounter extends StatelessWidget {
-  const FaCounter(this.text, {super.key, this.style});
+/// Most numbers reach the UI through an ARB placeholder with
+/// `"format": "decimalPattern"`, which does this already. This helper is for
+/// the few that are composed in code.
+String formatNumber(BuildContext context, num value) =>
+    NumberFormat.decimalPattern(Localizations.localeOf(context).toString())
+        .format(value);
+
+/// Same, without a [BuildContext] — for use where the locale is already known.
+String formatNumberIn(Locale locale, num value) =>
+    NumberFormat.decimalPattern(locale.toString()).format(value);
+
+/// Shorthand for the generated localizations.
+L strings(BuildContext context) => L.of(context);
+
+/// A counter such as `8 / 10`, pinned LTR.
+///
+/// Under RTL the bidi algorithm reorders a bare "8 / 10" into "10 / 8", because
+/// the two numbers are separate weak runs either side of a neutral slash. The
+/// pair has to be pinned to keep the order it was written in. It also cannot use
+/// the mono face: IBM Plex Mono has no Persian glyphs, and the Persian locale
+/// renders these digits as ۸ / ۱۰.
+class RatioText extends StatelessWidget {
+  const RatioText(this.text, {super.key, this.style});
 
   final String text;
   final TextStyle? style;
