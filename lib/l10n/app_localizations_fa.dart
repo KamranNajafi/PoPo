@@ -996,4 +996,24 @@ class LFa extends L {
 
   @override
   String get openDetail => 'جزئیات';
+
+  @override
+  String get tunnelUnavailable =>
+      'هستهٔ تونل در این بیلد ساخته نشده، پس اتصال در دسترس نیست. کشف و تست کار می‌کنند.';
+
+  @override
+  String get permissionDeclined =>
+      'PoPo برای عبور دادن ترافیک به اجازهٔ VPN نیاز دارد. بدون آن چیزی وصل نمی‌شود.';
+
+  @override
+  String get connectFailed => 'اتصال برقرار نشد. سرور دیگری را امتحان کنید.';
+
+  @override
+  String get connecting => 'در حال اتصال…';
+
+  @override
+  String get disconnecting => 'در حال قطع…';
+
+  @override
+  String get connectionOptions => 'اتصال';
 }

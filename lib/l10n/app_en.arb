@@ -521,5 +521,11 @@
         "format": "decimalPattern"
       }
     }
-  }
+  },
+  "tunnelUnavailable": "The tunnel core is not built into this build, so connecting is unavailable. Discovery and testing still work.",
+  "permissionDeclined": "PoPo needs VPN permission to route your traffic. Nothing connects without it.",
+  "connectFailed": "Could not connect. Try another server.",
+  "connecting": "Connecting…",
+  "disconnecting": "Disconnecting…",
+  "connectionOptions": "Connection"
 }

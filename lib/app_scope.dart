@@ -5,6 +5,7 @@ import 'core/util/prefs.dart';
 import 'features/keywords/keyword_store.dart';
 import 'features/results/app_settings.dart';
 import 'features/results/results_store.dart';
+import 'features/tunnel/connection_controller.dart';
 
 /// The app's long-lived controllers, handed down the tree.
 ///
@@ -19,6 +20,7 @@ class AppScope extends InheritedWidget {
     required this.keywordStore,
     required this.resultsStore,
     required this.settings,
+    required this.connection,
     required super.child,
   });
 
@@ -27,6 +29,7 @@ class AppScope extends InheritedWidget {
   final KeywordStore keywordStore;
   final ResultsStore resultsStore;
   final AppSettings settings;
+  final ConnectionController connection;
 
   static AppScope of(BuildContext context) {
     final scope = maybeOf(context);
@@ -45,5 +48,6 @@ class AppScope extends InheritedWidget {
       localeController != oldWidget.localeController ||
       keywordStore != oldWidget.keywordStore ||
       resultsStore != oldWidget.resultsStore ||
-      settings != oldWidget.settings;
+      settings != oldWidget.settings ||
+      connection != oldWidget.connection;
 }

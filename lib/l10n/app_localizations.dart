@@ -1710,6 +1710,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Details'**
   String get openDetail;
+
+  /// No description provided for @tunnelUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The tunnel core is not built into this build, so connecting is unavailable. Discovery and testing still work.'**
+  String get tunnelUnavailable;
+
+  /// No description provided for @permissionDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'PoPo needs VPN permission to route your traffic. Nothing connects without it.'**
+  String get permissionDeclined;
+
+  /// No description provided for @connectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect. Try another server.'**
+  String get connectFailed;
+
+  /// No description provided for @connecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get connecting;
+
+  /// No description provided for @disconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnecting…'**
+  String get disconnecting;
+
+  /// No description provided for @connectionOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get connectionOptions;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -11,6 +11,7 @@ import '../../screens/simple_mode.dart';
 import '../../screens/supporting.dart';
 import 'discovery_controller.dart';
 import 'http_fetcher_shim.dart';
+import '../tunnel/connection_controller.dart';
 import 'run_coordinator.dart';
 
 /// The live app: search → test → results, in both modes.
@@ -83,7 +84,10 @@ class _AppFlowState extends State<AppFlow> {
 
     await navigator.push(MaterialPageRoute<void>(
       builder: (_) => _simple
-          ? _SimpleProgressRoute(coordinator: coordinator)
+          ? _SimpleProgressRoute(
+              coordinator: coordinator,
+              connection: AppScope.of(context).connection,
+            )
           : _ScanningRoute(coordinator: coordinator),
     ));
     await run;
@@ -190,28 +194,32 @@ void _openHistory(BuildContext context, RunCoordinator coordinator) {
 
 /// Simple mode: steps (S2), then ready (S3), then connected (S4).
 class _SimpleProgressRoute extends StatefulWidget {
-  const _SimpleProgressRoute({required this.coordinator});
+  const _SimpleProgressRoute({required this.coordinator, required this.connection});
 
   final RunCoordinator coordinator;
+  final ConnectionController connection;
 
   @override
   State<_SimpleProgressRoute> createState() => _SimpleProgressRouteState();
 }
 
 class _SimpleProgressRouteState extends State<_SimpleProgressRoute> {
-  /// Connection is not implemented yet — the tunnel needs the platform layer.
-  /// The screen still moves, so the flow can be walked end to end.
-  bool _connected = false;
   String? _chosen;
+
+  Future<void> _connect(Endpoint endpoint) async {
+    setState(() => _chosen = endpoint.fingerprint);
+    await widget.connection.connect(endpoint);
+  }
 
   @override
   Widget build(BuildContext context) {
     final coordinator = widget.coordinator;
+    final connection = widget.connection;
 
     return _Framed(
       results: coordinator.results,
       child: ListenableBuilder(
-        listenable: coordinator,
+        listenable: Listenable.merge([coordinator, connection]),
         builder: (context, _) {
           if (coordinator.isRunning || coordinator.stage == RunStage.failed) {
             return SimpleStepsScreen(
@@ -224,17 +232,14 @@ class _SimpleProgressRouteState extends State<_SimpleProgressRoute> {
             );
           }
 
-          if (!_connected) {
+          if (!connection.isConnected) {
             return SimpleReadyScreen(
               best: coordinator.best,
+              connection: connection,
               onConnect: coordinator.best == null
                   ? null
-                  : () => setState(() {
-                        _connected = true;
-                        _chosen = coordinator.best?.fingerprint;
-                      }),
-              onPickManually: () =>
-                  _openResults(context, coordinator),
+                  : () => _connect(coordinator.best!),
+              onPickManually: () => _openResults(context, coordinator),
             );
           }
 
@@ -242,11 +247,14 @@ class _SimpleProgressRouteState extends State<_SimpleProgressRoute> {
           return SimpleConnectedScreen(
             servers: fastest,
             selected: _chosen,
-            onSelect: (endpoint) => setState(() => _chosen = endpoint.fingerprint),
-            onDisconnect: () => setState(() => _connected = false),
-            onRedoSetup: () {
-              setState(() => _connected = false);
-              coordinator.run();
+            connection: connection,
+            // Switching server replaces the core's instance, so the user never
+            // sees a disconnected gap.
+            onSelect: (endpoint) => _connect(endpoint),
+            onDisconnect: connection.disconnect,
+            onRedoSetup: () async {
+              await connection.disconnect();
+              await coordinator.run();
             },
           );
         },

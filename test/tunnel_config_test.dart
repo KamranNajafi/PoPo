@@ -152,7 +152,7 @@ void main() {
     });
 
     test('a discovered bare proxy becomes a socks outbound', () {
-      final proxy = Endpoint(
+      const proxy = Endpoint(
         raw: '51.15.42.7:1080',
         kind: EndpointKind.proxy,
         protocol: Protocol.socks5,

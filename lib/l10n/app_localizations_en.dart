@@ -1015,4 +1015,24 @@ class LEn extends L {
 
   @override
   String get openDetail => 'Details';
+
+  @override
+  String get tunnelUnavailable =>
+      'The tunnel core is not built into this build, so connecting is unavailable. Discovery and testing still work.';
+
+  @override
+  String get permissionDeclined =>
+      'PoPo needs VPN permission to route your traffic. Nothing connects without it.';
+
+  @override
+  String get connectFailed => 'Could not connect. Try another server.';
+
+  @override
+  String get connecting => 'Connecting…';
+
+  @override
+  String get disconnecting => 'Disconnecting…';
+
+  @override
+  String get connectionOptions => 'Connection';
 }

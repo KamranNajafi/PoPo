@@ -4,6 +4,7 @@ import '../core/discovery/models.dart';
 import '../core/theme/tokens.dart';
 import '../features/discovery/run_coordinator.dart';
 import '../features/results/ping_display.dart';
+import '../features/tunnel/connection_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../core/theme/typography.dart';
 import '../core/widgets/buttons.dart';
@@ -213,15 +214,33 @@ class SimpleStepsScreen extends StatelessWidget {
 
 /// S3 · Ready — the setup finished; one button left.
 class SimpleReadyScreen extends StatelessWidget {
-  const SimpleReadyScreen({super.key, this.best, this.onConnect, this.onPickManually});
+  const SimpleReadyScreen({
+    super.key,
+    this.best,
+    this.onConnect,
+    this.onPickManually,
+    this.connection,
+  });
 
   /// The endpoint a connect would use. Null when nothing usable was found.
   final Endpoint? best;
   final VoidCallback? onConnect;
   final VoidCallback? onPickManually;
 
+  /// Null on the design canvas; live it reports permission and failure states.
+  final ConnectionController? connection;
+
   @override
   Widget build(BuildContext context) {
+    final c = connection;
+    if (c == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) => _build(context, c),
+    );
+  }
+
+  Widget _build(BuildContext context, ConnectionController? c) {
     final l = L.of(context);
     return PhoneFrame(
       simpleMode: true,
@@ -255,9 +274,34 @@ class SimpleReadyScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 40),
-          PrimaryButton(l.connect, oversized: true, onTap: onConnect),
+          PrimaryButton(
+            c != null && c.isBusy ? l.connecting : l.connect,
+            oversized: true,
+            onTap: c != null && c.isBusy ? null : onConnect,
+          ),
           const SizedBox(height: S.x12),
           SecondaryButton(l.pickManually, onTap: onPickManually),
+          // The honest states: a build with no core, a declined prompt, and a
+          // failure are three different things and read as three different
+          // things.
+          if (c != null && !c.isSupported) ...[
+            const SizedBox(height: S.x14),
+            Text(l.tunnelUnavailable,
+                style: T.small.copyWith(color: C.warning),
+                textAlign: TextAlign.center),
+          ] else if (c?.error != null) ...[
+            const SizedBox(height: S.x14),
+            Text(
+              switch (c!.error!) {
+                ConnectionError.permissionDenied => l.permissionDeclined,
+                ConnectionError.unsupportedConfig => l.connectFailed,
+                ConnectionError.platformFailed => l.connectFailed,
+                ConnectionError.noEndpoint => l.noHealthyFound,
+              },
+              style: T.small.copyWith(color: C.danger),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ],
       ),
     );
@@ -273,6 +317,7 @@ class SimpleConnectedScreen extends StatelessWidget {
     this.onSelect,
     this.onDisconnect,
     this.onRedoSetup,
+    this.connection,
   });
 
   /// The few fastest endpoints, for the switcher.
@@ -281,6 +326,7 @@ class SimpleConnectedScreen extends StatelessWidget {
   final void Function(Endpoint)? onSelect;
   final VoidCallback? onDisconnect;
   final VoidCallback? onRedoSetup;
+  final ConnectionController? connection;
 
   Widget _serverRow(
     String name,
@@ -319,6 +365,15 @@ class SimpleConnectedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = connection;
+    if (c == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) => _build(context, c),
+    );
+  }
+
+  Widget _build(BuildContext context, ConnectionController? c) {
     final l = L.of(context);
     return PhoneFrame(
       simpleMode: true,
@@ -328,12 +383,22 @@ class SimpleConnectedScreen extends StatelessWidget {
           const SizedBox(height: S.x14),
           const Center(child: StatusHero(state: HeroState.working, size: 104)),
           const SizedBox(height: S.x18),
-          Center(child: Text(l.connected, style: T.simpleHero)),
+          Center(
+            child: Text(
+              c == null || c.isConnected
+                  ? l.connected
+                  : (c.isBusy ? l.disconnecting : l.connected),
+              style: T.simpleHero,
+            ),
+          ),
           const SizedBox(height: S.x10),
-          const Center(
+          Center(
             child: MonoText(
-              '42 ms · 00:37:12',
-              style: TextStyle(
+              c == null
+                  ? '42 ms · 00:37:12'
+                  : '${c.endpoint == null ? '—' : pingLabel(c.endpoint!)}'
+                      ' · ${formatUptime(c.uptime)}',
+              style: const TextStyle(
                 fontFamily: kMono,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
