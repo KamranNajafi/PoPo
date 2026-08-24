@@ -66,6 +66,31 @@ jobs:
             echo "found=false" >> "$GITHUB_OUTPUT"
           fi
 
+  reconcile:
+    name: Reconcile an existing release
+    needs: version
+    if: needs.version.outputs.already_released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      # Publishing is skipped once a version exists, so a wrong flag on an
+      # already-published release would otherwise be unfixable through the
+      # pipeline. Overstating readiness is exactly the kind of wrong flag worth
+      # being able to correct.
+      - name: Ensure the prerelease flag matches intent
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version.outputs.tag }}
+          WANT_PRERELEASE: ${{ github.event_name != 'workflow_dispatch' || inputs.prerelease }}
+        run: |
+          current="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+                       --json isPrerelease --jq '.isPrerelease')"
+          echo "$TAG is prerelease=$current, want $WANT_PRERELEASE"
+          if [ "$current" != "$WANT_PRERELEASE" ]; then
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --prerelease="$WANT_PRERELEASE"
+            echo "::notice::corrected $TAG to prerelease=$WANT_PRERELEASE"
+          fi
+
   core-android:
     name: Core (Android .aar)
     needs: version
@@ -248,7 +273,9 @@ jobs:
           name: PoPo ${{ needs.version.outputs.tag }}
           body_path: RELEASE_NOTES.md
           files: dist/*
-          # Default true: the first release of an app whose tunnel has never run
-          # on real hardware.
-          prerelease: ${{ inputs.prerelease != false }}
+          # On a push there is no input, and an absent input compares equal to
+          # false — which published v0.1.0 as a full release when it should have
+          # been a preview. Default to prerelease unless a dispatch says
+          # otherwise.
+          prerelease: ${{ github.event_name != 'workflow_dispatch' || inputs.prerelease }}
           fail_on_unmatched_files: true
