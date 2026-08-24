@@ -37,6 +37,7 @@ jobs:
     outputs:
       tag: ${{ steps.pick.outputs.tag }}
       version: ${{ steps.pick.outputs.version }}
+      stamp: ${{ steps.pick.outputs.stamp }}
       already_released: ${{ steps.existing.outputs.found }}
     steps:
       - uses: actions/checkout@v4
@@ -48,22 +49,41 @@ jobs:
           if [ -z "$tag" ]; then
             tag="v$(tr -d '[:space:]' < VERSION)"
           fi
+          # One timestamp for the whole run, so every artifact from one build
+          # carries the same one. Computing it per job would let two files from
+          # the same release disagree about when they were built.
+          stamp="$(date -u +%Y%m%d-%H%M)"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
-          echo "building $tag"
+          echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+          echo "building $tag at $stamp"
 
       - id: existing
-        # Touching VERSION for an unrelated reason should not try to republish a
-        # version that already exists, and re-running should be harmless.
+        # Touching VERSION for an unrelated reason should not republish, and
+        # re-running should be harmless — but a release whose assets do not
+        # match the current naming is not really "already released", it is a
+        # release that needs its files rebuilt. Checking the names rather than
+        # just the tag makes the pipeline able to repair its own output.
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.pick.outputs.tag }}
+          VERSION: ${{ steps.pick.outputs.version }}
         run: |
-          if gh release view "${{ steps.pick.outputs.tag }}" \
-               --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The arm64 build is the one every release must carry; its name is the
+          # canary for whether the whole set is current.
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+               --json assets --jq '.assets[].name' \
+             | grep -q "^PoPo-v${VERSION}-android-arm64-"; then
             echo "found=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::${{ steps.pick.outputs.tag }} is already released; skipping"
+            echo "::notice::$TAG is already released with current asset names; skipping"
           else
             echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$TAG exists but its assets are stale; rebuilding them"
           fi
 
   reconcile:
@@ -164,12 +184,20 @@ jobs:
       - name: Name the outputs after the release
         env:
           VERSION: ${{ needs.version.outputs.version }}
+          STAMP: ${{ needs.version.outputs.stamp }}
         run: |
-          version="$VERSION"
           mkdir -p dist
+          # The ABI alone tells a non-technical user nothing, so the audience is
+          # part of the name. The identifying half comes first, because a phone
+          # truncates the middle of a long filename.
           for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
-            abi="$(basename "$apk" | sed 's/^app-//; s/-release\.apk$//')"
-            cp "$apk" "dist/popo-${version}-${abi}.apk"
+            case "$(basename "$apk")" in
+              *arm64-v8a*)   name="android-arm64-most-phones" ;;
+              *armeabi-v7a*) name="android-arm32-older-phones" ;;
+              *x86_64*)      name="android-x86_64-emulator" ;;
+              *)             name="android-$(basename "$apk" | sed 's/^app-//; s/-release\.apk$//')" ;;
+            esac
+            cp "$apk" "dist/PoPo-v${VERSION}-${name}-${STAMP}.apk"
           done
           ls -l dist
 
@@ -198,10 +226,11 @@ jobs:
       - name: Package
         env:
           VERSION: ${{ needs.version.outputs.version }}
+          STAMP: ${{ needs.version.outputs.stamp }}
         run: |
-          version="$VERSION"
           mkdir -p dist
-          tar -czf "dist/popocore-${version}-linux-x64.tar.gz" -C linux/lib libpopocore.so
+          tar -czf "dist/PoPo-v${VERSION}-linux-x64-core-library-${STAMP}.tar.gz" \
+            -C linux/lib libpopocore.so
           ls -l dist
 
       - uses: actions/upload-artifact@v4
@@ -234,10 +263,10 @@ jobs:
       - name: Package
         env:
           VERSION: ${{ needs.version.outputs.version }}
+          STAMP: ${{ needs.version.outputs.stamp }}
         run: |
-          version="$VERSION"
           mkdir -p dist
-          tar -czf "dist/popo-${version}-web-canvas.tar.gz" -C build/web .
+          tar -czf "dist/PoPo-v${VERSION}-web-design-canvas-${STAMP}.tar.gz" -C build/web .
 
       - uses: actions/upload-artifact@v4
         with:
@@ -263,6 +292,26 @@ jobs:
           find artifacts -type f \( -name '*.apk' -o -name '*.tar.gz' \) -exec cp {} dist/ \;
           (cd dist && sha256sum * > SHA256SUMS.txt)
           ls -l dist
+
+      - name: Remove assets this build did not produce
+        # Uploading alone would leave the previous naming sitting next to the new
+        # one, which is worse than either — the reader now has two sets and no
+        # way to tell which is current.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --json assets --jq '.assets[].name' 2>/dev/null > existing.txt || true
+
+          while read -r asset; do
+            [ -z "$asset" ] && continue
+            if [ ! -f "dist/$asset" ]; then
+              echo "removing stale asset: $asset"
+              gh release delete-asset "$TAG" "$asset" \
+                --repo "$GITHUB_REPOSITORY" --yes
+            fi
+          done < existing.txt
 
       - uses: softprops/action-gh-release@v2
         with:

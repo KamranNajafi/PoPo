@@ -61,18 +61,42 @@ to need adjusting, and expect engines to block a plain client.
 and sharing compile out under `--dart-define=ENABLE_DISCOVERY=false`, verified
 in CI — but no Apple binary has been produced.
 
-## Downloads
+## Downloads — which file?
 
-`popo-0.1.0-<abi>.apk` — Android. Pick `arm64-v8a` unless you know otherwise.
-Split per ABI so the download does not carry three copies of a 30MB core.
+**کدام فایل را بگیرم؟** اگر گوشی اندروید معمولی دارید:
+**`...android-arm64-most-phones.apk`** — همان یکی. بقیه را نادیده بگیرید.
 
-`popocore-0.1.0-linux-x64.tar.gz` — the desktop core, for building the Linux app.
+| If you have | Download |
+|---|---|
+| **An Android phone** (almost certainly this one) | `PoPo-v0.1.0-android-arm64-most-phones-*.apk` |
+| An Android phone from before ~2016 | `PoPo-v0.1.0-android-arm32-older-phones-*.apk` |
+| An Android emulator on a PC | `PoPo-v0.1.0-android-x86_64-emulator-*.apk` |
+| To build the Linux app yourself | `PoPo-v0.1.0-linux-x64-core-library-*.tar.gz` |
+| To review the interface in a browser | `PoPo-v0.1.0-web-design-canvas-*.tar.gz` |
 
-`popo-0.1.0-web-canvas.tar.gz` — the design canvas: all 22 screens in a browser,
-for reviewing the interface. It cannot tunnel; the web has no raw sockets and the
-app says so rather than pretending.
+If you pick the wrong Android one, it simply refuses to install — nothing breaks.
 
-Checksums are in `SHA256SUMS.txt`.
+The trailing `-YYYYMMDD-HHMM` is when the file was built, in UTC. Every file
+from one release shares it, so you can always tell which build you have.
+
+### Installing on Android
+
+1. Download the `.apk` on the phone.
+2. Open it. Android will ask to allow installing from this source — that is the
+   normal prompt for anything not from Play, and you can revoke it afterwards.
+3. The first connection asks for VPN permission. Nothing routes without it.
+
+The web canvas is not an app: unpack it and open `index.html`. It shows all 22
+screens for review and cannot tunnel, because browsers have no raw sockets.
+
+Checksums for every file are in `SHA256SUMS.txt`.
+
+### A note on signing
+
+These are signed with Android's debug key, which is what the project ships with
+today. They install and run, but two things follow: do not treat the signature
+as proof of origin, and a later properly-signed build will not update over them
+— uninstall first.
 
 ## A word about the servers
 
