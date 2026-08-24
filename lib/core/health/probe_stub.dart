@@ -10,8 +10,7 @@ class UnsupportedProbe implements LatencyProbe {
     String host,
     int port, {
     required Duration timeout,
-  }) async =>
-      const ProbeResult.unsupported();
+  }) async => const ProbeResult.unsupported();
 }
 
 LatencyProbe createProbe() => const UnsupportedProbe();

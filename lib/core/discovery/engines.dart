@@ -78,14 +78,18 @@ class SearchEngine {
     final lower = body.toLowerCase();
     for (final marker in blockMarkers) {
       if (lower.contains(marker)) {
-        return marker.contains('captcha') ? EngineStatus.captcha : EngineStatus.blocked;
+        return marker.contains('captcha')
+            ? EngineStatus.captcha
+            : EngineStatus.blocked;
       }
     }
     return EngineStatus.done;
   }
 
-  static final _genericLinks =
-      RegExp(r'href="((?:https?:)?//[^"]+)"', caseSensitive: false);
+  static final _genericLinks = RegExp(
+    r'href="((?:https?:)?//[^"]+)"',
+    caseSensitive: false,
+  );
 
   static String? _clean(String? raw) {
     if (raw == null) return null;

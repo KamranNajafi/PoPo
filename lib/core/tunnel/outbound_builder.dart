@@ -20,7 +20,10 @@ class UnsupportedConfigException implements Exception {
 /// against the real sing-box parser in the Go test suite.
 abstract final class OutboundBuilder {
   /// Builds the outbound for [endpoint], tagged [tag].
-  static Map<String, dynamic> fromEndpoint(Endpoint endpoint, {String tag = 'proxy'}) {
+  static Map<String, dynamic> fromEndpoint(
+    Endpoint endpoint, {
+    String tag = 'proxy',
+  }) {
     if (endpoint.kind == EndpointKind.proxy) {
       return _proxy(endpoint, tag);
     }
@@ -133,7 +136,13 @@ abstract final class OutboundBuilder {
 
   static String _vmessSecurity(Object? raw) {
     final value = (raw ?? '').toString();
-    const supported = {'auto', 'none', 'zero', 'aes-128-gcm', 'chacha20-poly1305'};
+    const supported = {
+      'auto',
+      'none',
+      'zero',
+      'aes-128-gcm',
+      'chacha20-poly1305',
+    };
     return supported.contains(value) ? value : 'auto';
   }
 
@@ -175,7 +184,9 @@ abstract final class OutboundBuilder {
       final decoded = _decodeBase64(credentials) ?? credentials;
       final colon = decoded.indexOf(':');
       if (colon <= 0) {
-        throw const UnsupportedConfigException('shadowsocks credentials are malformed');
+        throw const UnsupportedConfigException(
+          'shadowsocks credentials are malformed',
+        );
       }
       method = decoded.substring(0, colon);
       password = decoded.substring(colon + 1);
@@ -186,16 +197,22 @@ abstract final class OutboundBuilder {
     } else {
       final decoded = _decodeBase64(body);
       if (decoded == null) {
-        throw const UnsupportedConfigException('shadowsocks payload is not base64');
+        throw const UnsupportedConfigException(
+          'shadowsocks payload is not base64',
+        );
       }
       final at = decoded.lastIndexOf('@');
       if (at <= 0) {
-        throw const UnsupportedConfigException('shadowsocks payload has no address');
+        throw const UnsupportedConfigException(
+          'shadowsocks payload has no address',
+        );
       }
       final credentials = decoded.substring(0, at);
       final colon = credentials.indexOf(':');
       if (colon <= 0) {
-        throw const UnsupportedConfigException('shadowsocks credentials are malformed');
+        throw const UnsupportedConfigException(
+          'shadowsocks credentials are malformed',
+        );
       }
       method = credentials.substring(0, colon);
       password = credentials.substring(colon + 1);
@@ -228,10 +245,7 @@ abstract final class OutboundBuilder {
     final obfs = parts.query['obfs'];
     final obfsPassword = parts.query['obfs-password'];
     if (obfs != null && obfs.isNotEmpty) {
-      out['obfs'] = {
-        'type': obfs,
-          'password': ?obfsPassword,
-      };
+      out['obfs'] = {'type': obfs, 'password': ?obfsPassword};
     }
 
     // QUIC-based, so TLS is always present.
@@ -260,7 +274,8 @@ abstract final class OutboundBuilder {
       'tls': {
         'enabled': true,
         'server_name': parts.query['sni'] ?? parts.host,
-        if (parts.query['alpn'] != null) 'alpn': parts.query['alpn']!.split(','),
+        if (parts.query['alpn'] != null)
+          'alpn': parts.query['alpn']!.split(','),
         if (parts.query['allow_insecure'] == '1') 'insecure': true,
       },
     };
@@ -268,7 +283,9 @@ abstract final class OutboundBuilder {
 
   static Map<String, dynamic> _socksUri(String uri, String tag) {
     final parts = _Uri.parse(uri);
-    final credentials = parts.userInfo.isEmpty ? null : parts.userInfo.split(':');
+    final credentials = parts.userInfo.isEmpty
+        ? null
+        : parts.userInfo.split(':');
     return {
       'type': 'socks',
       'tag': tag,
@@ -283,7 +300,9 @@ abstract final class OutboundBuilder {
 
   static Map<String, dynamic> _httpUri(String uri, String tag) {
     final parts = _Uri.parse(uri);
-    final credentials = parts.userInfo.isEmpty ? null : parts.userInfo.split(':');
+    final credentials = parts.userInfo.isEmpty
+        ? null
+        : parts.userInfo.split(':');
     return {
       'type': 'http',
       'tag': tag,
@@ -297,28 +316,31 @@ abstract final class OutboundBuilder {
   }
 
   /// A bare `ip:port` proxy discovered from a table.
-  static Map<String, dynamic> _proxy(Endpoint endpoint, String tag) => switch (endpoint.protocol) {
+  static Map<String, dynamic> _proxy(Endpoint endpoint, String tag) =>
+      switch (endpoint.protocol) {
         Protocol.http || Protocol.https => {
-            'type': 'http',
-            'tag': tag,
-            'server': endpoint.host,
-            'server_port': endpoint.port,
-            if (endpoint.protocol == Protocol.https) 'tls': {'enabled': true},
-          },
+          'type': 'http',
+          'tag': tag,
+          'server': endpoint.host,
+          'server_port': endpoint.port,
+          if (endpoint.protocol == Protocol.https) 'tls': {'enabled': true},
+        },
         _ => {
-            'type': 'socks',
-            'tag': tag,
-            'server': endpoint.host,
-            'server_port': endpoint.port,
-            'version': '5',
-          },
+          'type': 'socks',
+          'tag': tag,
+          'server': endpoint.host,
+          'server_port': endpoint.port,
+          'version': '5',
+        },
       };
 
   // --- Shared pieces ----------------------------------------------------------
 
   static Map<String, dynamic>? _tls(_Uri parts) {
     final security = (parts.query['security'] ?? '').toLowerCase();
-    if (security != 'tls' && security != 'reality' && security != 'xtls') return null;
+    if (security != 'tls' && security != 'reality' && security != 'xtls') {
+      return null;
+    }
 
     final sni = parts.query['sni'] ?? parts.query['peer'] ?? parts.host;
     final tls = <String, dynamic>{'enabled': true, 'server_name': sni};
@@ -353,11 +375,11 @@ abstract final class OutboundBuilder {
   }
 
   static Map<String, dynamic>? _transport(_Uri parts) => _transportFrom(
-        network: parts.query['type'] ?? 'tcp',
-        path: parts.query['path'] ?? '',
-        host: parts.query['host'] ?? '',
-        serviceName: parts.query['serviceName'] ?? parts.query['path'] ?? '',
-      );
+    network: parts.query['type'] ?? 'tcp',
+    path: parts.query['path'] ?? '',
+    host: parts.query['host'] ?? '',
+    serviceName: parts.query['serviceName'] ?? parts.query['path'] ?? '',
+  );
 
   static Map<String, dynamic>? _transportFrom({
     required String network,
@@ -375,7 +397,8 @@ abstract final class OutboundBuilder {
       case 'grpc':
         return {
           'type': 'grpc',
-          if (serviceName.isNotEmpty) 'service_name': serviceName.replaceFirst('/', ''),
+          if (serviceName.isNotEmpty)
+            'service_name': serviceName.replaceFirst('/', ''),
         };
       case 'httpupgrade':
         return {
@@ -419,7 +442,9 @@ abstract final class OutboundBuilder {
     if (cleaned.isEmpty) return null;
     final normalized = cleaned.replaceAll('-', '+').replaceAll('_', '/');
     final padded = normalized.padRight(
-        normalized.length + (4 - normalized.length % 4) % 4, '=');
+      normalized.length + (4 - normalized.length % 4) % 4,
+      '=',
+    );
     try {
       return utf8.decode(base64.decode(padded), allowMalformed: false);
     } on Object {

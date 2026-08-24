@@ -37,10 +37,8 @@ class PairingQr {
         moduleCount,
         List.generate(
           moduleCount,
-          (row) => List.generate(
-            moduleCount,
-            (column) => image.isDark(row, column),
-          ),
+          (row) =>
+              List.generate(moduleCount, (column) => image.isDark(row, column)),
         ),
       );
     } on Object {
@@ -64,7 +62,10 @@ class QrPainter extends CustomPainter {
     final total = code.size + quietZone * 2;
     final module = min(size.width, size.height) / total;
 
-    canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xFFFFFFFF));
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFFFFFFFF),
+    );
 
     final foreground = Paint()..color = const Color(0xFF000000);
     for (var row = 0; row < code.size; row++) {

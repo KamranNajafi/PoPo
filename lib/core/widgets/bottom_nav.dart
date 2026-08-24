@@ -83,10 +83,10 @@ class _NavEntry extends StatelessWidget {
 /// function of the strings rather than a const list.
 abstract final class Navs {
   static List<NavItem> items(L l) => [
-        NavItem(l.navSearch, AppIcons.search),
-        NavItem(l.navResults, AppIcons.results),
-        NavItem(l.navSaved, AppIcons.bookmark),
-      ];
+    NavItem(l.navSearch, AppIcons.search),
+    NavItem(l.navResults, AppIcons.results),
+    NavItem(l.navSaved, AppIcons.bookmark),
+  ];
 
   static const search = 0;
   static const results = 1;

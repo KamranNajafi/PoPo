@@ -21,7 +21,9 @@ class InstalledApp {
 /// the interface is built — sing-box never sees them.
 class SplitTunnelController extends ChangeNotifier {
   SplitTunnelController({required this.prefs, MethodChannel? channel})
-      : _channel = channel ?? const MethodChannel(PlatformTunnelService.methodChannelName) {
+    : _channel =
+          channel ??
+          const MethodChannel(PlatformTunnelService.methodChannelName) {
     _routed = (prefs.getStringList(_routedKey) ?? const []).toSet();
     _mode = switch (prefs.getString(_modeKey)) {
       'include' => SplitTunnelMode.include,
@@ -48,10 +50,10 @@ class SplitTunnelController extends ChangeNotifier {
 
   /// The configuration slice the tunnel builder needs.
   SplitTunnel get config => switch (_mode) {
-        SplitTunnelMode.off => const SplitTunnel.disabled(),
-        SplitTunnelMode.include => SplitTunnel.include(_routed.toList()),
-        SplitTunnelMode.exclude => SplitTunnel.exclude(_routed.toList()),
-      };
+    SplitTunnelMode.off => const SplitTunnel.disabled(),
+    SplitTunnelMode.include => SplitTunnel.include(_routed.toList()),
+    SplitTunnelMode.exclude => SplitTunnel.exclude(_routed.toList()),
+  };
 
   Future<void> toggle(String packageName) async {
     if (!_routed.remove(packageName)) _routed.add(packageName);
@@ -81,12 +83,16 @@ class SplitTunnelController extends ChangeNotifier {
   /// there is no such concept, which is every platform but Android.
   Future<void> loadApps() async {
     try {
-      final raw = await _channel.invokeListMethod<Map<Object?, Object?>>('installedApps');
+      final raw = await _channel.invokeListMethod<Map<Object?, Object?>>(
+        'installedApps',
+      );
       _apps = (raw ?? const [])
-          .map((entry) => InstalledApp(
-                packageName: entry['packageName'] as String? ?? '',
-                name: entry['name'] as String? ?? '',
-              ))
+          .map(
+            (entry) => InstalledApp(
+              packageName: entry['packageName'] as String? ?? '',
+              name: entry['name'] as String? ?? '',
+            ),
+          )
           .where((app) => app.packageName.isNotEmpty)
           .toList();
     } on Object {

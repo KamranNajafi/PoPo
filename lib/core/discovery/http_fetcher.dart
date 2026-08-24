@@ -26,7 +26,10 @@ class HttpFetcher implements Fetcher {
   final int maxBytes;
 
   @override
-  Future<FetchResult> get(String url, {Map<String, String> headers = const {}}) async {
+  Future<FetchResult> get(
+    String url, {
+    Map<String, String> headers = const {},
+  }) async {
     final uri = Uri.tryParse(url);
     if (uri == null || !uri.isScheme('http') && !uri.isScheme('https')) {
       throw FetchException('unsupported url: $url');

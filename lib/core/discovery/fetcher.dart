@@ -9,7 +9,11 @@ abstract interface class Fetcher {
 }
 
 class FetchResult {
-  const FetchResult({required this.statusCode, required this.body, this.finalUrl});
+  const FetchResult({
+    required this.statusCode,
+    required this.body,
+    this.finalUrl,
+  });
 
   final int statusCode;
   final String body;
@@ -27,5 +31,6 @@ class FetchException implements Exception {
   final int? statusCode;
 
   @override
-  String toString() => 'FetchException($message${statusCode == null ? '' : ', $statusCode'})';
+  String toString() =>
+      'FetchException($message${statusCode == null ? '' : ', $statusCode'})';
 }

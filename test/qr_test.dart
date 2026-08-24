@@ -39,8 +39,10 @@ void main() {
     expect(matrix, hasLength(code.size));
   });
 
-  test('a payload too long for any version returns null, never a wrong code',
-      () {
-    expect(PairingQr.encode('x' * 8000), isNull);
-  });
+  test(
+    'a payload too long for any version returns null, never a wrong code',
+    () {
+      expect(PairingQr.encode('x' * 8000), isNull);
+    },
+  );
 }

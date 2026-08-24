@@ -14,7 +14,9 @@ class Extractor {
 
   /// Config URI schemes. Anchored to a scheme so arbitrary URLs are not matched.
   static final _configUri = RegExp(
-    r'\b(vless|vmess|trojan|ss|ssr|hysteria2|hy2|tuic)://[^\s"' r"'" r'<>\)\]\}\\]+',
+    r'\b(vless|vmess|trojan|ss|ssr|hysteria2|hy2|tuic)://[^\s"'
+    r"'"
+    r'<>\)\]\}\\]+',
     caseSensitive: false,
   );
 
@@ -102,7 +104,8 @@ class Extractor {
       port: port,
       // The display name is excluded: it is the one part publishers always
       // change, and including it would defeat dedup entirely.
-      fingerprint: '${protocol.name}|${host.toLowerCase()}|$port|${_credential(trimmed, protocol)}',
+      fingerprint:
+          '${protocol.name}|${host.toLowerCase()}|$port|${_credential(trimmed, protocol)}',
       label: label,
       sources: {source},
     );
@@ -144,7 +147,10 @@ class Extractor {
       if (close < 0) return (null, null);
       final host = s.substring(1, close);
       final rest = s.substring(close + 1);
-      return (host, rest.startsWith(':') ? int.tryParse(rest.substring(1)) : null);
+      return (
+        host,
+        rest.startsWith(':') ? int.tryParse(rest.substring(1)) : null,
+      );
     }
 
     final colon = s.lastIndexOf(':');

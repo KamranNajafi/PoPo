@@ -54,12 +54,7 @@ class PhoneFrame extends StatelessWidget {
         children: [
           Positioned.fill(child: body),
           if (nav != null)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: S.x18,
-              child: nav!,
-            ),
+            Positioned(left: 0, right: 0, bottom: S.x18, child: nav!),
         ],
       ),
     );
@@ -102,9 +97,11 @@ class GalleryTile extends StatelessWidget {
                 ),
                 const SizedBox(width: S.x8),
                 Flexible(
-                  child: Text(title,
-                      style: T.chip.copyWith(color: C.body),
-                      overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    title,
+                    style: T.chip.copyWith(color: C.body),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

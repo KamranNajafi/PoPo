@@ -142,12 +142,12 @@ class ShareController extends ChangeNotifier {
 
   /// The tunnel options that add the shared listeners.
   TunnelOptions get shareOptions => TunnelOptions(
-        shareListenAddress: hotspotAddress,
-        sharePort: httpPort,
-        socksSharePort: socksPort,
-        shareUsername: username,
-        sharePassword: _password,
-      );
+    shareListenAddress: hotspotAddress,
+    sharePort: httpPort,
+    socksSharePort: socksPort,
+    shareUsername: username,
+    sharePassword: _password,
+  );
 
   Future<void> regeneratePassword() async {
     _password = _generatePassword();
@@ -172,7 +172,10 @@ class ShareController extends ChangeNotifier {
   static String _generatePassword() {
     const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
     final random = Random.secure();
-    return List.generate(10, (_) => alphabet[random.nextInt(alphabet.length)]).join();
+    return List.generate(
+      10,
+      (_) => alphabet[random.nextInt(alphabet.length)],
+    ).join();
   }
 }
 

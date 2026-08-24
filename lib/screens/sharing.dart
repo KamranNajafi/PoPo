@@ -22,7 +22,12 @@ import '../core/widgets/surfaces.dart';
 /// Android and desktop only: iOS cannot keep a background listener alive, so this
 /// screen sits behind the same kind of build flag as discovery.
 class ProxyServerScreen extends StatelessWidget {
-  const ProxyServerScreen({super.key, this.share, this.onShowQr, this.connection});
+  const ProxyServerScreen({
+    super.key,
+    this.share,
+    this.onShowQr,
+    this.connection,
+  });
 
   /// Null on the design canvas; live it drives the toggle and the meta rows.
   final ShareController? share;
@@ -52,10 +57,8 @@ class ProxyServerScreen extends StatelessWidget {
               on,
               onChanged: share == null
                   ? null
-                  : (value) => share.setEnabled(
-                        value,
-                        upstream: connection?.endpoint,
-                      ),
+                  : (value) =>
+                        share.setEnabled(value, upstream: connection?.endpoint),
             ),
           ),
           const SizedBox(height: S.x24),
@@ -67,8 +70,10 @@ class ProxyServerScreen extends StatelessWidget {
           ),
           const SizedBox(height: S.x18),
           Center(
-            child: Text(on ? l.serverOn : l.shareConnection,
-                style: T.connectedHero),
+            child: Text(
+              on ? l.serverOn : l.shareConnection,
+              style: T.connectedHero,
+            ),
           ),
           const SizedBox(height: S.x10),
           Center(
@@ -95,9 +100,11 @@ class ProxyServerScreen extends StatelessWidget {
           if (share?.error != null) ...[
             const SizedBox(height: S.x10),
             Center(
-              child: Text(share!.error!,
-                  style: T.small.copyWith(color: C.warning),
-                  textAlign: TextAlign.center),
+              child: Text(
+                share!.error!,
+                style: T.small.copyWith(color: C.warning),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
           const SizedBox(height: S.x22),
@@ -107,14 +114,19 @@ class ProxyServerScreen extends StatelessWidget {
           MetaRow(l.metaUsername, ShareController.username),
           // Masked: the pairing QR carries it, so there is no reason to leave
           // it readable over someone's shoulder.
-          MetaRow(l.metaPassword, '•' * (share?.password.length ?? 8),
-              showDivider: false),
+          MetaRow(
+            l.metaPassword,
+            '•' * (share?.password.length ?? 8),
+            showDivider: false,
+          ),
           const SizedBox(height: S.x18),
           PrimaryButton(l.showConnectionQr, onTap: onShowQr),
           const SizedBox(height: S.x10),
           SplitRow(
-            start: SecondaryButton(l.changePassword,
-                onTap: share?.regeneratePassword),
+            start: SecondaryButton(
+              l.changePassword,
+              onTap: share?.regeneratePassword,
+            ),
             end: SecondaryButton(l.turnOnHotspot),
           ),
         ],
@@ -129,14 +141,34 @@ class ConnectedDevicesScreen extends StatelessWidget {
 
   final ShareController? share;
 
-  static List<(IconData, String, String, String, Color, String)> _devices(L l) => [
-        (AppIcons.laptop, l.deviceWorkLaptop, '192.168.43.24', l.deviceActive,
-            C.success, l.deviceUsageToday('840 MB')),
-        (AppIcons.tv, l.deviceLivingRoomTv, '192.168.43.31', l.deviceActive,
-            C.success, l.deviceUsageToday('490 MB')),
-        (AppIcons.phone, l.deviceSecondPhone, '192.168.43.47',
-            l.devicePendingApproval, C.warning, '—'),
-      ];
+  static List<(IconData, String, String, String, Color, String)> _devices(
+    L l,
+  ) => [
+    (
+      AppIcons.laptop,
+      l.deviceWorkLaptop,
+      '192.168.43.24',
+      l.deviceActive,
+      C.success,
+      l.deviceUsageToday('840 MB'),
+    ),
+    (
+      AppIcons.tv,
+      l.deviceLivingRoomTv,
+      '192.168.43.31',
+      l.deviceActive,
+      C.success,
+      l.deviceUsageToday('490 MB'),
+    ),
+    (
+      AppIcons.phone,
+      l.deviceSecondPhone,
+      '192.168.43.47',
+      l.devicePendingApproval,
+      C.warning,
+      '—',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -245,11 +277,11 @@ class PairingGuideScreen extends StatelessWidget {
   final ShareController? share;
 
   static List<(String, String)> _steps(L l) => [
-        (l.pairStep1Title, l.pairStep1Body),
-        (l.pairStep2Title, l.pairStep2Body),
-        (l.pairStep3Title, l.pairStep3Body),
-        (l.pairStep4Title, l.pairStep4Body),
-      ];
+    (l.pairStep1Title, l.pairStep1Body),
+    (l.pairStep2Title, l.pairStep2Body),
+    (l.pairStep3Title, l.pairStep3Body),
+    (l.pairStep4Title, l.pairStep4Body),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -283,8 +315,11 @@ class PairingGuideScreen extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               child: qr == null
                   ? const Center(
-                      child: AppIcon(AppIcons.qr,
-                          size: 104, color: C.gradientBottom),
+                      child: AppIcon(
+                        AppIcons.qr,
+                        size: 104,
+                        color: C.gradientBottom,
+                      ),
                     )
                   : CustomPaint(painter: QrPainter(qr)),
             ),
@@ -303,8 +338,13 @@ class PairingGuideScreen extends StatelessWidget {
                     border: Border.all(color: C.accentBorder),
                   ),
                   child: Center(
-                    child: Text(formatNumber(context, i + 1),
-                        style: T.chip.copyWith(color: C.primaryMuted, fontSize: 13)),
+                    child: Text(
+                      formatNumber(context, i + 1),
+                      style: T.chip.copyWith(
+                        color: C.primaryMuted,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: S.x12),
@@ -319,14 +359,18 @@ class PairingGuideScreen extends StatelessWidget {
                         const SizedBox(height: S.x8),
                         SunkenBlock(
                           padding: const EdgeInsets.symmetric(
-                              vertical: S.x10, horizontal: S.x12),
-                          child: MonoText(address,
-                              style: const TextStyle(
-                                fontFamily: kMono,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: C.heading,
-                              )),
+                            vertical: S.x10,
+                            horizontal: S.x12,
+                          ),
+                          child: MonoText(
+                            address,
+                            style: const TextStyle(
+                              fontFamily: kMono,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: C.heading,
+                            ),
+                          ),
                         ),
                       ],
                     ],
@@ -340,7 +384,8 @@ class PairingGuideScreen extends StatelessWidget {
           PrimaryButton(
             l.copyAddressPort,
             onTap: () => Clipboard.setData(
-                ClipboardData(text: address.replaceAll(' ', ''))),
+              ClipboardData(text: address.replaceAll(' ', '')),
+            ),
           ),
         ],
       ),
@@ -355,11 +400,11 @@ class SplitTunnelScreen extends StatelessWidget {
   final SplitTunnelController? controller;
 
   static List<(IconData, String, String, bool)> _apps(L l) => [
-        (AppIcons.browser, l.appBrowser, l.routedThroughTunnel, true),
-        (AppIcons.chat, l.appMessenger, l.routedThroughTunnel, true),
-        (AppIcons.bank, l.appBank, l.routedDirect, false),
-        (AppIcons.video, l.appVideo, l.routedDirect, false),
-      ];
+    (AppIcons.browser, l.appBrowser, l.routedThroughTunnel, true),
+    (AppIcons.chat, l.appMessenger, l.routedThroughTunnel, true),
+    (AppIcons.bank, l.appBank, l.routedDirect, false),
+    (AppIcons.video, l.appVideo, l.routedDirect, false),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -408,10 +453,12 @@ class SplitTunnelScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(row.$2,
-                            style: T.settingLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
+                        Text(
+                          row.$2,
+                          style: T.settingLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         const SizedBox(height: 3),
                         Text(row.$3, style: T.small),
                       ],
@@ -421,15 +468,23 @@ class SplitTunnelScreen extends StatelessWidget {
                     row.$4,
                     onChanged: controller == null || controller.apps.isEmpty
                         ? null
-                        : (_) => controller.toggle(controller.apps[index].packageName),
+                        : (_) => controller.toggle(
+                            controller.apps[index].packageName,
+                          ),
                   ),
                 ],
               ),
             ),
           const SizedBox(height: S.x22),
           SplitRow(
-            start: SecondaryButton(l.allThroughTunnel, onTap: controller?.routeAll),
-            end: SecondaryButton(l.noneThroughTunnel, onTap: controller?.routeNone),
+            start: SecondaryButton(
+              l.allThroughTunnel,
+              onTap: controller?.routeAll,
+            ),
+            end: SecondaryButton(
+              l.noneThroughTunnel,
+              onTap: controller?.routeNone,
+            ),
           ),
         ],
       ),
@@ -443,8 +498,6 @@ class SecurityScreen extends StatelessWidget {
 
   /// Null on the design canvas; live it drives the kill switch and DNS.
   final ConnectionController? connection;
-
-
 
   static const _log = [
     ('12:04:11', 'tunnel up · vless/reality · nl-ams', C.success),
@@ -477,8 +530,9 @@ class SecurityScreen extends StatelessWidget {
         options?.killSwitch ?? true,
         connection == null
             ? null
-            : (value) => connection
-                .setOptions(connection.options.copyWith(killSwitch: value)),
+            : (value) => connection.setOptions(
+                connection.options.copyWith(killSwitch: value),
+              ),
       ),
       (l.settingSecureDns, l.settingSecureDnsNote, true, null),
       (l.settingAutoConnect, l.settingAutoConnectNote, true, null),
@@ -514,7 +568,10 @@ class SecurityScreen extends StatelessWidget {
                           Text(ts, style: T.monoRaw.copyWith(color: C.muted)),
                           const SizedBox(width: S.x10),
                           Expanded(
-                            child: Text(msg, style: T.monoRaw.copyWith(color: color)),
+                            child: Text(
+                              msg,
+                              style: T.monoRaw.copyWith(color: color),
+                            ),
                           ),
                         ],
                       ),

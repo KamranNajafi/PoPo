@@ -74,13 +74,33 @@ final kScreens = <ScreenSpec>[
     ),
   ],
   ScreenSpec(number: '03', title: (l) => l.screenResults, builder: _results),
-  ScreenSpec(number: '04', title: (l) => l.screenConfigDetail, builder: _configDetail),
+  ScreenSpec(
+    number: '04',
+    title: (l) => l.screenConfigDetail,
+    builder: _configDetail,
+  ),
 
   // Simple mode
-  ScreenSpec(number: 'S1', title: (l) => l.screenSimpleStart, builder: _simpleStart),
-  ScreenSpec(number: 'S2', title: (l) => l.screenSimpleSteps, builder: _simpleSteps),
-  ScreenSpec(number: 'S3', title: (l) => l.screenSimpleReady, builder: _simpleReady),
-  ScreenSpec(number: 'S4', title: (l) => l.screenSimpleConnected, builder: _simpleConnected),
+  ScreenSpec(
+    number: 'S1',
+    title: (l) => l.screenSimpleStart,
+    builder: _simpleStart,
+  ),
+  ScreenSpec(
+    number: 'S2',
+    title: (l) => l.screenSimpleSteps,
+    builder: _simpleSteps,
+  ),
+  ScreenSpec(
+    number: 'S3',
+    title: (l) => l.screenSimpleReady,
+    builder: _simpleReady,
+  ),
+  ScreenSpec(
+    number: 'S4',
+    title: (l) => l.screenSimpleConnected,
+    builder: _simpleConnected,
+  ),
 
   // Supporting
   ScreenSpec(number: '05', title: (l) => l.screenSettings, builder: _settings),
@@ -92,10 +112,18 @@ final kScreens = <ScreenSpec>[
       builder: _keywords,
       availability: Availability.noApple,
     ),
-  ScreenSpec(number: '08', title: (l) => l.screenProxyDetail, builder: _proxyDetail),
+  ScreenSpec(
+    number: '08',
+    title: (l) => l.screenProxyDetail,
+    builder: _proxyDetail,
+  ),
   ScreenSpec(number: '09', title: (l) => l.screenHistory, builder: _history),
   ScreenSpec(number: '10', title: (l) => l.screenErrors, builder: _errors),
-  ScreenSpec(number: '11', title: (l) => l.screenOnboarding, builder: _onboarding),
+  ScreenSpec(
+    number: '11',
+    title: (l) => l.screenOnboarding,
+    builder: _onboarding,
+  ),
 
   // Connection sharing. iOS cannot keep a background listener alive, so these
   // are compiled out there rather than shipped as a feature that cannot work.
@@ -147,6 +175,7 @@ Widget _simpleStart(BuildContext _) => const SimpleStartScreen();
 Widget _simpleSteps(BuildContext _) => const SimpleStepsScreen();
 Widget _simpleReady(BuildContext _) => const SimpleReadyScreen();
 Widget _simpleConnected(BuildContext _) => const SimpleConnectedScreen();
+
 /// Settings is live wherever an [AppScope] is above it: the phrase count is
 /// real and the two rows navigate. On the bare canvas it falls back to display.
 Widget _settings(BuildContext context) {
@@ -160,13 +189,15 @@ Widget _settings(BuildContext context) {
     onOpenKeywords: scope.keywordStore == null
         ? null
         : () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => _framed(KeywordsScreen(store: scope.keywordStore)),
-              ),
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  _framed(KeywordsScreen(store: scope.keywordStore)),
             ),
+          ),
     onOpenLanguage: () => Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => _framed(LanguageScreen(controller: scope.localeController)),
+        builder: (_) =>
+            _framed(LanguageScreen(controller: scope.localeController)),
       ),
     ),
   );
@@ -179,31 +210,28 @@ Widget _keywordsLive(BuildContext context) {
 
 /// Centres a screen on the page background, the way ScreenPage does.
 Widget _framed(Widget child) => Builder(
-      builder: (context) => Scaffold(
-        backgroundColor: const Color(0xFF121016),
-        body: SafeArea(
-          child: Column(
-            children: [
-              const Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: BackButton(color: Color(0xFFB8AFC4)),
-              ),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 390),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: child,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+  builder: (context) => Scaffold(
+    backgroundColor: const Color(0xFF121016),
+    body: SafeArea(
+      child: Column(
+        children: [
+          const Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: BackButton(color: Color(0xFFB8AFC4)),
           ),
-        ),
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 390),
+                child: Padding(padding: const EdgeInsets.all(16), child: child),
+              ),
+            ),
+          ),
+        ],
       ),
-    );
+    ),
+  ),
+);
 Widget _saved(BuildContext _) => const SavedScreen();
 Widget _keywords(BuildContext context) => _keywordsLive(context);
 Widget _proxyDetail(BuildContext _) => const ProxyDetailScreen();
@@ -214,6 +242,7 @@ Widget _proxyServer(BuildContext context) {
   final scope = AppScope.maybeOf(context);
   return ProxyServerScreen(share: scope?.share, connection: scope?.connection);
 }
+
 Widget _devices(BuildContext context) =>
     ConnectedDevicesScreen(share: AppScope.maybeOf(context)?.share);
 Widget _pairing(BuildContext context) =>
@@ -230,6 +259,7 @@ Widget _desktop(BuildContext context) {
     share: scope?.share,
   );
 }
+
 Widget _tray(BuildContext context) {
   final scope = AppScope.maybeOf(context);
   return TrayScreen(connection: scope?.connection, share: scope?.share);

@@ -89,9 +89,9 @@ class _SpinnerRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-        size: Size.square(size),
-        painter: const _RingPainter(color: C.onPrimary, width: 3),
-      );
+    size: Size.square(size),
+    painter: const _RingPainter(color: C.onPrimary, width: 3),
+  );
 }
 
 /// A ring with its top quarter left open — the design's static "working" mark.
@@ -112,7 +112,8 @@ class _RingPainter extends CustomPainter {
       ..strokeWidth = width
       ..strokeCap = StrokeCap.round;
 
-    final rect = Offset(width / 2, width / 2) &
+    final rect =
+        Offset(width / 2, width / 2) &
         Size(size.width - width, size.height - width);
 
     // Start just past 12 o'clock and sweep three quarters of the way round.
@@ -140,8 +141,13 @@ class StepCircle extends StatelessWidget {
         return Container(
           width: 26,
           height: 26,
-          decoration: const BoxDecoration(color: C.success, shape: BoxShape.circle),
-          child: const Center(child: AppIcon(AppIcons.check, size: 15, color: C.gradientBottom)),
+          decoration: const BoxDecoration(
+            color: C.success,
+            shape: BoxShape.circle,
+          ),
+          child: const Center(
+            child: AppIcon(AppIcons.check, size: 15, color: C.gradientBottom),
+          ),
         );
       case StepState.running:
         return Container(
@@ -176,25 +182,30 @@ class PagerDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          for (var i = 0; i < count; i++)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: i == active ? 22 : 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: i == active ? C.primary : C.offRing,
-                borderRadius: R.pill,
-              ),
-            ),
-        ],
-      );
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      for (var i = 0; i < count; i++)
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: i == active ? 22 : 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: i == active ? C.primary : C.offRing,
+            borderRadius: R.pill,
+          ),
+        ),
+    ],
+  );
 }
 
 /// Text under a hero: a title and an optional mono line.
 class HeroCaption extends StatelessWidget {
-  const HeroCaption({super.key, required this.title, this.titleStyle, this.body});
+  const HeroCaption({
+    super.key,
+    required this.title,
+    this.titleStyle,
+    this.body,
+  });
 
   final String title;
   final TextStyle? titleStyle;
@@ -202,12 +213,12 @@ class HeroCaption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        children: [
-          Text(title, style: titleStyle ?? T.hero, textAlign: TextAlign.center),
-          if (body != null) ...[
-            const SizedBox(height: 6),
-            Text(body!, style: T.caption, textAlign: TextAlign.center),
-          ],
-        ],
-      );
+    children: [
+      Text(title, style: titleStyle ?? T.hero, textAlign: TextAlign.center),
+      if (body != null) ...[
+        const SizedBox(height: 6),
+        Text(body!, style: T.caption, textAlign: TextAlign.center),
+      ],
+    ],
+  );
 }

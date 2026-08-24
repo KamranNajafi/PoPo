@@ -30,13 +30,16 @@ class AppScope extends InheritedWidget {
 
   final Prefs prefs;
   final LocaleController localeController;
+
   /// Null when discovery is compiled out — see [Features.enableDiscovery].
   final KeywordStore? keywordStore;
   final ResultsStore resultsStore;
   final AppSettings settings;
   final ConnectionController connection;
+
   /// Null when sharing is compiled out.
   final ShareController? share;
+
   /// Null when per-app routing is compiled out.
   final SplitTunnelController? splitTunnel;
 

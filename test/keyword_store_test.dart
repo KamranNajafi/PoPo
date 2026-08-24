@@ -25,17 +25,25 @@ void main() {
     await store.add('my private list');
 
     expect(store.custom, ['my private list']);
-    expect(store.effective.first.text, 'my private list',
-        reason: 'an explicit choice must be searched before a generated guess');
-    expect(store.effective.first.weight,
-        greaterThan(store.activeGenerated.first.weight));
+    expect(
+      store.effective.first.text,
+      'my private list',
+      reason: 'an explicit choice must be searched before a generated guess',
+    );
+    expect(
+      store.effective.first.weight,
+      greaterThan(store.activeGenerated.first.weight),
+    );
   });
 
   test('rejects blank and duplicate phrases', () async {
     expect(await store.add('  '), isFalse);
     expect(await store.add('vless'), isTrue);
-    expect(await store.add('VLESS'), isFalse,
-        reason: 'duplicates are case-insensitive');
+    expect(
+      await store.add('VLESS'),
+      isFalse,
+      reason: 'duplicates are case-insensitive',
+    );
     expect(store.custom, ['vless']);
   });
 
@@ -55,25 +63,30 @@ void main() {
     await store.setSetEnabled(KeywordSet.persian, false);
 
     expect(store.isSetEnabled(KeywordSet.persian), isFalse);
-    expect(store.activeGenerated.any((k) => k.tags.contains('persian')), isFalse);
+    expect(
+      store.activeGenerated.any((k) => k.tags.contains('persian')),
+      isFalse,
+    );
     expect(store.activeGenerated.length, lessThan(before));
   });
 
-  test('a hidden generated phrase stays hidden when the list regenerates',
-      () async {
-    final phrase = store.activeGenerated.first.text;
-    await store.hideGenerated(phrase);
+  test(
+    'a hidden generated phrase stays hidden when the list regenerates',
+    () async {
+      final phrase = store.activeGenerated.first.text;
+      await store.hideGenerated(phrase);
 
-    // A fresh store over the same storage stands in for the next app launch,
-    // by which point the generator may have produced a different list.
-    final reopened = KeywordStore(
-      prefs: prefs,
-      generator: KeywordGenerator(now: DateTime(2026, 4)),
-    );
+      // A fresh store over the same storage stands in for the next app launch,
+      // by which point the generator may have produced a different list.
+      final reopened = KeywordStore(
+        prefs: prefs,
+        generator: KeywordGenerator(now: DateTime(2026, 4)),
+      );
 
-    expect(reopened.isHidden(phrase), isTrue);
-    expect(reopened.activeGenerated.any((k) => k.text == phrase), isFalse);
-  });
+      expect(reopened.isHidden(phrase), isTrue);
+      expect(reopened.activeGenerated.any((k) => k.text == phrase), isFalse);
+    },
+  );
 
   test('edits survive a restart', () async {
     await store.add('persisted phrase');
@@ -108,8 +121,11 @@ void main() {
     await store.add(phrase);
 
     expect(store.isHidden(phrase), isFalse);
-    expect(store.effective.where((k) => k.text == phrase), hasLength(1),
-        reason: 'it should come back once, not twice');
+    expect(
+      store.effective.where((k) => k.text == phrase),
+      hasLength(1),
+      reason: 'it should come back once, not twice',
+    );
   });
 
   test('notifies listeners on every edit', () async {

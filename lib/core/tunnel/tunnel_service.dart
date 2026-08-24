@@ -16,10 +16,10 @@ class TunnelStatus {
   });
 
   const TunnelStatus.disconnected()
-      : state = TunnelState.disconnected,
-        uptime = Duration.zero,
-        error = null,
-        endpointFingerprint = null;
+    : state = TunnelState.disconnected,
+      uptime = Duration.zero,
+      error = null,
+      endpointFingerprint = null;
 
   final TunnelState state;
   final Duration uptime;
@@ -80,8 +80,8 @@ class PlatformTunnelService implements TunnelService {
     MethodChannel? methodChannel,
     EventChannel? eventChannel,
     this.isSupported = true,
-  })  : _method = methodChannel ?? const MethodChannel(methodChannelName),
-        _events = eventChannel ?? const EventChannel(eventChannelName);
+  }) : _method = methodChannel ?? const MethodChannel(methodChannelName),
+       _events = eventChannel ?? const EventChannel(eventChannelName);
 
   static const methodChannelName = 'popo/tunnel';
   static const eventChannelName = 'popo/tunnel/status';
@@ -151,17 +151,17 @@ class PlatformTunnelService implements TunnelService {
       .asBroadcastStream();
 
   static TunnelStatus _decode(Map<String, dynamic> raw) => TunnelStatus(
-        state: switch (raw['state']) {
-          'connecting' => TunnelState.connecting,
-          'connected' => TunnelState.connected,
-          'disconnecting' => TunnelState.disconnecting,
-          'failed' => TunnelState.failed,
-          _ => TunnelState.disconnected,
-        },
-        uptime: Duration(seconds: (raw['uptimeSeconds'] as num?)?.toInt() ?? 0),
-        error: raw['error'] as String?,
-        endpointFingerprint: raw['fingerprint'] as String?,
-      );
+    state: switch (raw['state']) {
+      'connecting' => TunnelState.connecting,
+      'connected' => TunnelState.connected,
+      'disconnecting' => TunnelState.disconnecting,
+      'failed' => TunnelState.failed,
+      _ => TunnelState.disconnected,
+    },
+    uptime: Duration(seconds: (raw['uptimeSeconds'] as num?)?.toInt() ?? 0),
+    error: raw['error'] as String?,
+    endpointFingerprint: raw['fingerprint'] as String?,
+  );
 }
 
 /// Picks the implementation for the platform the app is running on.
@@ -177,8 +177,7 @@ TunnelService createTunnelService() {
     // desktop embedder once tool/build_core_desktop.sh has run.
     TargetPlatform.linux ||
     TargetPlatform.macOS ||
-    TargetPlatform.windows =>
-      PlatformTunnelService(),
+    TargetPlatform.windows => PlatformTunnelService(),
     _ => UnsupportedTunnelService(),
   };
 }

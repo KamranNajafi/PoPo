@@ -82,6 +82,7 @@ class DiscoveryController extends ChangeNotifier {
   List<Endpoint> get results => List.unmodifiable(_results);
   int get found => _found;
   int get pagesFetched => _pagesFetched;
+
   /// What went wrong, as a kind rather than a message: the controller has no
   /// BuildContext, so it must not decide what the user reads.
   RunError? get errorKind => _errorKind;
@@ -127,7 +128,8 @@ class DiscoveryController extends ChangeNotifier {
     _found = 0;
     _pagesFetched = 0;
     _engineStates = {
-      for (final e in engines) e.id: EngineState(id: e.id, status: EngineStatus.queued),
+      for (final e in engines)
+        e.id: EngineState(id: e.id, status: EngineStatus.queued),
     };
     notifyListeners();
 

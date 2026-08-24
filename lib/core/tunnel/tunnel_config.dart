@@ -55,29 +55,31 @@ class TunnelOptions {
     String? sharePassword,
     SplitTunnel? splitTunnel,
     bool clearSharing = false,
-  }) =>
-      TunnelOptions(
-        killSwitch: killSwitch ?? this.killSwitch,
-        dnsServer: dnsServer ?? this.dnsServer,
-        autoDetectInterface: autoDetectInterface,
-        mixedPort: mixedPort ?? this.mixedPort,
-        shareListenAddress:
-            clearSharing ? null : (shareListenAddress ?? this.shareListenAddress),
-        sharePort: clearSharing ? null : (sharePort ?? this.sharePort),
-        socksSharePort: clearSharing ? null : (socksSharePort ?? this.socksSharePort),
-        shareUsername: clearSharing ? null : (shareUsername ?? this.shareUsername),
-        sharePassword: clearSharing ? null : (sharePassword ?? this.sharePassword),
-        splitTunnel: splitTunnel ?? this.splitTunnel,
-        logLevel: logLevel,
-      );
+  }) => TunnelOptions(
+    killSwitch: killSwitch ?? this.killSwitch,
+    dnsServer: dnsServer ?? this.dnsServer,
+    autoDetectInterface: autoDetectInterface,
+    mixedPort: mixedPort ?? this.mixedPort,
+    shareListenAddress: clearSharing
+        ? null
+        : (shareListenAddress ?? this.shareListenAddress),
+    sharePort: clearSharing ? null : (sharePort ?? this.sharePort),
+    socksSharePort: clearSharing
+        ? null
+        : (socksSharePort ?? this.socksSharePort),
+    shareUsername: clearSharing ? null : (shareUsername ?? this.shareUsername),
+    sharePassword: clearSharing ? null : (sharePassword ?? this.sharePassword),
+    splitTunnel: splitTunnel ?? this.splitTunnel,
+    logLevel: logLevel,
+  );
 }
 
 /// Which apps bypass the tunnel. Android only — no other platform exposes
 /// per-app routing.
 class SplitTunnel {
   const SplitTunnel.disabled()
-      : mode = SplitTunnelMode.off,
-        packages = const [];
+    : mode = SplitTunnelMode.off,
+      packages = const [];
 
   /// Only the listed packages go through the tunnel.
   const SplitTunnel.include(this.packages) : mode = SplitTunnelMode.include;
@@ -115,8 +117,11 @@ abstract final class TunnelConfig {
     return {
       'log': {'level': options.logLevel, 'timestamp': true},
       'dns': _dns(options),
-      'inbounds': _inbounds(options,
-          platformManagedTun: platformManagedTun, includeTun: includeTun),
+      'inbounds': _inbounds(
+        options,
+        platformManagedTun: platformManagedTun,
+        includeTun: includeTun,
+      ),
       'outbounds': [
         outbound,
         {'type': 'direct', 'tag': 'direct'},
@@ -131,23 +136,24 @@ abstract final class TunnelConfig {
     TunnelOptions options = const TunnelOptions(),
     bool platformManagedTun = false,
     bool includeTun = true,
-  }) =>
-      jsonEncode(build(
-        endpoint: endpoint,
-        options: options,
-        platformManagedTun: platformManagedTun,
-        includeTun: includeTun,
-      ));
+  }) => jsonEncode(
+    build(
+      endpoint: endpoint,
+      options: options,
+      platformManagedTun: platformManagedTun,
+      includeTun: includeTun,
+    ),
+  );
 
   static Map<String, dynamic> _dns(TunnelOptions options) => {
-        'servers': [
-          {'type': 'https', 'tag': 'secure', 'server': _dnsHost(options.dnsServer)},
-        ],
-        // Queries must not leak to the local resolver, which is exactly what the
-        // network operator controls.
-        'strategy': 'prefer_ipv4',
-        'independent_cache': true,
-      };
+    'servers': [
+      {'type': 'https', 'tag': 'secure', 'server': _dnsHost(options.dnsServer)},
+    ],
+    // Queries must not leak to the local resolver, which is exactly what the
+    // network operator controls.
+    'strategy': 'prefer_ipv4',
+    'independent_cache': true,
+  };
 
   static String _dnsHost(String server) {
     final parsed = Uri.tryParse(server);
@@ -199,7 +205,7 @@ abstract final class TunnelConfig {
               {
                 'username': options.shareUsername,
                 'password': options.sharePassword ?? '',
-              }
+              },
             ];
 
       inbounds.add({
@@ -235,17 +241,11 @@ abstract final class TunnelConfig {
     if (split.isActive) {
       switch (split.mode) {
         case SplitTunnelMode.exclude:
-          rules.add({
-            'package_name': split.packages,
-            'outbound': 'direct',
-          });
+          rules.add({'package_name': split.packages, 'outbound': 'direct'});
         case SplitTunnelMode.include:
           // Everything not listed goes direct; the listed packages fall through
           // to the proxy as the final outbound.
-          rules.add({
-            'package_name': split.packages,
-            'outbound': 'proxy',
-          });
+          rules.add({'package_name': split.packages, 'outbound': 'proxy'});
           rules.add({
             'inbound': ['tun-in'],
             'invert': true,
@@ -275,17 +275,16 @@ abstract final class TunnelConfig {
     String? username,
     String? password,
     required Endpoint upstream,
-  }) =>
-      build(
-        endpoint: upstream,
-        includeTun: false,
-        options: TunnelOptions(
-          shareListenAddress: listenAddress,
-          sharePort: httpPort,
-          socksSharePort: socksPort,
-          shareUsername: username,
-          sharePassword: password,
-          killSwitch: true,
-        ),
-      );
+  }) => build(
+    endpoint: upstream,
+    includeTun: false,
+    options: TunnelOptions(
+      shareListenAddress: listenAddress,
+      sharePort: httpPort,
+      socksSharePort: socksPort,
+      shareUsername: username,
+      sharePassword: password,
+      killSwitch: true,
+    ),
+  );
 }

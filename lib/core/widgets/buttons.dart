@@ -65,7 +65,12 @@ class PrimaryButton extends StatelessWidget {
 
 /// Pill, elevated-surface fill, hairline border, white 600 label.
 class SecondaryButton extends StatelessWidget {
-  const SecondaryButton(this.label, {super.key, this.onTap, this.expand = true});
+  const SecondaryButton(
+    this.label, {
+    super.key,
+    this.onTap,
+    this.expand = true,
+  });
 
   final String label;
   final VoidCallback? onTap;
@@ -113,11 +118,13 @@ class GhostButton extends StatelessWidget {
   });
 
   const GhostButton.destructive(String label, {Key? key, VoidCallback? onTap})
-      : this(label,
-            key: key,
-            onTap: onTap,
-            color: C.danger,
-            borderColor: C.dangerBorder);
+    : this(
+        label,
+        key: key,
+        onTap: onTap,
+        color: C.danger,
+        borderColor: C.dangerBorder,
+      );
 
   final String label;
   final VoidCallback? onTap;
@@ -149,7 +156,9 @@ class GhostButton extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style: (large ? T.buttonSecondary : T.chip).copyWith(color: color),
+                style: (large ? T.buttonSecondary : T.chip).copyWith(
+                  color: color,
+                ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -192,7 +201,13 @@ class DestructiveButton extends StatelessWidget {
 
 /// A bare text link — "حالت پیشرفته", "رد کردن".
 class TextLink extends StatelessWidget {
-  const TextLink(this.label, {super.key, this.onTap, this.color = C.muted, this.size = 13});
+  const TextLink(
+    this.label, {
+    super.key,
+    this.onTap,
+    this.color = C.muted,
+    this.size = 13,
+  });
 
   final String label;
   final VoidCallback? onTap;
@@ -214,7 +229,12 @@ class TextLink extends StatelessWidget {
 
 /// The 50/50 secondary row the design uses repeatedly under a primary action.
 class SplitRow extends StatelessWidget {
-  const SplitRow({super.key, required this.start, required this.end, this.gap = S.x10});
+  const SplitRow({
+    super.key,
+    required this.start,
+    required this.end,
+    this.gap = S.x10,
+  });
 
   final Widget start;
   final Widget end;
@@ -240,10 +260,10 @@ class _Dot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      );
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
 }
 
 /// Status dot used in engine rows, chips and error cards.

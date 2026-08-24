@@ -130,10 +130,13 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _chevron(VoidCallback? onTap) => GestureDetector(
-        onTap: onTap,
-        child: AppIcon(AppIcons.swap,
-            size: 18, color: onTap == null ? C.muted : C.primaryMuted),
-      );
+    onTap: onTap,
+    child: AppIcon(
+      AppIcons.swap,
+      size: 18,
+      color: onTap == null ? C.muted : C.primaryMuted,
+    ),
+  );
 }
 
 /// 06 · Saved + bulk actions.
@@ -170,7 +173,11 @@ class _SavedScreenState extends State<SavedScreen> {
     _selected.removeWhere((f) => !saved.any((e) => e.fingerprint == f));
 
     return PhoneFrame(
-      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.saved, onTap: widget.onNavigate),
+      nav: BottomNav(
+        items: Navs.items(l),
+        activeIndex: Navs.saved,
+        onTap: widget.onNavigate,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -183,12 +190,21 @@ class _SavedScreenState extends State<SavedScreen> {
             spacing: S.x8,
             runSpacing: S.x8,
             children: [
-              AppChip(l.copyAll, filled: true, onTap: () => _copy(_targets(saved))),
-              AppChip(l.exportSubscription, onTap: () => _exportSubscription(_targets(saved))),
+              AppChip(
+                l.copyAll,
+                filled: true,
+                onTap: () => _copy(_targets(saved)),
+              ),
+              AppChip(
+                l.exportSubscription,
+                onTap: () => _exportSubscription(_targets(saved)),
+              ),
               AppChip(l.qr),
               if (_selected.isNotEmpty)
-                AppChip(l.unsaveSelected,
-                    onTap: () => store.unsaveAll(_selected.toList())),
+                AppChip(
+                  l.unsaveSelected,
+                  onTap: () => store.unsaveAll(_selected.toList()),
+                ),
             ],
           ),
           const SizedBox(height: S.x16),
@@ -220,18 +236,24 @@ class _SavedScreenState extends State<SavedScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(endpoint.displayName,
-                                style: T.listTitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis),
+                            Text(
+                              endpoint.displayName,
+                              style: T.listTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             const SizedBox(height: 2),
                             MonoText(protocolLine(endpoint), style: T.monoSub),
                           ],
                         ),
                       ),
                       const SizedBox(width: S.x8),
-                      MonoText(pingLabel(endpoint),
-                          style: T.monoValue.copyWith(color: pingColorOf(endpoint))),
+                      MonoText(
+                        pingLabel(endpoint),
+                        style: T.monoValue.copyWith(
+                          color: pingColorOf(endpoint),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -252,7 +274,8 @@ class _SavedScreenState extends State<SavedScreen> {
   void _copy(List<Endpoint> endpoints) {
     if (endpoints.isEmpty) return;
     Clipboard.setData(
-        ClipboardData(text: endpoints.map((e) => e.raw).join('\n')));
+      ClipboardData(text: endpoints.map((e) => e.raw).join('\n')),
+    );
   }
 
   /// A subscription export is the base64 of the links, which is the format
@@ -260,8 +283,7 @@ class _SavedScreenState extends State<SavedScreen> {
   void _exportSubscription(List<Endpoint> endpoints) {
     if (endpoints.isEmpty) return;
     final body = endpoints.map((e) => e.raw).join('\n');
-    Clipboard.setData(
-        ClipboardData(text: base64.encode(utf8.encode(body))));
+    Clipboard.setData(ClipboardData(text: base64.encode(utf8.encode(body))));
   }
 
   Widget _demo(BuildContext context) {
@@ -269,12 +291,22 @@ class _SavedScreenState extends State<SavedScreen> {
     final rows = [
       (l.placeNlAmsterdam, 'VLESS · Reality', '42 ms', C.success, true),
       (l.placeDeFrankfurt, 'VMess · WS+TLS', '78 ms', C.success, true),
-      (l.placePlWarsaw, 'HTTPS · 185.244.10.9:8080', '154 ms', C.warning, false),
+      (
+        l.placePlWarsaw,
+        'HTTPS · 185.244.10.9:8080',
+        '154 ms',
+        C.warning,
+        false,
+      ),
       (l.placeTrIstanbul, 'Trojan · gRPC', '—', C.danger, false),
     ];
 
     return PhoneFrame(
-      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.saved, onTap: widget.onNavigate),
+      nav: BottomNav(
+        items: Navs.items(l),
+        activeIndex: Navs.saved,
+        onTap: widget.onNavigate,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -347,9 +379,11 @@ class ProxyDetailScreen extends StatelessWidget {
           Center(child: MonoText(address, style: T.monoHero)),
           const SizedBox(height: S.x10),
           Center(
-            child: Text(e?.displayName ?? l.placeFiHelsinki,
-                style: T.buttonSecondary.copyWith(fontSize: 15),
-                textAlign: TextAlign.center),
+            child: Text(
+              e?.displayName ?? l.placeFiHelsinki,
+              style: T.buttonSecondary.copyWith(fontSize: 15),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: S.x14),
           Row(
@@ -363,19 +397,23 @@ class ProxyDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: S.x22),
           MetaRow(l.metaType, e?.protocol.name.toUpperCase() ?? 'SOCKS5'),
-          MetaRow(l.metaAddress,
-              e == null ? '51.15.42.7 : 1080' : '${e.host} : ${e.port}'),
+          MetaRow(
+            l.metaAddress,
+            e == null ? '51.15.42.7 : 1080' : '${e.host} : ${e.port}',
+          ),
           MetaRow(l.metaAnonymity, 'Elite'),
-          MetaRow(l.metaHttpsSupport,
-              (e?.protocol == Protocol.https || e == null) ? 'yes' : 'unknown'),
+          MetaRow(
+            l.metaHttpsSupport,
+            (e?.protocol == Protocol.https || e == null) ? 'yes' : 'unknown',
+          ),
           MetaRow(
             l.metaLastPortTest,
             e == null
                 ? 'open · 126 ms'
                 : (e.lastTestedAt == null
-                    ? '—'
-                    : '${e.health == Health.dead ? 'closed' : 'open'} · '
-                        '${pingLabel(e)} · ${testedAgo(e, now)}'),
+                      ? '—'
+                      : '${e.health == Health.dead ? 'closed' : 'open'} · '
+                            '${pingLabel(e)} · ${testedAgo(e, now)}'),
             showDivider: false,
           ),
           const SizedBox(height: S.x18),
@@ -405,13 +443,13 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: S.x12),
-        decoration: BoxDecoration(
-          borderRadius: R.pill,
-          border: Border.all(color: color.withValues(alpha: 0.45)),
-        ),
-        child: Text(label, style: T.chip.copyWith(color: color)),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: S.x12),
+    decoration: BoxDecoration(
+      borderRadius: R.pill,
+      border: Border.all(color: color.withValues(alpha: 0.45)),
+    ),
+    child: Text(label, style: T.chip.copyWith(color: color)),
+  );
 }
 
 /// 09 · History + import.
@@ -456,9 +494,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
       return;
     }
     final count = store.importFromText(text, source: 'clipboard');
-    setState(() => _message = count == 0
-        ? L.of(context).importedNothing
-        : L.of(context).importedCount(count));
+    setState(
+      () => _message = count == 0
+          ? L.of(context).importedNothing
+          : L.of(context).importedCount(count),
+    );
   }
 
   Future<void> _importFromUrl() async {
@@ -508,14 +548,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Text(l.historyTitle, style: T.screenTitle),
           const SizedBox(height: S.x14),
           if (store == null)
-            for (final (at, meta) in _demoRuns(l))
-              _runRow(l, at, meta)
+            for (final (at, meta) in _demoRuns(l)) _runRow(l, at, meta)
           else if (runs.isEmpty)
             Text(l.noResultsYet, style: T.caption)
           else
             for (final run in runs)
-              _runRow(l, _formatWhen(context, run.at),
-                  l.runSummary(run.found, run.healthy, run.engines)),
+              _runRow(
+                l,
+                _formatWhen(context, run.at),
+                l.runSummary(run.found, run.healthy, run.engines),
+              ),
           const SizedBox(height: S.x24),
           SectionTitle(l.importTitle),
           if (store == null)
@@ -545,11 +587,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         hintStyle: T.caption,
                         border: InputBorder.none,
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 13,
+                        ),
                       ),
                     ),
                   ),
-                  GhostButton(l.importAction, onTap: _busy ? null : _importFromUrl),
+                  GhostButton(
+                    l.importAction,
+                    onTap: _busy ? null : _importFromUrl,
+                  ),
                 ],
               ),
             ),
@@ -566,34 +613,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _runRow(L l, String at, String meta) => Container(
-        padding: const EdgeInsets.symmetric(vertical: S.x14),
-        decoration: const BoxDecoration(border: hairlineBottom),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(at, style: T.listTitle),
-                  const SizedBox(height: 3),
-                  Text(meta, style: T.small),
-                ],
-              ),
-            ),
-            const SizedBox(width: S.x8),
-            GhostButton(l.runAgain),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: S.x14),
+    decoration: const BoxDecoration(border: hairlineBottom),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(at, style: T.listTitle),
+              const SizedBox(height: 3),
+              Text(meta, style: T.small),
+            ],
+          ),
         ),
-      );
+        const SizedBox(width: S.x8),
+        GhostButton(l.runAgain),
+      ],
+    ),
+  );
 
   String _formatWhen(BuildContext context, DateTime at) {
     final l = L.of(context);
     final now = DateTime.now();
-    final time = '${at.hour.toString().padLeft(2, '0')}:'
+    final time =
+        '${at.hour.toString().padLeft(2, '0')}:'
         '${at.minute.toString().padLeft(2, '0')}';
-    final days = DateTime(now.year, now.month, now.day)
-        .difference(DateTime(at.year, at.month, at.day))
-        .inDays;
+    final days = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).difference(DateTime(at.year, at.month, at.day)).inDays;
 
     if (days == 0) return l.historyToday(time);
     if (days == 1) return l.historyYesterday(time);
@@ -601,10 +651,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   static List<(String, String)> _demoRuns(L l) => [
-        (l.historyToday('14:20'), l.runSummary(128, 31, 8)),
-        (l.historyYesterday('09:05'), l.runSummary(94, 22, 8)),
-        (l.historyDaysAgo(3), l.runSummary(151, 40, 10)),
-      ];
+    (l.historyToday('14:20'), l.runSummary(128, 31, 8)),
+    (l.historyYesterday('09:05'), l.runSummary(94, 22, 8)),
+    (l.historyDaysAgo(3), l.runSummary(151, 40, 10)),
+  ];
 }
 
 /// 10 · Empty & error states. Every one names a next action.
@@ -612,25 +662,20 @@ class ErrorStatesScreen extends StatelessWidget {
   const ErrorStatesScreen({super.key});
 
   static List<(Color, String, String, String)> _states(L l) => [
-        (
-          C.muted,
-          l.emptyNoResultsTitle,
-          l.emptyNoResultsBody,
-          l.emptyNoResultsAction,
-        ),
-        (
-          C.danger,
-          l.errorOfflineTitle,
-          l.errorOfflineBody,
-          l.errorOfflineAction,
-        ),
-        (
-          C.warning,
-          l.errorCaptchaTitle('Yandex'),
-          l.errorCaptchaBody,
-          l.errorCaptchaAction,
-        ),
-      ];
+    (
+      C.muted,
+      l.emptyNoResultsTitle,
+      l.emptyNoResultsBody,
+      l.emptyNoResultsAction,
+    ),
+    (C.danger, l.errorOfflineTitle, l.errorOfflineBody, l.errorOfflineAction),
+    (
+      C.warning,
+      l.errorCaptchaTitle('Yandex'),
+      l.errorCaptchaBody,
+      l.errorCaptchaAction,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -688,11 +733,7 @@ class OnboardingScreen extends StatelessWidget {
           const SizedBox(height: S.x22),
           Center(child: Text(l.onboardTitle, style: T.onboardTitle)),
           const SizedBox(height: S.x14),
-          Text(
-            l.onboardBody,
-            style: T.caption,
-            textAlign: TextAlign.center,
-          ),
+          Text(l.onboardBody, style: T.caption, textAlign: TextAlign.center),
           const SizedBox(height: S.x20),
           const PagerDots(count: 2, active: 0),
           const SizedBox(height: S.x24),
@@ -706,8 +747,10 @@ class OnboardingScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l.warningTitle,
-                    style: T.listTitle.copyWith(color: C.warning)),
+                Text(
+                  l.warningTitle,
+                  style: T.listTitle.copyWith(color: C.warning),
+                ),
                 const SizedBox(height: S.x8),
                 Text(l.warningBody, style: T.caption),
               ],

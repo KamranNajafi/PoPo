@@ -125,8 +125,16 @@ class KeywordGenerator {
     // 4. site-scoped — highest yield per query, so they get the top weights.
     if (includeSiteHints) {
       for (final MapEntry(key: site, value: sw) in _sites.entries) {
-        for (final protocol in const ['v2ray', 'vless', 'reality', 'shadowsocks']) {
-          add('$protocol subscription site:$site', sw * 1.25, {'site', 'protocol'});
+        for (final protocol in const [
+          'v2ray',
+          'vless',
+          'reality',
+          'shadowsocks',
+        ]) {
+          add('$protocol subscription site:$site', sw * 1.25, {
+            'site',
+            'protocol',
+          });
         }
         add('free proxy list site:$site', sw, {'site'});
       }
@@ -161,7 +169,9 @@ class KeywordGenerator {
 
     // Strongest axis first, so the round-robin still leads with the best phrase.
     final axes = groups.keys.toList()
-      ..sort((a, b) => groups[b]!.first.weight.compareTo(groups[a]!.first.weight));
+      ..sort(
+        (a, b) => groups[b]!.first.weight.compareTo(groups[a]!.first.weight),
+      );
 
     final out = <Keyword>[];
     for (var round = 0; out.length < limit; round++) {
@@ -190,7 +200,17 @@ class KeywordGenerator {
   }
 
   static const _months = [
-    'january', 'february', 'march', 'april', 'may', 'june',
-    'july', 'august', 'september', 'october', 'november', 'december',
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december',
   ];
 }

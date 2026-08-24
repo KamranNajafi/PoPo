@@ -28,18 +28,23 @@ class AppSettings extends ChangeNotifier {
 
   Duration get testTimeout => Duration(seconds: testTimeoutSeconds);
 
-  Future<void> setAutoSearchHours(int value) => _setInt(_autoSearchHours, value);
+  Future<void> setAutoSearchHours(int value) =>
+      _setInt(_autoSearchHours, value);
   Future<void> setPerEngineCap(int value) => _setInt(_perEngineCapKey, value);
   Future<void> setTestTimeoutSeconds(int value) => _setInt(_timeoutKey, value);
-  Future<void> setRemoveAfterFailures(int value) => _setInt(_failuresKey, value);
+  Future<void> setRemoveAfterFailures(int value) =>
+      _setInt(_failuresKey, value);
   Future<void> setAutoRemoveDead(bool value) => _setBool(_autoRemoveKey, value);
   Future<void> setSimpleMode(bool value) => _setBool(_simpleModeKey, value);
 
   int _int(String key, int fallback) =>
       int.tryParse(_prefs.getString(key) ?? '') ?? fallback;
 
-  bool _bool(String key, bool fallback) =>
-      switch (_prefs.getString(key)) { 'true' => true, 'false' => false, _ => fallback };
+  bool _bool(String key, bool fallback) => switch (_prefs.getString(key)) {
+    'true' => true,
+    'false' => false,
+    _ => fallback,
+  };
 
   Future<void> _setInt(String key, int value) async {
     await _prefs.setString(key, '$value');

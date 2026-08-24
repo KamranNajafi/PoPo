@@ -27,8 +27,9 @@ class AppToggle extends StatelessWidget {
           border: value ? null : hairlineBorder(),
         ),
         child: Row(
-          mainAxisAlignment:
-              value ? MainAxisAlignment.start : MainAxisAlignment.end,
+          mainAxisAlignment: value
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.end,
           children: [
             Container(
               width: 20,
@@ -65,9 +66,7 @@ class AppCheckbox extends StatelessWidget {
           border: Border.all(color: value ? C.primary : C.offRing, width: 2),
         ),
         child: value
-            ? const Center(
-                child: Icon(_check, size: 12, color: C.onPrimary),
-              )
+            ? const Center(child: Icon(_check, size: 12, color: C.onPrimary))
             : null,
       ),
     );
@@ -141,7 +140,10 @@ class AppChip extends StatelessWidget {
 
     if (filled) {
       fg = C.onPrimary;
-      decoration = const BoxDecoration(gradient: C.primaryGradient, borderRadius: R.pill);
+      decoration = const BoxDecoration(
+        gradient: C.primaryGradient,
+        borderRadius: R.pill,
+      );
     } else if (selected) {
       fg = C.primaryMuted;
       decoration = BoxDecoration(
@@ -204,14 +206,14 @@ class DisabledChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppChip(
-        label,
-        mono: true,
-        leading: Container(
-          width: 8,
-          height: 8,
-          decoration: const BoxDecoration(color: C.offRing, shape: BoxShape.circle),
-        ),
-      );
+    label,
+    mono: true,
+    leading: Container(
+      width: 8,
+      height: 8,
+      decoration: const BoxDecoration(color: C.offRing, shape: BoxShape.circle),
+    ),
+  );
 }
 
 const _check = IconData(0xe156, fontFamily: 'MaterialIcons');

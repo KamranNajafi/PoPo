@@ -34,37 +34,43 @@ class DesktopScreen extends StatelessWidget {
   final VoidCallback? onRedoSetup;
 
   static List<(IconData, String, bool)> _nav(L l) => [
-        (AppIcons.dashboard, l.desktopNavDashboard, true),
-        (AppIcons.results, l.navResults, false),
-        (AppIcons.bookmark, l.navSaved, false),
-        (AppIcons.share, l.desktopNavShare, false),
-        (AppIcons.history, l.desktopNavHistory, false),
-        (AppIcons.simple, l.desktopNavSimple, false),
-        (AppIcons.settings, l.desktopNavSettings, false),
-      ];
+    (AppIcons.dashboard, l.desktopNavDashboard, true),
+    (AppIcons.results, l.navResults, false),
+    (AppIcons.bookmark, l.navSaved, false),
+    (AppIcons.share, l.desktopNavShare, false),
+    (AppIcons.history, l.desktopNavHistory, false),
+    (AppIcons.simple, l.desktopNavSimple, false),
+    (AppIcons.settings, l.desktopNavSettings, false),
+  ];
 
   List<(String, String)> _stats(BuildContext context, L l) {
     final store = results;
     final healthyConfigs = store == null
         ? 31
         : store.all
-            .where((e) =>
-                e.kind == EndpointKind.config && e.health != Health.dead)
-            .length;
+              .where(
+                (e) => e.kind == EndpointKind.config && e.health != Health.dead,
+              )
+              .length;
     final healthyProxies = store == null
         ? 58
         : store.all
-            .where((e) => e.kind == EndpointKind.proxy && e.health != Health.dead)
-            .length;
+              .where(
+                (e) => e.kind == EndpointKind.proxy && e.health != Health.dead,
+              )
+              .length;
 
     return [
       (l.statHealthyConfigs, formatNumber(context, healthyConfigs)),
       (l.statHealthyProxies, formatNumber(context, healthyProxies)),
       (
         l.statConnectedDevices,
-        formatNumber(context, share?.activeDeviceCount ?? 3)
+        formatNumber(context, share?.activeDeviceCount ?? 3),
       ),
-      (l.statUsageToday, share?.usageToday ?? '${formatNumber(context, 1.4)} GB'),
+      (
+        l.statUsageToday,
+        share?.usageToday ?? '${formatNumber(context, 1.4)} GB',
+      ),
     ];
   }
 
@@ -131,7 +137,10 @@ class DesktopScreen extends StatelessWidget {
                         children: [
                           const AppMark(size: 26, radius: 8),
                           const SizedBox(width: S.x8),
-                          Text('PoPo', style: T.listTitle.copyWith(fontSize: 16)),
+                          Text(
+                            'PoPo',
+                            style: T.listTitle.copyWith(fontSize: 16),
+                          ),
                         ],
                       ),
                       const SizedBox(height: S.x20),
@@ -139,7 +148,9 @@ class DesktopScreen extends StatelessWidget {
                         Container(
                           margin: const EdgeInsets.only(bottom: 4),
                           padding: const EdgeInsets.symmetric(
-                              vertical: S.x10, horizontal: S.x12),
+                            vertical: S.x10,
+                            horizontal: S.x12,
+                          ),
                           decoration: active
                               ? BoxDecoration(
                                   color: C.accentTint,
@@ -149,9 +160,11 @@ class DesktopScreen extends StatelessWidget {
                               : null,
                           child: Row(
                             children: [
-                              AppIcon(icon,
-                                  size: 18,
-                                  color: active ? C.primaryMuted : C.muted),
+                              AppIcon(
+                                icon,
+                                size: 18,
+                                color: active ? C.primaryMuted : C.muted,
+                              ),
                               const SizedBox(width: S.x10),
                               Flexible(
                                 child: Text(
@@ -179,7 +192,8 @@ class DesktopScreen extends StatelessWidget {
                         Row(
                           children: [
                             StatusHero(
-                              state: connection == null || connection!.isConnected
+                              state:
+                                  connection == null || connection!.isConnected
                                   ? HeroState.working
                                   : HeroState.idle,
                               size: 56,
@@ -193,10 +207,13 @@ class DesktopScreen extends StatelessWidget {
                                     connection == null
                                         ? l.desktopConnectedTo(l.placeNl)
                                         : (connection!.isConnected
-                                            ? l.desktopConnectedTo(
-                                                connection!.endpoint?.displayName ??
-                                                    '—')
-                                            : l.settingSimpleMode),
+                                              ? l.desktopConnectedTo(
+                                                  connection!
+                                                          .endpoint
+                                                          ?.displayName ??
+                                                      '—',
+                                                )
+                                              : l.settingSimpleMode),
                                     style: T.hero,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -206,7 +223,7 @@ class DesktopScreen extends StatelessWidget {
                                     connection == null
                                         ? '42 ms · 00:37:12'
                                         : '${connection!.endpoint == null ? '—' : pingLabel(connection!.endpoint!)}'
-                                            ' · ${formatUptime(connection!.uptime)}',
+                                              ' · ${formatUptime(connection!.uptime)}',
                                     style: T.monoName,
                                   ),
                                 ],
@@ -222,15 +239,17 @@ class DesktopScreen extends StatelessWidget {
                                 onTap: connection == null
                                     ? null
                                     : (connection!.isConnected
-                                        ? connection!.disconnect
-                                        : onConnect),
+                                          ? connection!.disconnect
+                                          : onConnect),
                               ),
                             ),
                             const SizedBox(width: S.x10),
                             SizedBox(
                               width: 130,
-                              child: SecondaryButton(l.redoSetupShort,
-                                  onTap: onRedoSetup),
+                              child: SecondaryButton(
+                                l.redoSetupShort,
+                                onTap: onRedoSetup,
+                              ),
                             ),
                           ],
                         ),
@@ -238,15 +257,17 @@ class DesktopScreen extends StatelessWidget {
                         LayoutBuilder(
                           builder: (context, constraints) {
                             // repeat(auto-fit, minmax(150px, 1fr))
-                            final columns =
-                                (constraints.maxWidth / 164).floor().clamp(1, 4);
+                            final columns = (constraints.maxWidth / 164)
+                                .floor()
+                                .clamp(1, 4);
                             return Wrap(
                               spacing: S.x14,
                               runSpacing: S.x14,
                               children: [
                                 for (final (label, value) in _stats(context, l))
                                   SizedBox(
-                                    width: (constraints.maxWidth -
+                                    width:
+                                        (constraints.maxWidth -
                                             S.x14 * (columns - 1)) /
                                         columns,
                                     child: ListCard(
@@ -256,9 +277,12 @@ class DesktopScreen extends StatelessWidget {
                                         children: [
                                           Text(label, style: T.small),
                                           const SizedBox(height: 6),
-                                          Text(value,
-                                              style: T.simpleHero
-                                                  .copyWith(fontSize: 24)),
+                                          Text(
+                                            value,
+                                            style: T.simpleHero.copyWith(
+                                              fontSize: 24,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -269,20 +293,24 @@ class DesktopScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: S.x22),
                         SectionTitle(l.fastestOptions),
-                        for (final (name, proto, ping, color) in _fastest(l)) ...[
+                        for (final (name, proto, ping, color) in _fastest(
+                          l,
+                        )) ...[
                           Container(
                             padding: const EdgeInsets.all(S.x12),
                             decoration: BoxDecoration(
                               color: C.surfaceElevated,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(14)),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(14),
+                              ),
                               border: hairlineBorder(),
                             ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(name, style: T.listTitle),
                                       const SizedBox(height: 2),
@@ -290,9 +318,10 @@ class DesktopScreen extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                                MonoText(ping,
-                                    style:
-                                        T.monoValue.copyWith(color: color)),
+                                MonoText(
+                                  ping,
+                                  style: T.monoValue.copyWith(color: color),
+                                ),
                               ],
                             ),
                           ),
@@ -338,8 +367,11 @@ class _WindowChrome extends StatelessWidget {
               ),
             ),
           Expanded(
-            child: Text('PoPo', style: T.chip.copyWith(fontSize: 13),
-                textAlign: TextAlign.center),
+            child: Text(
+              'PoPo',
+              style: T.chip.copyWith(fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(width: 60),
         ],
@@ -356,24 +388,24 @@ class TrayScreen extends StatelessWidget {
   final ShareController? share;
 
   List<(String, String, bool)> _menu(L l) => [
-        (
-          connection == null || connection!.isConnected ? l.disconnect : l.connect,
-          connection?.endpoint == null ? '42 ms' : pingLabel(connection!.endpoint!),
-          true,
-        ),
-        (l.traySwitchServer, '', false),
-        (l.redoSetupShort, '', false),
-        (l.trayShareOn, '', false),
-        (l.trayExit, '', false),
-      ];
+    (
+      connection == null || connection!.isConnected ? l.disconnect : l.connect,
+      connection?.endpoint == null ? '42 ms' : pingLabel(connection!.endpoint!),
+      true,
+    ),
+    (l.traySwitchServer, '', false),
+    (l.redoSetupShort, '', false),
+    (l.trayShareOn, '', false),
+    (l.trayExit, '', false),
+  ];
 
   static List<(String, String)> _platforms(L l) => [
-        ('Android', l.surfaceAndroid),
-        ('iOS', l.surfaceIos),
-        ('Windows', l.surfaceWindows),
-        ('macOS', l.surfaceMacos),
-        ('Linux', l.surfaceLinux),
-      ];
+    ('Android', l.surfaceAndroid),
+    ('iOS', l.surfaceIos),
+    ('Windows', l.surfaceWindows),
+    ('macOS', l.surfaceMacos),
+    ('Linux', l.surfaceLinux),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -405,7 +437,9 @@ class TrayScreen extends StatelessWidget {
                 for (final (label, meta, highlighted) in _menu(l))
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: S.x10, horizontal: S.x12),
+                      vertical: S.x10,
+                      horizontal: S.x12,
+                    ),
                     decoration: highlighted
                         ? const BoxDecoration(
                             color: C.accentTint,
@@ -424,8 +458,10 @@ class TrayScreen extends StatelessWidget {
                           ),
                         ),
                         if (meta.isNotEmpty)
-                          MonoText(meta,
-                              style: T.monoName.copyWith(color: C.success)),
+                          MonoText(
+                            meta,
+                            style: T.monoName.copyWith(color: C.success),
+                          ),
                       ],
                     ),
                   ),
@@ -436,18 +472,22 @@ class TrayScreen extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                  child: _QuickTile(
-                      title: 'PoPo',
-                      state: connection == null || connection!.isConnected
-                          ? l.connected
-                          : l.connect,
-                      active: connection?.isConnected ?? true)),
+                child: _QuickTile(
+                  title: 'PoPo',
+                  state: connection == null || connection!.isConnected
+                      ? l.connected
+                      : l.connect,
+                  active: connection?.isConnected ?? true,
+                ),
+              ),
               const SizedBox(width: S.x12),
               Expanded(
-                  child: _QuickTile(
-                      title: l.tileShare,
-                      state: l.devicesCount(share?.activeDeviceCount ?? 3),
-                      active: share?.isEnabled ?? false)),
+                child: _QuickTile(
+                  title: l.tileShare,
+                  state: l.devicesCount(share?.activeDeviceCount ?? 3),
+                  active: share?.isEnabled ?? false,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: S.x22),
@@ -459,13 +499,19 @@ class TrayScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  MonoText(platform, style: T.monoName.copyWith(color: C.heading)),
+                  MonoText(
+                    platform,
+                    style: T.monoName.copyWith(color: C.heading),
+                  ),
                   const SizedBox(width: S.x12),
                   // Surface names run much longer in English than in Persian,
                   // so this side has to be able to give.
                   Flexible(
-                    child: Text(surface,
-                        style: T.caption, textAlign: TextAlign.end),
+                    child: Text(
+                      surface,
+                      style: T.caption,
+                      textAlign: TextAlign.end,
+                    ),
                   ),
                 ],
               ),
@@ -477,7 +523,11 @@ class TrayScreen extends StatelessWidget {
 }
 
 class _QuickTile extends StatelessWidget {
-  const _QuickTile({required this.title, required this.state, required this.active});
+  const _QuickTile({
+    required this.title,
+    required this.state,
+    required this.active,
+  });
 
   final String title;
   final String state;
@@ -495,12 +545,18 @@ class _QuickTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppIcon(active ? AppIcons.power : AppIcons.share,
-              size: 22, color: active ? C.primaryMuted : C.muted),
+          AppIcon(
+            active ? AppIcons.power : AppIcons.share,
+            size: 22,
+            color: active ? C.primaryMuted : C.muted,
+          ),
           const SizedBox(height: S.x12),
-          Text(title,
-              style: T.listTitle
-                  .copyWith(color: active ? C.primaryMuted : C.heading)),
+          Text(
+            title,
+            style: T.listTitle.copyWith(
+              color: active ? C.primaryMuted : C.heading,
+            ),
+          ),
           const SizedBox(height: 2),
           Text(state, style: T.small),
         ],
@@ -517,16 +573,16 @@ class PhoneFrameless extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: const BoxDecoration(
-          gradient: C.screenGradient,
-          borderRadius: R.lgAll,
-          boxShadow: Shadows.card,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(S.x18, S.x22, S.x18, S.x18),
-          physics: const ClampingScrollPhysics(),
-          child: child,
-        ),
-      );
+    decoration: const BoxDecoration(
+      gradient: C.screenGradient,
+      borderRadius: R.lgAll,
+      boxShadow: Shadows.card,
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(S.x18, S.x22, S.x18, S.x18),
+      physics: const ClampingScrollPhysics(),
+      child: child,
+    ),
+  );
 }

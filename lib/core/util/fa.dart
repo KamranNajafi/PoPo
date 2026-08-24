@@ -39,7 +39,7 @@ class RatioText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Directionality(
-        textDirection: TextDirection.ltr,
-        child: Text(text, style: style),
-      );
+    textDirection: TextDirection.ltr,
+    child: Text(text, style: style),
+  );
 }

@@ -37,8 +37,10 @@ class LanguageScreen extends StatelessWidget {
               _Row(
                 // Endonym: listed in its own language so a user who cannot read
                 // the current one can still find theirs.
-                label: kLanguageNames[locale.languageCode] ?? locale.languageCode,
-                selected: controller.locale?.languageCode == locale.languageCode,
+                label:
+                    kLanguageNames[locale.languageCode] ?? locale.languageCode,
+                selected:
+                    controller.locale?.languageCode == locale.languageCode,
                 onTap: () => controller.setLocale(locale),
               ),
           ],
@@ -49,7 +51,11 @@ class LanguageScreen extends StatelessWidget {
 }
 
 class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.selected, required this.onTap});
+  const _Row({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;

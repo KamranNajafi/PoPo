@@ -18,15 +18,15 @@ void main() {
     calls = [];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      calls.add(call);
-      if (call.method == 'installedApps') {
-        return [
-          {'packageName': 'com.browser', 'name': 'Browser'},
-          {'packageName': 'com.bank.app', 'name': 'Bank'},
-        ];
-      }
-      return null;
-    });
+          calls.add(call);
+          if (call.method == 'installedApps') {
+            return [
+              {'packageName': 'com.browser', 'name': 'Browser'},
+              {'packageName': 'com.bank.app', 'name': 'Bank'},
+            ];
+          }
+          return null;
+        });
     controller = SplitTunnelController(prefs: prefs);
   });
 
@@ -45,9 +45,13 @@ void main() {
 
     expect(controller.isRouted('com.bank.app'), isTrue);
     final push = calls.lastWhere((c) => c.method == 'setSplitTunnel');
-    expect(push.arguments['packages'], contains('com.bank.app'),
-        reason: 'rules are read when the VPN interface is built, so a change '
-            'that only lives in Dart would be lost');
+    expect(
+      push.arguments['packages'],
+      contains('com.bank.app'),
+      reason:
+          'rules are read when the VPN interface is built, so a change '
+          'that only lives in Dart would be lost',
+    );
   });
 
   test('selections survive a restart', () async {
@@ -59,22 +63,27 @@ void main() {
     expect(reopened.isRouted('com.bank.app'), isTrue);
   });
 
-  test('"all through tunnel" turns the feature off, not on with everything',
-      () async {
-    await controller.setMode(SplitTunnelMode.exclude);
-    await controller.toggle('com.bank.app');
+  test(
+    '"all through tunnel" turns the feature off, not on with everything',
+    () async {
+      await controller.setMode(SplitTunnelMode.exclude);
+      await controller.toggle('com.bank.app');
 
-    await controller.routeAll();
+      await controller.routeAll();
 
-    expect(controller.mode, SplitTunnelMode.off);
-    expect(controller.config.isActive, isFalse);
-  });
+      expect(controller.mode, SplitTunnelMode.off);
+      expect(controller.config.isActive, isFalse);
+    },
+  );
 
   test('"none through tunnel" is include with an empty list', () async {
     await controller.routeNone();
 
-    expect(controller.mode, SplitTunnelMode.include,
-        reason: 'off would mean everything goes through, the opposite');
+    expect(
+      controller.mode,
+      SplitTunnelMode.include,
+      reason: 'off would mean everything goes through, the opposite',
+    );
     expect(controller.routed, isEmpty);
   });
 
@@ -91,18 +100,22 @@ void main() {
   test('reads the installed apps from the platform', () async {
     await controller.loadApps();
 
-    expect(controller.apps.map((a) => a.packageName),
-        containsAll(['com.browser', 'com.bank.app']));
+    expect(
+      controller.apps.map((a) => a.packageName),
+      containsAll(['com.browser', 'com.bank.app']),
+    );
   });
 
-  test('a platform with no app list leaves it empty rather than throwing',
-      () async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-      throw MissingPluginException();
-    });
+  test(
+    'a platform with no app list leaves it empty rather than throwing',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            throw MissingPluginException();
+          });
 
-    await controller.loadApps();
-    expect(controller.apps, isEmpty);
-  });
+      await controller.loadApps();
+      expect(controller.apps, isEmpty);
+    },
+  );
 }

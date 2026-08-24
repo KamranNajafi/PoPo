@@ -2,20 +2,16 @@ import 'probe_stub.dart' if (dart.library.io) 'probe_io.dart';
 
 /// What one latency probe found.
 class ProbeResult {
-  const ProbeResult.reachable(this.latency)
-      : reason = null,
-        supported = true;
+  const ProbeResult.reachable(this.latency) : reason = null, supported = true;
 
-  const ProbeResult.unreachable(this.reason)
-      : latency = null,
-        supported = true;
+  const ProbeResult.unreachable(this.reason) : latency = null, supported = true;
 
   /// The platform cannot open raw sockets — the web build. Distinguished from a
   /// failure so the UI never reports a healthy server as dead.
   const ProbeResult.unsupported()
-      : latency = null,
-        reason = 'sockets unavailable on this platform',
-        supported = false;
+    : latency = null,
+      reason = 'sockets unavailable on this platform',
+      supported = false;
 
   final Duration? latency;
   final String? reason;

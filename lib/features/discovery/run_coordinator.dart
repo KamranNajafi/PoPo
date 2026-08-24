@@ -32,6 +32,7 @@ class RunCoordinator extends ChangeNotifier {
   final DiscoveryController discovery;
   final ResultsStore results;
   final AppSettings settings;
+
   /// Injected in tests; null means the platform's real probe.
   final LatencyProbe? probe;
 
@@ -46,7 +47,9 @@ class RunCoordinator extends ChangeNotifier {
   RunStage get stage => _stage;
   HealthProgress? get healthProgress => _healthProgress;
   bool get isRunning =>
-      _stage == RunStage.searching || _stage == RunStage.testing || _stage == RunStage.picking;
+      _stage == RunStage.searching ||
+      _stage == RunStage.testing ||
+      _stage == RunStage.picking;
 
   /// False when the platform cannot open sockets, so the UI can say "not tested
   /// here" instead of showing a list that looks entirely dead.
@@ -57,7 +60,8 @@ class RunCoordinator extends ChangeNotifier {
   /// How many engines reported, for the first step card.
   int get enginesReporting => discovery.enginesReporting;
   int get foundCount => discovery.found;
-  int get healthyCount => _healthProgress?.healthy ?? results.all.where(_isHealthy).length;
+  int get healthyCount =>
+      _healthProgress?.healthy ?? results.all.where(_isHealthy).length;
 
   /// The endpoint a connect would use.
   Endpoint? get best => results.best;
@@ -109,12 +113,14 @@ class RunCoordinator extends ChangeNotifier {
       _stage = RunStage.picking;
       notifyListeners();
 
-      await results.recordRun(RunRecord(
-        at: DateTime.now(),
-        found: found.length,
-        healthy: report.healthy.length,
-        engines: discovery.engineStates.length,
-      ));
+      await results.recordRun(
+        RunRecord(
+          at: DateTime.now(),
+          found: found.length,
+          healthy: report.healthy.length,
+          engines: discovery.engineStates.length,
+        ),
+      );
 
       _stage = RunStage.done;
     } on Object catch (e) {

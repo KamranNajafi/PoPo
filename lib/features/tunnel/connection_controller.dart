@@ -8,7 +8,12 @@ import '../../core/tunnel/tunnel_service.dart';
 
 /// Why a connection attempt did not succeed. A kind rather than a message: the
 /// controller has no BuildContext and must not decide what the user reads.
-enum ConnectionError { permissionDenied, unsupportedConfig, platformFailed, noEndpoint }
+enum ConnectionError {
+  permissionDenied,
+  unsupportedConfig,
+  platformFailed,
+  noEndpoint,
+}
 
 /// Owns the connection: which endpoint, whether it is up, and for how long.
 ///
@@ -17,7 +22,7 @@ enum ConnectionError { permissionDenied, unsupportedConfig, platformFailed, noEn
 /// stay up while they search again.
 class ConnectionController extends ChangeNotifier {
   ConnectionController({required this.service, TunnelOptions? options})
-      : _options = options ?? const TunnelOptions() {
+    : _options = options ?? const TunnelOptions() {
     _subscription = service.statusStream.listen(_onStatus);
     if (service.isSupported) unawaited(_refresh());
   }
@@ -58,7 +63,10 @@ class ConnectionController extends ChangeNotifier {
     _endpoint = endpoint;
 
     if (!service.isSupported) {
-      _fail(ConnectionError.platformFailed, 'tunnel unavailable on this platform');
+      _fail(
+        ConnectionError.platformFailed,
+        'tunnel unavailable on this platform',
+      );
       return;
     }
 

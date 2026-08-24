@@ -84,13 +84,17 @@ class _KeywordsScreenState extends State<KeywordsScreen> {
           ),
           if (_duplicate) ...[
             const SizedBox(height: S.x8),
-            Text(l.keywordAlreadyExists,
-                style: T.small.copyWith(color: C.warning)),
+            Text(
+              l.keywordAlreadyExists,
+              style: T.small.copyWith(color: C.warning),
+            ),
           ],
           const SizedBox(height: S.x18),
 
-          SectionTitle(l.customPhrases,
-              trailing: Text(l.phrasesCount(custom.length), style: T.small)),
+          SectionTitle(
+            l.customPhrases,
+            trailing: Text(l.phrasesCount(custom.length), style: T.small),
+          ),
           if (custom.isEmpty)
             Text(l.noCustomKeywords, style: T.small)
           else
@@ -102,7 +106,9 @@ class _KeywordsScreenState extends State<KeywordsScreen> {
                   AppChip(
                     phrase,
                     selected: true,
-                    onTap: store == null ? null : () => store.removeCustom(phrase),
+                    onTap: store == null
+                        ? null
+                        : () => store.removeCustom(phrase),
                     trailing: Container(
                       width: 12,
                       height: 12,
@@ -111,7 +117,11 @@ class _KeywordsScreenState extends State<KeywordsScreen> {
                         border: Border.all(color: C.primaryMuted),
                       ),
                       child: const Center(
-                        child: AppIcon(AppIcons.close, size: 8, color: C.primaryMuted),
+                        child: AppIcon(
+                          AppIcons.close,
+                          size: 8,
+                          color: C.primaryMuted,
+                        ),
                       ),
                     ),
                   ),
@@ -133,8 +143,10 @@ class _KeywordsScreenState extends State<KeywordsScreen> {
             ),
 
           const SizedBox(height: S.x20),
-          SectionTitle(l.generatedPhrases,
-              trailing: Text(l.phrasesCount(generated.length), style: T.small)),
+          SectionTitle(
+            l.generatedPhrases,
+            trailing: Text(l.phrasesCount(generated.length), style: T.small),
+          ),
           Wrap(
             spacing: S.x8,
             runSpacing: S.x8,
@@ -152,12 +164,12 @@ class _KeywordsScreenState extends State<KeywordsScreen> {
   }
 
   String _setLabel(L l, KeywordSet set) => switch (set) {
-        KeywordSet.protocol => l.setProtocolNames,
-        KeywordSet.freshness => l.setFreshness,
-        KeywordSet.persian => l.setPersian,
-        KeywordSet.siteScoped => l.setSiteScoped,
-        KeywordSet.rawLinks => l.setRawLinks,
-      };
+    KeywordSet.protocol => l.setProtocolNames,
+    KeywordSet.freshness => l.setFreshness,
+    KeywordSet.persian => l.setPersian,
+    KeywordSet.siteScoped => l.setSiteScoped,
+    KeywordSet.rawLinks => l.setRawLinks,
+  };
 }
 
 class _AddField extends StatelessWidget {

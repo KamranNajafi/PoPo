@@ -12,14 +12,16 @@ import 'discovery_controller.dart';
 /// an error the run should surface as a failure.
 /// The message for a run-level failure.
 String runErrorMessage(L l, RunError error) => switch (error) {
-      RunError.noEnginesEnabled => l.runErrorNoEngines,
-      RunError.runFailed => l.runErrorFailed,
-    };
+  RunError.noEnginesEnabled => l.runErrorNoEngines,
+  RunError.runFailed => l.runErrorFailed,
+};
 
 ({String label, Color color}) engineRowStatus(L l, EngineState state) =>
     switch (state.status) {
-      EngineStatus.done when state.hits > 0 =>
-        (label: l.engineResults(state.hits), color: C.success),
+      EngineStatus.done when state.hits > 0 => (
+        label: l.engineResults(state.hits),
+        color: C.success,
+      ),
       EngineStatus.done => (label: l.engineNoResults, color: C.muted),
       EngineStatus.running => (label: l.engineSearching, color: C.primary),
       EngineStatus.queued => (label: l.engineQueued, color: C.muted),

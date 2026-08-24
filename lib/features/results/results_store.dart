@@ -21,18 +21,18 @@ class RunRecord {
   final int engines;
 
   Map<String, dynamic> toJson() => {
-        'at': at.toIso8601String(),
-        'found': found,
-        'healthy': healthy,
-        'engines': engines,
-      };
+    'at': at.toIso8601String(),
+    'found': found,
+    'healthy': healthy,
+    'engines': engines,
+  };
 
   static RunRecord fromJson(Map<String, dynamic> json) => RunRecord(
-        at: DateTime.parse(json['at'] as String),
-        found: json['found'] as int,
-        healthy: json['healthy'] as int,
-        engines: json['engines'] as int,
-      );
+    at: DateTime.parse(json['at'] as String),
+    found: json['found'] as int,
+    healthy: json['healthy'] as int,
+    engines: json['engines'] as int,
+  );
 }
 
 /// Which half of the results list is showing, and how it is filtered.
@@ -54,12 +54,11 @@ class ResultFilters {
     Protocol? protocol,
     ResultSort? sort,
     bool clearProtocol = false,
-  }) =>
-      ResultFilters(
-        kind: kind ?? this.kind,
-        protocol: clearProtocol ? null : (protocol ?? this.protocol),
-        sort: sort ?? this.sort,
-      );
+  }) => ResultFilters(
+    kind: kind ?? this.kind,
+    protocol: clearProtocol ? null : (protocol ?? this.protocol),
+    sort: sort ?? this.sort,
+  );
 }
 
 enum ResultSort { ping, score, recent }
@@ -119,14 +118,17 @@ class ResultsStore extends ChangeNotifier {
   List<Endpoint> get visible {
     final out = all
         .where((e) => e.kind == _filters.kind)
-        .where((e) => _filters.protocol == null || e.protocol == _filters.protocol)
+        .where(
+          (e) => _filters.protocol == null || e.protocol == _filters.protocol,
+        )
         .toList();
 
     out.sort(switch (_filters.sort) {
       ResultSort.ping => _byPing,
       ResultSort.score => (a, b) => b.score.compareTo(a.score),
-      ResultSort.recent => (a, b) => (b.lastTestedAt ?? DateTime(0))
-          .compareTo(a.lastTestedAt ?? DateTime(0)),
+      ResultSort.recent => (a, b) => (b.lastTestedAt ?? DateTime(0)).compareTo(
+        a.lastTestedAt ?? DateTime(0),
+      ),
     });
     return out;
   }
@@ -135,10 +137,11 @@ class ResultsStore extends ChangeNotifier {
   /// found nothing usable — simple mode shows its failure state rather than
   /// connecting to something untested.
   Endpoint? get best {
-    final healthy = all
-        .where((e) => e.health == Health.ok || e.health == Health.slow)
-        .toList()
-      ..sort(_byPing);
+    final healthy =
+        all
+            .where((e) => e.health == Health.ok || e.health == Health.slow)
+            .toList()
+          ..sort(_byPing);
     return healthy.isEmpty ? null : healthy.first;
   }
 
@@ -150,8 +153,14 @@ class ResultsStore extends ChangeNotifier {
   void setResults(List<Endpoint> endpoints) {
     _current
       ..clear()
-      ..addEntries(endpoints.map((e) =>
-          MapEntry(e.fingerprint, e.copyWith(saved: _saved.containsKey(e.fingerprint)))));
+      ..addEntries(
+        endpoints.map(
+          (e) => MapEntry(
+            e.fingerprint,
+            e.copyWith(saved: _saved.containsKey(e.fingerprint)),
+          ),
+        ),
+      );
 
     // Saved copies are refreshed with the new measurements — a saved item
     // showing a ping from last week would be worse than showing none.
@@ -179,8 +188,9 @@ class ResultsStore extends ChangeNotifier {
     }
     final current = _current[fingerprint];
     if (current != null) {
-      _current[fingerprint] =
-          current.copyWith(saved: _saved.containsKey(fingerprint));
+      _current[fingerprint] = current.copyWith(
+        saved: _saved.containsKey(fingerprint),
+      );
     }
     await _persistSaved();
     notifyListeners();
@@ -190,7 +200,9 @@ class ResultsStore extends ChangeNotifier {
     for (final fingerprint in fingerprints) {
       _saved.remove(fingerprint);
       final current = _current[fingerprint];
-      if (current != null) _current[fingerprint] = current.copyWith(saved: false);
+      if (current != null) {
+        _current[fingerprint] = current.copyWith(saved: false);
+      }
     }
     await _persistSaved();
     notifyListeners();
@@ -210,7 +222,9 @@ class ResultsStore extends ChangeNotifier {
     // Newest first, and bounded — history is a list to glance at, not an archive.
     _history = [record, ..._history].take(30).toList();
     await prefs.setStringList(
-        _historyKey, _history.map((r) => jsonEncode(r.toJson())).toList());
+      _historyKey,
+      _history.map((r) => jsonEncode(r.toJson())).toList(),
+    );
     notifyListeners();
   }
 
@@ -230,7 +244,9 @@ class ResultsStore extends ChangeNotifier {
       final existing = _current[endpoint.fingerprint];
       _current[endpoint.fingerprint] = existing == null
           ? endpoint
-          : existing.copyWith(sources: {...existing.sources, ...endpoint.sources});
+          : existing.copyWith(
+              sources: {...existing.sources, ...endpoint.sources},
+            );
     }
     notifyListeners();
     return found.length;
@@ -255,7 +271,9 @@ class ResultsStore extends ChangeNotifier {
   }
 
   Future<void> _persistSaved() => prefs.setStringList(
-      _savedKey, _saved.values.map((e) => jsonEncode(e.toJson())).toList());
+    _savedKey,
+    _saved.values.map((e) => jsonEncode(e.toJson())).toList(),
+  );
 
   /// Stored records are decoded defensively: a shape change between versions
   /// should cost the user one stale row, not every saved server.

@@ -106,7 +106,8 @@ class DiscoveryPipeline {
   void cancel() {
     _cancelled = true;
     for (final MapEntry(key: id, value: state) in _states.entries) {
-      if (state.status == EngineStatus.running || state.status == EngineStatus.queued) {
+      if (state.status == EngineStatus.running ||
+          state.status == EngineStatus.queued) {
         _states[id] = state.copyWith(status: EngineStatus.idle);
       }
     }
@@ -199,7 +200,9 @@ class DiscoveryPipeline {
 
       final FetchResult page;
       try {
-        page = await fetcher.get(url, headers: _pageHeaders).timeout(config.requestTimeout);
+        page = await fetcher
+            .get(url, headers: _pageHeaders)
+            .timeout(config.requestTimeout);
       } on Object {
         return; // One dead link is not a reason to abandon the query.
       }
@@ -211,8 +214,9 @@ class DiscoveryPipeline {
           _found[endpoint.fingerprint] = endpoint;
           added++;
         } else {
-          _found[endpoint.fingerprint] =
-              existing.copyWith(sources: {...existing.sources, ...endpoint.sources});
+          _found[endpoint.fingerprint] = existing.copyWith(
+            sources: {...existing.sources, ...endpoint.sources},
+          );
         }
       }
     });
@@ -226,11 +230,12 @@ class DiscoveryPipeline {
   /// This ordering is a prior, not a measurement — it decides which endpoints
   /// are worth spending a latency probe on. Real ping replaces it afterwards.
   List<Endpoint> ranked() {
-    final out = _found.values
-        .where((e) => e.sources.length >= config.minSourcesToTrust)
-        .map((e) => e.copyWith(score: _score(e)))
-        .toList()
-      ..sort((a, b) => b.score.compareTo(a.score));
+    final out =
+        _found.values
+            .where((e) => e.sources.length >= config.minSourcesToTrust)
+            .map((e) => e.copyWith(score: _score(e)))
+            .toList()
+          ..sort((a, b) => b.score.compareTo(a.score));
     return out;
   }
 
@@ -269,7 +274,9 @@ class DiscoveryPipeline {
     if (e.port == 443) score += 0.8;
 
     // A config carrying no transport parameters is usually a truncated paste.
-    if (e.kind == EndpointKind.config && !raw.contains('?') && e.protocol != Protocol.vmess) {
+    if (e.kind == EndpointKind.config &&
+        !raw.contains('?') &&
+        e.protocol != Protocol.vmess) {
       score -= 1.0;
     }
 
@@ -283,7 +290,8 @@ class DiscoveryPipeline {
       if (lower.contains(bad)) return false;
     }
     // Binaries and archives cannot be scanned as text.
-    return !RegExp(r'\.(png|jpe?g|gif|svg|mp4|zip|exe|apk|dmg|pdf)(\?|$)').hasMatch(lower);
+    return !RegExp(r'\.(png|jpe?g|gif|svg|mp4|zip|exe|apk|dmg|pdf)(\?|$)')
+        .hasMatch(lower);
   }
 
   static const _uselessHosts = [
@@ -301,7 +309,11 @@ class DiscoveryPipeline {
 
   /// Query slice for one engine: strided so engines cover different phrases,
   /// and site-scoped phrases dropped where the operator is unsupported.
-  List<Keyword> _sliceFor(List<Keyword> keywords, int offset, SearchEngine engine) {
+  List<Keyword> _sliceFor(
+    List<Keyword> keywords,
+    int offset,
+    SearchEngine engine,
+  ) {
     final usable = engine.supportsSiteOperator
         ? keywords
         : keywords.where((k) => !k.text.contains('site:')).toList();
@@ -337,23 +349,26 @@ class DiscoveryPipeline {
 
   void _emit() {
     if (_progress.isClosed) return;
-    _progress.add(DiscoveryProgress(
-      engines: Map.unmodifiable(_states),
-      found: _found.length,
-      pagesFetched: _pagesFetched,
-    ));
+    _progress.add(
+      DiscoveryProgress(
+        engines: Map.unmodifiable(_states),
+        found: _found.length,
+        pagesFetched: _pagesFetched,
+      ),
+    );
   }
 
   static const _serpHeaders = {
     'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-            '(KHTML, like Gecko) Chrome/122.0 Safari/537.36',
+        '(KHTML, like Gecko) Chrome/122.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml',
     'Accept-Language': 'en-US,en;q=0.9,fa;q=0.8',
   };
 
   static const _pageHeaders = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+    'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
         '(KHTML, like Gecko) Chrome/122.0 Safari/537.36',
     'Accept': 'text/html,text/plain,*/*',
   };
@@ -379,16 +394,18 @@ Future<void> _forEachLimited<T>(
   final workers = <Future<void>>[];
 
   for (var i = 0; i < limit; i++) {
-    workers.add(Future(() async {
-      while (true) {
-        final T item;
-        // Advancing the shared iterator is safe: there is no await between the
-        // check and the read, so no other worker can interleave here.
-        if (!iterator.moveNext()) return;
-        item = iterator.current;
-        await action(item);
-      }
-    }));
+    workers.add(
+      Future(() async {
+        while (true) {
+          final T item;
+          // Advancing the shared iterator is safe: there is no await between the
+          // check and the read, so no other worker can interleave here.
+          if (!iterator.moveNext()) return;
+          item = iterator.current;
+          await action(item);
+        }
+      }),
+    );
   }
 
   await Future.wait(workers);

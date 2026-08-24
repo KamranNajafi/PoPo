@@ -17,15 +17,15 @@ class ListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: padding,
-        decoration: BoxDecoration(
-          color: C.surfaceElevated,
-          borderRadius: R.mdAll,
-          border: hairlineBorder(),
-        ),
-        child: child,
-      );
+    width: double.infinity,
+    padding: padding,
+    decoration: BoxDecoration(
+      color: C.surfaceElevated,
+      borderRadius: R.mdAll,
+      border: hairlineBorder(),
+    ),
+    child: child,
+  );
 }
 
 /// A settings row: label + caption on one side, a trailing control on the other,
@@ -73,7 +73,13 @@ class SettingRow extends StatelessWidget {
 /// A label/value meta row. The label reads in Persian on the leading side, the
 /// value is mono and LTR on the trailing side.
 class MetaRow extends StatelessWidget {
-  const MetaRow(this.label, this.value, {super.key, this.valueColor, this.showDivider = true});
+  const MetaRow(
+    this.label,
+    this.value, {
+    super.key,
+    this.valueColor,
+    this.showDivider = true,
+  });
 
   final String label;
   final String value;
@@ -94,7 +100,10 @@ class MetaRow extends StatelessWidget {
           Flexible(
             child: MonoText(
               value,
-              style: T.monoValue.copyWith(fontSize: 13, color: valueColor ?? C.heading),
+              style: T.monoValue.copyWith(
+                fontSize: 13,
+                color: valueColor ?? C.heading,
+              ),
               textAlign: TextAlign.left,
             ),
           ),
@@ -106,22 +115,26 @@ class MetaRow extends StatelessWidget {
 
 /// The sunken block used for raw config links and the connection log.
 class SunkenBlock extends StatelessWidget {
-  const SunkenBlock({super.key, required this.child, this.padding = const EdgeInsets.all(S.x12)});
+  const SunkenBlock({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(S.x12),
+  });
 
   final Widget child;
   final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: padding,
-        decoration: BoxDecoration(
-          color: C.sunken,
-          borderRadius: R.smAll,
-          border: hairlineBorder(),
-        ),
-        child: child,
-      );
+    width: double.infinity,
+    padding: padding,
+    decoration: BoxDecoration(
+      color: C.sunken,
+      borderRadius: R.smAll,
+      border: hairlineBorder(),
+    ),
+    child: child,
+  );
 }
 
 /// A section heading, optionally with a counter on the trailing side.
@@ -139,8 +152,12 @@ class SectionTitle extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-            child: Text(title,
-                style: T.listTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              title,
+              style: T.listTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           if (trailing != null) ...[const SizedBox(width: S.x8), trailing!],
         ],
@@ -158,11 +175,11 @@ class ScreenHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Flexible(child: leading),
-          if (trailing != null) ...[const SizedBox(width: S.x12), trailing!],
-        ],
-      );
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Flexible(child: leading),
+      if (trailing != null) ...[const SizedBox(width: S.x12), trailing!],
+    ],
+  );
 }

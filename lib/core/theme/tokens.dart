@@ -125,6 +125,4 @@ abstract final class Shadows {
 BoxBorder hairlineBorder([Color color = C.hairline]) =>
     Border.all(color: color, width: 1);
 
-const hairlineBottom = Border(
-  bottom: BorderSide(color: C.hairline),
-);
+const hairlineBottom = Border(bottom: BorderSide(color: C.hairline));

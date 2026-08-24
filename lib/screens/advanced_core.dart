@@ -20,13 +20,19 @@ import '../core/widgets/mono.dart';
 import '../core/widgets/phone_frame.dart';
 import '../core/widgets/status_hero.dart';
 import '../core/widgets/surfaces.dart';
+
 /// 01 · Search — pick engines and keywords, start a run.
 ///
 /// Renders from a [DiscoveryController] when given one, and from the design's
 /// static values otherwise. The gallery relies on the second form: a canvas of
 /// 22 screens must not fire off 22 network runs to draw itself.
 class SearchScreen extends StatelessWidget {
-  const SearchScreen({super.key, this.controller, this.onSearch, this.onNavigate});
+  const SearchScreen({
+    super.key,
+    this.controller,
+    this.onSearch,
+    this.onNavigate,
+  });
 
   final DiscoveryController? controller;
   final VoidCallback? onSearch;
@@ -54,14 +60,23 @@ class SearchScreen extends StatelessWidget {
 
   Widget _build(BuildContext context, DiscoveryController? c) {
     final l = L.of(context);
-    final enabledIds = c?.enabledEngines ??
-        {for (final e in kEngines) if (e.enabledByDefault) e.id};
+    final enabledIds =
+        c?.enabledEngines ??
+        {
+          for (final e in kEngines)
+            if (e.enabledByDefault) e.id,
+        };
 
-    final keywords =
-        c == null ? _demoKeywords : c.keywords.take(5).map((k) => k.text).toList();
+    final keywords = c == null
+        ? _demoKeywords
+        : c.keywords.take(5).map((k) => k.text).toList();
 
     return PhoneFrame(
-      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.search, onTap: onNavigate),
+      nav: BottomNav(
+        items: Navs.items(l),
+        activeIndex: Navs.search,
+        onTap: onNavigate,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -71,8 +86,13 @@ class SearchScreen extends StatelessWidget {
               children: [
                 const AppMark(),
                 const SizedBox(width: S.x10),
-                Text('PoPo',
-                    style: T.screenTitle.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
+                Text(
+                  'PoPo',
+                  style: T.screenTitle.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
             trailing: const RoundIconButton(AppIcons.settings),
@@ -121,8 +141,10 @@ class SearchScreen extends StatelessWidget {
           ),
           if (c?.errorKind != null) ...[
             const SizedBox(height: S.x12),
-            Text(runErrorMessage(l, c!.errorKind!),
-                style: T.small.copyWith(color: C.danger)),
+            Text(
+              runErrorMessage(l, c!.errorKind!),
+              style: T.small.copyWith(color: C.danger),
+            ),
           ],
         ],
       ),
@@ -133,11 +155,11 @@ class SearchScreen extends StatelessWidget {
   /// than hidden: the user can still enable them, but the colour says not to
   /// expect much.
   Color _dotFor(SearchEngine engine) => switch (engine.viability) {
-        ScrapeViability.good => C.success,
-        ScrapeViability.fair => C.success,
-        ScrapeViability.poor => C.warning,
-        ScrapeViability.needsApiKey => C.danger,
-      };
+    ScrapeViability.good => C.success,
+    ScrapeViability.fair => C.success,
+    ScrapeViability.poor => C.warning,
+    ScrapeViability.needsApiKey => C.danger,
+  };
 }
 
 class _SearchField extends StatelessWidget {
@@ -159,10 +181,12 @@ class _SearchField extends StatelessWidget {
           const AppIcon(AppIcons.search, size: 16, color: C.muted),
           const SizedBox(width: S.x10),
           Expanded(
-            child: MonoText(value,
-                style: T.monoValue.copyWith(color: C.heading),
-                softWrap: false,
-                overflow: TextOverflow.ellipsis),
+            child: MonoText(
+              value,
+              style: T.monoValue.copyWith(color: C.heading),
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -179,13 +203,13 @@ class ScanningScreen extends StatelessWidget {
 
   /// The design's frozen mid-run state, used on the canvas.
   static List<(String, String, Color)> _demoRows(L l) => [
-        ('DuckDuckGo', l.engineResults(14), C.success),
-        ('Google', l.engineResults(11), C.success),
-        ('Brave', l.engineResults(9), C.success),
-        ('Bing', l.engineSearching, C.primary),
-        ('Startpage', l.engineQueued, C.muted),
-        ('Yandex', l.engineBlocked, C.danger),
-      ];
+    ('DuckDuckGo', l.engineResults(14), C.success),
+    ('Google', l.engineResults(11), C.success),
+    ('Brave', l.engineResults(9), C.success),
+    ('Bing', l.engineSearching, C.primary),
+    ('Startpage', l.engineQueued, C.muted),
+    ('Yandex', l.engineBlocked, C.danger),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -219,8 +243,10 @@ class ScanningScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ScreenHeader(
-            leading: Text(running ? l.scanningTitle : l.scanFinished,
-                style: T.screenTitle),
+            leading: Text(
+              running ? l.scanningTitle : l.scanFinished,
+              style: T.screenTitle,
+            ),
             trailing: running
                 ? TextLink(l.stop, color: C.primary, onTap: onStop)
                 : null,
@@ -236,7 +262,9 @@ class ScanningScreen extends StatelessWidget {
             child: HeroCaption(
               title: l.configsFound(found),
               titleStyle: T.onboardTitle,
-              body: running ? l.soFarFromEngines(reporting) : l.fromEngines(reporting),
+              body: running
+                  ? l.soFarFromEngines(reporting)
+                  : l.fromEngines(reporting),
             ),
           ),
           const SizedBox(height: S.x24),
@@ -256,8 +284,10 @@ class ScanningScreen extends StatelessWidget {
             ),
           if (c?.errorKind != null) ...[
             const SizedBox(height: S.x16),
-            Text(runErrorMessage(l, c!.errorKind!),
-                style: T.small.copyWith(color: C.danger)),
+            Text(
+              runErrorMessage(l, c!.errorKind!),
+              style: T.small.copyWith(color: C.danger),
+            ),
           ],
         ],
       ),
@@ -289,24 +319,23 @@ class ResultCard extends StatelessWidget {
     VoidCallback? onTap,
     VoidCallback? onCopy,
     VoidCallback? onToggleSaved,
-  }) =>
-      ResultCard(
-        key: key,
-        place: endpoint.displayName,
-        protocol: protocolLine(endpoint),
-        ping: pingLabel(endpoint),
-        pingColor: pingColorOf(endpoint),
-        age: testedAgo(endpoint, now),
-        // The host of the page it came from is the useful part; the full URL
-        // does not fit and does not help.
-        source: endpoint.sources.isEmpty
-            ? ''
-            : (Uri.tryParse(endpoint.sources.first)?.host ?? ''),
-        onTap: onTap,
-        onCopy: onCopy,
-        saved: endpoint.saved,
-        onToggleSaved: onToggleSaved,
-      );
+  }) => ResultCard(
+    key: key,
+    place: endpoint.displayName,
+    protocol: protocolLine(endpoint),
+    ping: pingLabel(endpoint),
+    pingColor: pingColorOf(endpoint),
+    age: testedAgo(endpoint, now),
+    // The host of the page it came from is the useful part; the full URL
+    // does not fit and does not help.
+    source: endpoint.sources.isEmpty
+        ? ''
+        : (Uri.tryParse(endpoint.sources.first)?.host ?? ''),
+    onTap: onTap,
+    onCopy: onCopy,
+    saved: endpoint.saved,
+    onToggleSaved: onToggleSaved,
+  );
 
   final String place;
   final String protocol;
@@ -325,67 +354,76 @@ class ResultCard extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: ListCard(
-      padding: const EdgeInsets.all(13),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: onToggleSaved,
-                child: Container(
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    color: saved ? C.accentTint : null,
-                    borderRadius: const BorderRadius.all(Radius.circular(7)),
-                    border: Border.all(color: C.primaryMuted, width: 2),
+        padding: const EdgeInsets.all(13),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: onToggleSaved,
+                  child: Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      color: saved ? C.accentTint : null,
+                      borderRadius: const BorderRadius.all(Radius.circular(7)),
+                      border: Border.all(color: C.primaryMuted, width: 2),
+                    ),
+                    child: saved
+                        ? const Center(
+                            child: AppIcon(
+                              AppIcons.bookmark,
+                              size: 14,
+                              color: C.primaryMuted,
+                            ),
+                          )
+                        : null,
                   ),
-                  child: saved
-                      ? const Center(
-                          child: AppIcon(AppIcons.bookmark,
-                              size: 14, color: C.primaryMuted))
-                      : null,
                 ),
-              ),
-              const SizedBox(width: S.x10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: S.x10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(place, style: T.listTitle),
+                      const SizedBox(height: 2),
+                      MonoText(protocol, style: T.monoSub),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: S.x8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(place, style: T.listTitle),
+                    MonoText(
+                      ping,
+                      style: T.monoValue.copyWith(color: pingColor),
+                    ),
                     const SizedBox(height: 2),
-                    MonoText(protocol, style: T.monoSub),
+                    MonoText(age, style: T.timestamp),
                   ],
                 ),
-              ),
-              const SizedBox(width: S.x8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  MonoText(ping, style: T.monoValue.copyWith(color: pingColor)),
-                  const SizedBox(height: 2),
-                  MonoText(age, style: T.timestamp),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: S.x10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(L.of(context).sourceLabel(source),
+              ],
+            ),
+            const SizedBox(height: S.x10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    L.of(context).sourceLabel(source),
                     style: T.monoSub.copyWith(fontFamily: kSans),
-                    overflow: TextOverflow.ellipsis),
-              ),
-              const SizedBox(width: S.x8),
-              GhostButton(L.of(context).copy, onTap: onCopy),
-            ],
-          ),
-        ],
-      ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: S.x8),
+                GhostButton(L.of(context).copy, onTap: onCopy),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -434,7 +472,11 @@ class ResultsScreen extends StatelessWidget {
     final protocols = store.availableProtocols;
 
     return PhoneFrame(
-      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.results, onTap: onNavigate),
+      nav: BottomNav(
+        items: Navs.items(l),
+        activeIndex: Navs.results,
+        onTap: onNavigate,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -449,10 +491,12 @@ class ResultsScreen extends StatelessWidget {
               '${l.tabProxies} (${formatNumber(context, store.proxyCount)})',
             ],
             activeIndex: filters.kind == EndpointKind.config ? 0 : 1,
-            onTap: (index) => store.setFilters(filters.copyWith(
-              kind: index == 0 ? EndpointKind.config : EndpointKind.proxy,
-              clearProtocol: true,
-            )),
+            onTap: (index) => store.setFilters(
+              filters.copyWith(
+                kind: index == 0 ? EndpointKind.config : EndpointKind.proxy,
+                clearProtocol: true,
+              ),
+            ),
           ),
           const SizedBox(height: S.x14),
           SizedBox(
@@ -480,8 +524,10 @@ class ResultsScreen extends StatelessWidget {
           ),
           const SizedBox(height: S.x14),
           if (!probingSupported) ...[
-            Text(l.probingUnsupported,
-                style: T.small.copyWith(color: C.warning)),
+            Text(
+              l.probingUnsupported,
+              style: T.small.copyWith(color: C.warning),
+            ),
             const SizedBox(height: S.x12),
           ],
           if (visible.isEmpty)
@@ -492,7 +538,8 @@ class ResultsScreen extends StatelessWidget {
                 endpoint,
                 now: now,
                 onTap: onOpen == null ? null : () => onOpen!(endpoint),
-                onCopy: () => Clipboard.setData(ClipboardData(text: endpoint.raw)),
+                onCopy: () =>
+                    Clipboard.setData(ClipboardData(text: endpoint.raw)),
                 onToggleSaved: () => store.toggleSaved(endpoint.fingerprint),
               ),
               const SizedBox(height: S.x10),
@@ -504,10 +551,21 @@ class ResultsScreen extends StatelessWidget {
 
   Widget _demo(BuildContext context) {
     final l = L.of(context);
-    final filters = ['VLESS', 'VMess', 'Shadowsocks', 'Trojan', 'HTTP/S', 'SOCKS5'];
+    final filters = [
+      'VLESS',
+      'VMess',
+      'Shadowsocks',
+      'Trojan',
+      'HTTP/S',
+      'SOCKS5',
+    ];
 
     return PhoneFrame(
-      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.results, onTap: onNavigate),
+      nav: BottomNav(
+        items: Navs.items(l),
+        activeIndex: Navs.results,
+        onTap: onNavigate,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -601,19 +659,22 @@ class _SegmentedTabs extends StatelessWidget {
                 onTap: onTap == null ? null : () => onTap!(i),
                 behavior: HitTestBehavior.opaque,
                 child: Container(
-                padding: const EdgeInsets.symmetric(vertical: S.x10),
-                decoration: i == activeIndex
-                    ? const BoxDecoration(gradient: C.primaryGradient, borderRadius: R.pill)
-                    : null,
-                child: Text(
-                  labels[i],
-                  textAlign: TextAlign.center,
-                  style: T.chip.copyWith(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: i == activeIndex ? C.onPrimary : C.body,
+                  padding: const EdgeInsets.symmetric(vertical: S.x10),
+                  decoration: i == activeIndex
+                      ? const BoxDecoration(
+                          gradient: C.primaryGradient,
+                          borderRadius: R.pill,
+                        )
+                      : null,
+                  child: Text(
+                    labels[i],
+                    textAlign: TextAlign.center,
+                    style: T.chip.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: i == activeIndex ? C.onPrimary : C.body,
+                    ),
                   ),
-                ),
                 ),
               ),
             ),
@@ -655,7 +716,11 @@ class ConfigDetailScreen extends StatelessWidget {
             leading: Text(l.configDetailTitle, style: T.screenTitle),
             trailing: GestureDetector(
               onTap: onToggleSaved,
-              child: RoundIconButton(AppIcons.bookmark, square: true, onTap: onToggleSaved),
+              child: RoundIconButton(
+                AppIcons.bookmark,
+                square: true,
+                onTap: onToggleSaved,
+              ),
             ),
           ),
           const SizedBox(height: S.x24),
@@ -670,8 +735,14 @@ class ConfigDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Text(ping,
-                        style: T.mono(26, weight: FontWeight.w500, color: pingTint)),
+                    Text(
+                      ping,
+                      style: T.mono(
+                        26,
+                        weight: FontWeight.w500,
+                        color: pingTint,
+                      ),
+                    ),
                     const SizedBox(width: 3),
                     Text('ms', style: T.mono(12, color: C.muted)),
                   ],
@@ -693,25 +764,29 @@ class ConfigDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: S.x22),
-          MetaRow(l.metaProtocol,
-              e == null ? 'VLESS / Reality' : e.protocol.name.toUpperCase()),
-          MetaRow(l.metaIpPort,
-              e == null ? '185.***.**.12 : 443' : '${e.host} : ${e.port}'),
+          MetaRow(
+            l.metaProtocol,
+            e == null ? 'VLESS / Reality' : e.protocol.name.toUpperCase(),
+          ),
+          MetaRow(
+            l.metaIpPort,
+            e == null ? '185.***.**.12 : 443' : '${e.host} : ${e.port}',
+          ),
           MetaRow(
             l.metaLastSuccess,
             e == null
                 ? '2 min ago · 42 ms'
                 : (e.lastTestedAt == null
-                    ? '—'
-                    : '${testedAgo(e, now)} · ${pingLabel(e)}'),
+                      ? '—'
+                      : '${testedAgo(e, now)} · ${pingLabel(e)}'),
           ),
           MetaRow(
             l.metaSource,
             e == null
                 ? 'DuckDuckGo · gist.github'
                 : (e.sources.isEmpty
-                    ? '—'
-                    : (Uri.tryParse(e.sources.first)?.host ?? '—')),
+                      ? '—'
+                      : (Uri.tryParse(e.sources.first)?.host ?? '—')),
             showDivider: false,
           ),
           const SizedBox(height: S.x16),

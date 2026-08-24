@@ -74,7 +74,7 @@ class HealthReport {
 /// is a measurement of whether it answers at all.
 class HealthTester {
   HealthTester({LatencyProbe? probe, this.config = const HealthConfig()})
-      : _probe = probe ?? defaultProbe();
+    : _probe = probe ?? defaultProbe();
 
   final LatencyProbe _probe;
   final HealthConfig config;
@@ -104,11 +104,9 @@ class HealthTester {
 
     void emit() {
       if (_progress.isClosed) return;
-      _progress.add(HealthProgress(
-        tested: tested,
-        total: subject.length,
-        healthy: healthy,
-      ));
+      _progress.add(
+        HealthProgress(tested: tested, total: subject.length, healthy: healthy),
+      );
     }
 
     emit();
@@ -116,8 +114,11 @@ class HealthTester {
     await _forEachLimited(subject, config.concurrency, (endpoint) async {
       if (_cancelled) return;
 
-      final result =
-          await _probe.probe(endpoint.host, endpoint.port, timeout: config.timeout);
+      final result = await _probe.probe(
+        endpoint.host,
+        endpoint.port,
+        timeout: config.timeout,
+      );
       if (!result.supported) supported = false;
 
       final now = DateTime.now();
@@ -146,7 +147,8 @@ class HealthTester {
 
       tested++;
 
-      final dropped = config.autoRemoveDead &&
+      final dropped =
+          config.autoRemoveDead &&
           result.supported &&
           updated.health == Health.dead &&
           updated.failureCount >= config.removeDeadAfterFailures;
@@ -175,11 +177,11 @@ class HealthTester {
   /// screen wants without any further sorting.
   static int _byQuality(Endpoint a, Endpoint b) {
     int rank(Endpoint e) => switch (e.health) {
-          Health.ok => 0,
-          Health.slow => 1,
-          Health.untested => 2,
-          Health.dead => 3,
-        };
+      Health.ok => 0,
+      Health.slow => 1,
+      Health.untested => 2,
+      Health.dead => 3,
+    };
 
     final byRank = rank(a).compareTo(rank(b));
     if (byRank != 0) return byRank;
@@ -203,13 +205,15 @@ Future<void> _forEachLimited<T>(
   final workers = <Future<void>>[];
 
   for (var i = 0; i < limit; i++) {
-    workers.add(Future(() async {
-      while (true) {
-        if (!iterator.moveNext()) return;
-        final item = iterator.current;
-        await action(item);
-      }
-    }));
+    workers.add(
+      Future(() async {
+        while (true) {
+          if (!iterator.moveNext()) return;
+          final item = iterator.current;
+          await action(item);
+        }
+      }),
+    );
   }
 
   await Future.wait(workers);

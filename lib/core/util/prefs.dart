@@ -22,7 +22,8 @@ class SharedPrefs implements Prefs {
   String? getString(String key) => _prefs.getString(key);
 
   @override
-  Future<void> setString(String key, String value) => _prefs.setString(key, value);
+  Future<void> setString(String key, String value) =>
+      _prefs.setString(key, value);
 
   @override
   List<String>? getStringList(String key) => _prefs.getStringList(key);

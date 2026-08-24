@@ -38,18 +38,21 @@ class _PoPoAppState extends State<PoPoApp> {
   // Constructed behind const flags: a controller built unconditionally keeps
   // everything it references alive in the binary, which is exactly what the
   // Apple builds must not ship.
-  late final KeywordStore? _keywords =
-      Features.enableDiscovery ? KeywordStore(prefs: widget.prefs) : null;
+  late final KeywordStore? _keywords = Features.enableDiscovery
+      ? KeywordStore(prefs: widget.prefs)
+      : null;
   late final ResultsStore _results = ResultsStore(prefs: widget.prefs);
   late final AppSettings _settings = AppSettings(widget.prefs);
   late final TunnelService _tunnel = createTunnelService();
-  late final ConnectionController _connection =
-      ConnectionController(service: _tunnel);
+  late final ConnectionController _connection = ConnectionController(
+    service: _tunnel,
+  );
   late final ShareController? _share = Features.enableSharing
       ? ShareController(service: _tunnel, prefs: widget.prefs)
       : null;
-  late final SplitTunnelController? _splitTunnel =
-      Features.enableSplitTunnel ? SplitTunnelController(prefs: widget.prefs) : null;
+  late final SplitTunnelController? _splitTunnel = Features.enableSplitTunnel
+      ? SplitTunnelController(prefs: widget.prefs)
+      : null;
 
   @override
   void dispose() {

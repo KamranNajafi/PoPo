@@ -21,19 +21,25 @@ abstract final class Features {
   ///
   /// Off on Apple builds. Those users import their own subscription links
   /// instead, which is what screen 09 is for.
-  static const enableDiscovery =
-      bool.fromEnvironment('ENABLE_DISCOVERY', defaultValue: true);
+  static const enableDiscovery = bool.fromEnvironment(
+    'ENABLE_DISCOVERY',
+    defaultValue: true,
+  );
 
   /// Connection sharing: screens 12, 13 and 14.
   ///
   /// Off on Apple builds — not for policy reasons but because iOS cannot keep a
   /// background listener alive, so the feature could not work even if it shipped.
-  static const enableSharing =
-      bool.fromEnvironment('ENABLE_SHARING', defaultValue: true);
+  static const enableSharing = bool.fromEnvironment(
+    'ENABLE_SHARING',
+    defaultValue: true,
+  );
 
   /// Per-app routing: screen 15. Android only; no other platform has the API.
-  static const enableSplitTunnel =
-      bool.fromEnvironment('ENABLE_SPLIT_TUNNEL', defaultValue: true);
+  static const enableSplitTunnel = bool.fromEnvironment(
+    'ENABLE_SPLIT_TUNNEL',
+    defaultValue: true,
+  );
 
   /// True when the build has no way to find servers on its own, so the UI should
   /// lead with import rather than with search.

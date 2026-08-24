@@ -10,18 +10,17 @@ Endpoint endpoint(
   Duration? ping,
   Health health = Health.untested,
   double score = 1,
-}) =>
-    Endpoint(
-      raw: '${protocol.name}://u@$host:443',
-      kind: kind,
-      protocol: protocol,
-      host: host,
-      port: 443,
-      fingerprint: '${protocol.name}|$host|443|u',
-      ping: ping,
-      health: health,
-      score: score,
-    );
+}) => Endpoint(
+  raw: '${protocol.name}://u@$host:443',
+  kind: kind,
+  protocol: protocol,
+  host: host,
+  port: 443,
+  fingerprint: '${protocol.name}|$host|443|u',
+  ping: ping,
+  health: health,
+  score: score,
+);
 
 void main() {
   late MemoryPrefs prefs;
@@ -35,7 +34,11 @@ void main() {
   test('holds the latest run and counts each kind', () {
     store.setResults([
       endpoint('a.example'),
-      endpoint('b.example', kind: EndpointKind.proxy, protocol: Protocol.socks5),
+      endpoint(
+        'b.example',
+        kind: EndpointKind.proxy,
+        protocol: Protocol.socks5,
+      ),
     ]);
 
     expect(store.all, hasLength(2));
@@ -60,21 +63,33 @@ void main() {
 
     store.setResults([endpoint('b.example')]);
 
-    expect(store.all.map((e) => e.host), containsAll(['a.example', 'b.example']),
-        reason: 'a saved server must not vanish because one run missed it');
+    expect(
+      store.all.map((e) => e.host),
+      containsAll(['a.example', 'b.example']),
+      reason: 'a saved server must not vanish because one run missed it',
+    );
   });
 
   test('a new run refreshes the measurements on saved copies', () async {
-    store.setResults([endpoint('a.example', ping: const Duration(milliseconds: 90))]);
+    store.setResults([
+      endpoint('a.example', ping: const Duration(milliseconds: 90)),
+    ]);
     final fingerprint = store.all.single.fingerprint;
     await store.toggleSaved(fingerprint);
 
     store.setResults([
-      endpoint('a.example', ping: const Duration(milliseconds: 300), health: Health.slow),
+      endpoint(
+        'a.example',
+        ping: const Duration(milliseconds: 300),
+        health: Health.slow,
+      ),
     ]);
 
-    expect(store.saved.single.ping, const Duration(milliseconds: 300),
-        reason: 'a saved row showing last week\'s ping would be worse than none');
+    expect(
+      store.saved.single.ping,
+      const Duration(milliseconds: 300),
+      reason: 'a saved row showing last week\'s ping would be worse than none',
+    );
   });
 
   test('unsaving removes it everywhere', () async {
@@ -91,10 +106,22 @@ void main() {
   group('filters', () {
     setUp(() {
       store.setResults([
-        endpoint('fast.example', ping: const Duration(milliseconds: 20), health: Health.ok),
-        endpoint('slow.example', ping: const Duration(milliseconds: 300), health: Health.slow),
+        endpoint(
+          'fast.example',
+          ping: const Duration(milliseconds: 20),
+          health: Health.ok,
+        ),
+        endpoint(
+          'slow.example',
+          ping: const Duration(milliseconds: 300),
+          health: Health.slow,
+        ),
         endpoint('vm.example', protocol: Protocol.vmess),
-        endpoint('p.example', kind: EndpointKind.proxy, protocol: Protocol.socks5),
+        endpoint(
+          'p.example',
+          kind: EndpointKind.proxy,
+          protocol: Protocol.socks5,
+        ),
       ]);
     });
 
@@ -114,17 +141,31 @@ void main() {
     });
 
     test('available protocols reflect the data, not a fixed list', () {
-      expect(store.availableProtocols, containsAll([Protocol.vless, Protocol.vmess]));
-      expect(store.availableProtocols, isNot(contains(Protocol.socks5)),
-          reason: 'socks5 is a proxy and the config tab is showing');
+      expect(
+        store.availableProtocols,
+        containsAll([Protocol.vless, Protocol.vmess]),
+      );
+      expect(
+        store.availableProtocols,
+        isNot(contains(Protocol.socks5)),
+        reason: 'socks5 is a proxy and the config tab is showing',
+      );
     });
   });
 
   group('best', () {
     test('picks the healthy endpoint with the lowest ping', () {
       store.setResults([
-        endpoint('slow.example', ping: const Duration(milliseconds: 300), health: Health.slow),
-        endpoint('fast.example', ping: const Duration(milliseconds: 20), health: Health.ok),
+        endpoint(
+          'slow.example',
+          ping: const Duration(milliseconds: 300),
+          health: Health.slow,
+        ),
+        endpoint(
+          'fast.example',
+          ping: const Duration(milliseconds: 20),
+          health: Health.ok,
+        ),
         endpoint('dead.example', health: Health.dead, score: 99),
       ]);
 
@@ -132,10 +173,16 @@ void main() {
     });
 
     test('is null when nothing was proven healthy', () {
-      store.setResults([endpoint('untested.example'), endpoint('dead.example', health: Health.dead)]);
+      store.setResults([
+        endpoint('untested.example'),
+        endpoint('dead.example', health: Health.dead),
+      ]);
 
-      expect(store.best, isNull,
-          reason: 'simple mode must not connect to something never proven up');
+      expect(
+        store.best,
+        isNull,
+        reason: 'simple mode must not connect to something never proven up',
+      );
     });
   });
 
@@ -154,10 +201,16 @@ void main() {
       const body =
           'dmxlc3M6Ly91MUAxMC4wLjAuMTo0NDM/c2VjdXJpdHk9cmVhbGl0eSNBCnRyb2phbjovL3BAMTAuMC4wLjI6NDQzI0I=';
 
-      final count = store.importSubscription(body, url: 'https://example.com/sub');
+      final count = store.importSubscription(
+        body,
+        url: 'https://example.com/sub',
+      );
 
       expect(count, 2);
-      expect(store.all.map((e) => e.host), containsAll(['10.0.0.1', '10.0.0.2']));
+      expect(
+        store.all.map((e) => e.host),
+        containsAll(['10.0.0.1', '10.0.0.2']),
+      );
     });
 
     test('returns zero for text with nothing in it', () {
@@ -175,12 +228,14 @@ void main() {
 
   test('history is newest first, bounded, and persisted', () async {
     for (var i = 0; i < 35; i++) {
-      await store.recordRun(RunRecord(
-        at: DateTime(2026, 1, 1).add(Duration(days: i)),
-        found: i,
-        healthy: i,
-        engines: 8,
-      ));
+      await store.recordRun(
+        RunRecord(
+          at: DateTime(2026, 1, 1).add(Duration(days: i)),
+          found: i,
+          healthy: i,
+          engines: 8,
+        ),
+      );
     }
 
     expect(store.history, hasLength(30));

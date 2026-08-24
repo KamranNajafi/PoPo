@@ -9,7 +9,12 @@ import '../theme/tokens.dart';
 /// uniform, stroke-based, and costs no dependency. Swapping to Lucide later is a
 /// change to [AppIcons] alone, not to the 22 screens that use it.
 class AppIcon extends StatelessWidget {
-  const AppIcon(this.icon, {super.key, this.size = 20, this.color = C.primaryMuted});
+  const AppIcon(
+    this.icon, {
+    super.key,
+    this.size = 20,
+    this.color = C.primaryMuted,
+  });
 
   final IconData icon;
   final double size;
@@ -96,7 +101,9 @@ class RoundIconButton extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           color: C.surfaceElevated,
-          borderRadius: square ? const BorderRadius.all(Radius.circular(8)) : R.pill,
+          borderRadius: square
+              ? const BorderRadius.all(Radius.circular(8))
+              : R.pill,
           border: hairlineBorder(),
         ),
         child: Center(child: AppIcon(icon, size: size * 0.5)),

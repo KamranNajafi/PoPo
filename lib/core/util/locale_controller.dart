@@ -39,7 +39,4 @@ class LocaleController extends ChangeNotifier {
 /// Endonyms — a language is always listed in its own language, never translated
 /// into the current one, so a user who cannot read the current language can
 /// still find theirs.
-const kLanguageNames = <String, String>{
-  'fa': 'فارسی',
-  'en': 'English',
-};
+const kLanguageNames = <String, String>{'fa': 'فارسی', 'en': 'English'};

@@ -20,8 +20,11 @@ void main() {
     expect(first, hasLength(10));
 
     final reopened = ShareController(service: service, prefs: prefs);
-    expect(reopened.password, first,
-        reason: 'a password that changes on restart breaks every paired device');
+    expect(
+      reopened.password,
+      first,
+      reason: 'a password that changes on restart breaks every paired device',
+    );
   });
 
   test('rotating the password changes and persists it', () async {
@@ -29,8 +32,10 @@ void main() {
     await controller.regeneratePassword();
 
     expect(controller.password, isNot(before));
-    expect(ShareController(service: service, prefs: prefs).password,
-        controller.password);
+    expect(
+      ShareController(service: service, prefs: prefs).password,
+      controller.password,
+    );
   });
 
   test('the QR carries a usable proxy URL, not just an address', () {
@@ -38,13 +43,15 @@ void main() {
     expect(controller.qrPayload, contains('@192.168.43.1:8888'));
   });
 
-  test('enabling without a connection explains rather than half-starting',
-      () async {
-    await controller.setEnabled(true);
+  test(
+    'enabling without a connection explains rather than half-starting',
+    () async {
+      await controller.setEnabled(true);
 
-    expect(service.startedConfigs, isEmpty);
-    expect(controller.error, contains('connect first'));
-  });
+      expect(service.startedConfigs, isEmpty);
+      expect(controller.error, contains('connect first'));
+    },
+  );
 
   test('enabling with an upstream starts the shared listeners', () async {
     await controller.setEnabled(true, upstream: endpoint());
@@ -54,8 +61,11 @@ void main() {
     expect(config, contains('share-http'));
     expect(config, contains('share-socks'));
     expect(config, contains('"listen":"192.168.43.1"'));
-    expect(config, isNot(contains('"listen":"0.0.0.0"')),
-        reason: 'binding everywhere exposes the proxy beyond the hotspot');
+    expect(
+      config,
+      isNot(contains('"listen":"0.0.0.0"')),
+      reason: 'binding everywhere exposes the proxy beyond the hotspot',
+    );
   });
 
   test('the shared listeners are password protected', () async {
@@ -110,17 +120,19 @@ void main() {
     expect(controller.usageToday, '840 MB');
   });
 
-  test('an unsupported platform says so rather than appearing to share',
-      () async {
-    final unsupported = ShareController(
-      service: FakeTunnelService(isSupported: false),
-      prefs: MemoryPrefs(),
-    );
+  test(
+    'an unsupported platform says so rather than appearing to share',
+    () async {
+      final unsupported = ShareController(
+        service: FakeTunnelService(isSupported: false),
+        prefs: MemoryPrefs(),
+      );
 
-    await unsupported.setEnabled(true, upstream: endpoint());
+      await unsupported.setEnabled(true, upstream: endpoint());
 
-    expect(unsupported.error, contains('tunnel core'));
-  });
+      expect(unsupported.error, contains('tunnel core'));
+    },
+  );
 
   group('formatBytes', () {
     test('scales to the unit the design shows', () {

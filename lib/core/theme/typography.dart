@@ -17,11 +17,22 @@ abstract final class T {
   static const _b = 1.5; // body 1.4–1.6
 
   static TextStyle _s(double size, FontWeight w, Color c, double h) =>
-      TextStyle(fontFamily: kSans, fontSize: size, fontWeight: w, color: c, height: h);
+      TextStyle(
+        fontFamily: kSans,
+        fontSize: size,
+        fontWeight: w,
+        color: c,
+        height: h,
+      );
 
   // Simple mode leans one step larger than the equivalent advanced screen.
   static const wordmark = TextStyle(
-      fontFamily: kSans, fontSize: 26, fontWeight: FontWeight.w700, color: C.heading, height: _h);
+    fontFamily: kSans,
+    fontSize: 26,
+    fontWeight: FontWeight.w700,
+    color: C.heading,
+    height: _h,
+  );
   static final simpleHero = _s(24, FontWeight.w700, C.heading, _h);
   static final onboardTitle = _s(22, FontWeight.w700, C.heading, _h);
   static final hero = _s(20, FontWeight.w700, C.heading, _h);
@@ -43,19 +54,54 @@ abstract final class T {
   // Mono roles.
   static const _m = TextStyle(fontFamily: kMono, color: C.body, height: 1.35);
   static const monoHero = TextStyle(
-      fontFamily: kMono, fontSize: 20, fontWeight: FontWeight.w500, color: C.heading, height: 1.2);
+    fontFamily: kMono,
+    fontSize: 20,
+    fontWeight: FontWeight.w500,
+    color: C.heading,
+    height: 1.2,
+  );
   static const monoValue = TextStyle(
-      fontFamily: kMono, fontSize: 14, fontWeight: FontWeight.w500, color: C.body, height: 1.3);
+    fontFamily: kMono,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: C.body,
+    height: 1.3,
+  );
   static const monoName = TextStyle(
-      fontFamily: kMono, fontSize: 12, fontWeight: FontWeight.w400, color: C.body, height: 1.3);
+    fontFamily: kMono,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: C.body,
+    height: 1.3,
+  );
   static const monoSub = TextStyle(
-      fontFamily: kMono, fontSize: 11, fontWeight: FontWeight.w400, color: C.muted, height: 1.45);
+    fontFamily: kMono,
+    fontSize: 11,
+    fontWeight: FontWeight.w400,
+    color: C.muted,
+    height: 1.45,
+  );
   static const monoRaw = TextStyle(
-      fontFamily: kMono, fontSize: 11, fontWeight: FontWeight.w400, color: C.body, height: 1.6);
+    fontFamily: kMono,
+    fontSize: 11,
+    fontWeight: FontWeight.w400,
+    color: C.body,
+    height: 1.6,
+  );
   static const screenNumber = TextStyle(
-      fontFamily: kMono, fontSize: 11, fontWeight: FontWeight.w500, color: C.muted, height: 1.2);
+    fontFamily: kMono,
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    color: C.muted,
+    height: 1.2,
+  );
   static const timestamp = TextStyle(
-      fontFamily: kMono, fontSize: 10, fontWeight: FontWeight.w400, color: C.muted, height: 1.3);
+    fontFamily: kMono,
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: C.muted,
+    height: 1.3,
+  );
 
   static TextStyle mono(double size, {FontWeight? weight, Color? color}) =>
       _m.copyWith(fontSize: size, fontWeight: weight, color: color);

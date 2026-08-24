@@ -90,14 +90,16 @@ class _AppFlowState extends State<AppFlow> {
     final navigator = Navigator.of(context);
     final run = coordinator.run();
 
-    await navigator.push(MaterialPageRoute<void>(
-      builder: (_) => _simple
-          ? _SimpleProgressRoute(
-              coordinator: coordinator,
-              connection: AppScope.of(context).connection,
-            )
-          : _ScanningRoute(coordinator: coordinator),
-    ));
+    await navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => _simple
+            ? _SimpleProgressRoute(
+                coordinator: coordinator,
+                connection: AppScope.of(context).connection,
+              )
+            : _ScanningRoute(coordinator: coordinator),
+      ),
+    );
     await run;
   }
 
@@ -107,33 +109,33 @@ class _AppFlowState extends State<AppFlow> {
   int _tab = 0;
 
   Widget _advancedBody(RunCoordinator coordinator) => switch (_tab) {
-        // With discovery compiled out there is nothing to search, so the shell
-        // opens on results and import instead.
-        0 when !Features.enableDiscovery => ResultsScreen(
-            store: coordinator.results,
-            probingSupported: coordinator.probingSupported,
-            onRetest: coordinator.retestExisting,
-            onNavigate: (index) => setState(() => _tab = index),
-            onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
-          ),
-        1 => ResultsScreen(
-            store: coordinator.results,
-            probingSupported: coordinator.probingSupported,
-            onRetest: coordinator.retestExisting,
-            onNavigate: (index) => setState(() => _tab = index),
-            onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
-          ),
-        2 => SavedScreen(
-            store: coordinator.results,
-            onNavigate: (index) => setState(() => _tab = index),
-            onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
-          ),
-        _ => SearchScreen(
-            controller: coordinator.discovery,
-            onSearch: () => _start(context),
-            onNavigate: (index) => setState(() => _tab = index),
-          ),
-      };
+    // With discovery compiled out there is nothing to search, so the shell
+    // opens on results and import instead.
+    0 when !Features.enableDiscovery => ResultsScreen(
+      store: coordinator.results,
+      probingSupported: coordinator.probingSupported,
+      onRetest: coordinator.retestExisting,
+      onNavigate: (index) => setState(() => _tab = index),
+      onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
+    ),
+    1 => ResultsScreen(
+      store: coordinator.results,
+      probingSupported: coordinator.probingSupported,
+      onRetest: coordinator.retestExisting,
+      onNavigate: (index) => setState(() => _tab = index),
+      onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
+    ),
+    2 => SavedScreen(
+      store: coordinator.results,
+      onNavigate: (index) => setState(() => _tab = index),
+      onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
+    ),
+    _ => SearchScreen(
+      controller: coordinator.discovery,
+      onSearch: () => _start(context),
+      onNavigate: (index) => setState(() => _tab = index),
+    ),
+  };
 
   /// The shell for a build with no discovery: results, saved and import.
   Widget _importOnlyShell(BuildContext context, AppScope scope) {
@@ -188,8 +190,10 @@ class _AppFlowState extends State<AppFlow> {
           ),
           TextButton(
             onPressed: () => setState(() => _simple = !_simple),
-            child: Text(_simple ? 'Advanced' : 'Simple',
-                style: const TextStyle(color: C.primaryMuted, fontSize: 13)),
+            child: Text(
+              _simple ? 'Advanced' : 'Simple',
+              style: const TextStyle(color: C.primaryMuted, fontSize: 13),
+            ),
           ),
         ],
       ),
@@ -227,7 +231,8 @@ class _ScanningRoute extends StatelessWidget {
                 store: coordinator.results,
                 probingSupported: coordinator.probingSupported,
                 onRetest: coordinator.retestExisting,
-                onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
+                onOpen: (endpoint) =>
+                    _openDetail(context, coordinator, endpoint),
               ),
       ),
     );
@@ -235,20 +240,25 @@ class _ScanningRoute extends StatelessWidget {
 }
 
 void _openHistory(BuildContext context, RunCoordinator coordinator) {
-  Navigator.of(context).push(MaterialPageRoute<void>(
-    builder: (_) => _Framed(
-      results: coordinator.results,
-      child: HistoryScreen(
-        store: coordinator.results,
-        onFetchSubscription: fetchSubscriptionBody,
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => _Framed(
+        results: coordinator.results,
+        child: HistoryScreen(
+          store: coordinator.results,
+          onFetchSubscription: fetchSubscriptionBody,
+        ),
       ),
     ),
-  ));
+  );
 }
 
 /// Simple mode: steps (S2), then ready (S3), then connected (S4).
 class _SimpleProgressRoute extends StatefulWidget {
-  const _SimpleProgressRoute({required this.coordinator, required this.connection});
+  const _SimpleProgressRoute({
+    required this.coordinator,
+    required this.connection,
+  });
 
   final RunCoordinator coordinator;
   final ConnectionController connection;
@@ -318,17 +328,19 @@ class _SimpleProgressRouteState extends State<_SimpleProgressRoute> {
 }
 
 void _openResults(BuildContext context, RunCoordinator coordinator) {
-  Navigator.of(context).push(MaterialPageRoute<void>(
-    builder: (_) => _Framed(
-      results: coordinator.results,
-      child: ResultsScreen(
-        store: coordinator.results,
-        probingSupported: coordinator.probingSupported,
-        onRetest: coordinator.retestExisting,
-        onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => _Framed(
+        results: coordinator.results,
+        child: ResultsScreen(
+          store: coordinator.results,
+          probingSupported: coordinator.probingSupported,
+          onRetest: coordinator.retestExisting,
+          onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
+        ),
       ),
     ),
-  ));
+  );
 }
 
 void _openDetail(
@@ -336,22 +348,24 @@ void _openDetail(
   RunCoordinator coordinator,
   Endpoint endpoint,
 ) {
-  Navigator.of(context).push(MaterialPageRoute<void>(
-    builder: (_) => _Framed(
-      results: coordinator.results,
-      child: endpoint.kind == EndpointKind.proxy
-          ? ProxyDetailScreen(
-              endpoint: endpoint,
-              onToggleSaved: () =>
-                  coordinator.results.toggleSaved(endpoint.fingerprint),
-            )
-          : ConfigDetailScreen(
-              endpoint: endpoint,
-              onToggleSaved: () =>
-                  coordinator.results.toggleSaved(endpoint.fingerprint),
-            ),
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => _Framed(
+        results: coordinator.results,
+        child: endpoint.kind == EndpointKind.proxy
+            ? ProxyDetailScreen(
+                endpoint: endpoint,
+                onToggleSaved: () =>
+                    coordinator.results.toggleSaved(endpoint.fingerprint),
+              )
+            : ConfigDetailScreen(
+                endpoint: endpoint,
+                onToggleSaved: () =>
+                    coordinator.results.toggleSaved(endpoint.fingerprint),
+              ),
+      ),
     ),
-  ));
+  );
 }
 
 /// Centres a phone-width screen on the page background.

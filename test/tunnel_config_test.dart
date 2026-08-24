@@ -6,7 +6,8 @@ import 'package:popo/core/discovery/models.dart';
 import 'package:popo/core/tunnel/outbound_builder.dart';
 import 'package:popo/core/tunnel/tunnel_config.dart';
 
-Endpoint config(String raw, {String host = 'example.com', int port = 443}) => Endpoint(
+Endpoint config(String raw, {String host = 'example.com', int port = 443}) =>
+    Endpoint(
       raw: raw,
       kind: EndpointKind.config,
       protocol: Protocol.vless,
@@ -18,7 +19,8 @@ Endpoint config(String raw, {String host = 'example.com', int port = 443}) => En
 /// Configs the Go suite re-validates against the real sing-box parser.
 final _corpus = <String, Map<String, dynamic>>{};
 
-void keep(String name, Map<String, dynamic> document) => _corpus[name] = document;
+void keep(String name, Map<String, dynamic> document) =>
+    _corpus[name] = document;
 
 void main() {
   group('OutboundBuilder', () {
@@ -37,7 +39,11 @@ void main() {
       expect(out['tls']['reality']['public_key'], 'PUBKEY');
       expect(out['tls']['reality']['short_id'], 'ab');
       expect(out['tls']['utls']['fingerprint'], 'chrome');
-      expect(out.containsKey('transport'), isFalse, reason: 'tcp needs no transport');
+      expect(
+        out.containsKey('transport'),
+        isFalse,
+        reason: 'tcp needs no transport',
+      );
     });
 
     test('reality without a public key is rejected rather than half-built', () {
@@ -49,10 +55,14 @@ void main() {
 
     test('vision flow is dropped when there is no TLS', () {
       final out = OutboundBuilder.fromUri(
-          'vless://u@1.2.3.4:443?flow=xtls-rprx-vision&type=tcp');
+        'vless://u@1.2.3.4:443?flow=xtls-rprx-vision&type=tcp',
+      );
 
-      expect(out.containsKey('flow'), isFalse,
-          reason: 'sing-box rejects vision without TLS');
+      expect(
+        out.containsKey('flow'),
+        isFalse,
+        reason: 'sing-box rejects vision without TLS',
+      );
     });
 
     test('vless over websocket', () {
@@ -67,26 +77,31 @@ void main() {
 
     test('vless over grpc strips the leading slash from the service name', () {
       final out = OutboundBuilder.fromUri(
-          'vless://u@1.2.3.4:443?security=tls&type=grpc&serviceName=%2Fgun');
+        'vless://u@1.2.3.4:443?security=tls&type=grpc&serviceName=%2Fgun',
+      );
 
       expect(out['transport']['type'], 'grpc');
       expect(out['transport']['service_name'], 'gun');
     });
 
     test('vmess decodes its base64 payload', () {
-      final payload = base64.encode(utf8.encode(jsonEncode({
-        'v': '2',
-        'ps': 'DE',
-        'add': '5.6.7.8',
-        'port': '8443',
-        'id': 'vmess-uuid',
-        'aid': '0',
-        'net': 'ws',
-        'path': '/p',
-        'host': 'h.example.com',
-        'tls': 'tls',
-        'sni': 'sni.example.com',
-      })));
+      final payload = base64.encode(
+        utf8.encode(
+          jsonEncode({
+            'v': '2',
+            'ps': 'DE',
+            'add': '5.6.7.8',
+            'port': '8443',
+            'id': 'vmess-uuid',
+            'aid': '0',
+            'net': 'ws',
+            'path': '/p',
+            'host': 'h.example.com',
+            'tls': 'tls',
+            'sni': 'sni.example.com',
+          }),
+        ),
+      );
 
       final out = OutboundBuilder.fromUri('vmess://$payload#DE');
 
@@ -99,12 +114,16 @@ void main() {
     });
 
     test('an unknown vmess cipher falls back to auto rather than failing', () {
-      final payload = base64.encode(utf8.encode(jsonEncode({
-        'add': '5.6.7.8',
-        'port': '443',
-        'id': 'u',
-        'scy': 'something-new',
-      })));
+      final payload = base64.encode(
+        utf8.encode(
+          jsonEncode({
+            'add': '5.6.7.8',
+            'port': '443',
+            'id': 'u',
+            'scy': 'something-new',
+          }),
+        ),
+      );
 
       expect(OutboundBuilder.fromUri('vmess://$payload')['security'], 'auto');
     });
@@ -121,7 +140,9 @@ void main() {
       final userInfo = base64.encode(utf8.encode('aes-256-gcm:secret'));
       final a = OutboundBuilder.fromUri('ss://$userInfo@1.1.1.1:8388#A');
 
-      final whole = base64.encode(utf8.encode('aes-256-gcm:secret@1.1.1.1:8388'));
+      final whole = base64.encode(
+        utf8.encode('aes-256-gcm:secret@1.1.1.1:8388'),
+      );
       final b = OutboundBuilder.fromUri('ss://$whole#B');
 
       for (final out in [a, b]) {
@@ -135,7 +156,8 @@ void main() {
 
     test('hysteria2 with obfs', () {
       final out = OutboundBuilder.fromUri(
-          'hysteria2://pw@2.2.2.2:36712?obfs=salamander&obfs-password=x&sni=s.example#FI');
+        'hysteria2://pw@2.2.2.2:36712?obfs=salamander&obfs-password=x&sni=s.example#FI',
+      );
 
       expect(out['type'], 'hysteria2');
       expect(out['obfs']['type'], 'salamander');
@@ -144,7 +166,9 @@ void main() {
     });
 
     test('tuic splits uuid and password', () {
-      final out = OutboundBuilder.fromUri('tuic://uuid-2:pw@3.3.3.3:443?sni=t.example#T');
+      final out = OutboundBuilder.fromUri(
+        'tuic://uuid-2:pw@3.3.3.3:443?sni=t.example#T',
+      );
 
       expect(out['type'], 'tuic');
       expect(out['uuid'], 'uuid-2');
@@ -167,12 +191,16 @@ void main() {
     });
 
     test('an unknown scheme is refused', () {
-      expect(() => OutboundBuilder.fromUri('wireguard://x@1.2.3.4:51820'),
-          throwsA(isA<UnsupportedConfigException>()));
+      expect(
+        () => OutboundBuilder.fromUri('wireguard://x@1.2.3.4:51820'),
+        throwsA(isA<UnsupportedConfigException>()),
+      );
     });
 
     test('IPv6 literals keep their address', () {
-      final out = OutboundBuilder.fromUri('vless://u@[2001:db8::1]:443?security=tls');
+      final out = OutboundBuilder.fromUri(
+        'vless://u@[2001:db8::1]:443?security=tls',
+      );
       expect(out['server'], '2001:db8::1');
       expect(out['server_port'], 443);
     });
@@ -180,7 +208,8 @@ void main() {
 
   group('TunnelConfig', () {
     final endpoint = config(
-        'vless://u@1.2.3.4:443?security=reality&pbk=K&sni=a.example&fp=chrome&type=tcp');
+      'vless://u@1.2.3.4:443?security=reality&pbk=K&sni=a.example&fp=chrome&type=tcp',
+    );
 
     test('kill switch sends unmatched traffic to the proxy', () {
       final document = TunnelConfig.build(endpoint: endpoint);
@@ -203,21 +232,33 @@ void main() {
       final document = TunnelConfig.build(endpoint: endpoint);
       final rules = document['route']['rules'] as List;
 
-      expect(rules.first['protocol'], 'dns',
-          reason: 'unintercepted DNS leaks every hostname to the operator');
+      expect(
+        rules.first['protocol'],
+        'dns',
+        reason: 'unintercepted DNS leaks every hostname to the operator',
+      );
     });
 
     test('a platform-managed TUN turns off auto route', () {
-      final document =
-          TunnelConfig.build(endpoint: endpoint, platformManagedTun: true);
+      final document = TunnelConfig.build(
+        endpoint: endpoint,
+        platformManagedTun: true,
+      );
       keep('tun_platform', document);
 
       final tun = (document['inbounds'] as List).first;
-      expect(tun.containsKey('file_descriptor'), isFalse,
-          reason: 'sing-box takes the descriptor through its platform '
-              'interface; the key makes the document fail to parse');
-      expect(tun['auto_route'], isFalse,
-          reason: 'the platform already owns routing when it owns the device');
+      expect(
+        tun.containsKey('file_descriptor'),
+        isFalse,
+        reason:
+            'sing-box takes the descriptor through its platform '
+            'interface; the key makes the document fail to parse',
+      );
+      expect(
+        tun['auto_route'],
+        isFalse,
+        reason: 'the platform already owns routing when it owns the device',
+      );
     });
 
     test('desktop opens the device itself', () {
@@ -241,7 +282,8 @@ void main() {
       );
       keep('sharing', document);
 
-      final inbounds = (document['inbounds'] as List).cast<Map<String, dynamic>>();
+      final inbounds = (document['inbounds'] as List)
+          .cast<Map<String, dynamic>>();
       final http = inbounds.firstWhere((i) => i['tag'] == 'share-http');
       final socks = inbounds.firstWhere((i) => i['tag'] == 'share-socks');
 
@@ -249,8 +291,12 @@ void main() {
       expect(http['listen_port'], 8888);
       expect(socks['listen_port'], 1080);
       expect(http['users'].first['username'], 'popo');
-      expect(inbounds.any((i) => i['listen'] == '0.0.0.0'), isFalse,
-          reason: 'binding to every interface exposes the proxy beyond the hotspot');
+      expect(
+        inbounds.any((i) => i['listen'] == '0.0.0.0'),
+        isFalse,
+        reason:
+            'binding to every interface exposes the proxy beyond the hotspot',
+      );
     });
 
     test('split tunnel exclude routes the named packages direct', () {
@@ -262,7 +308,8 @@ void main() {
       );
       keep('split_exclude', document);
 
-      final rules = (document['route']['rules'] as List).cast<Map<String, dynamic>>();
+      final rules = (document['route']['rules'] as List)
+          .cast<Map<String, dynamic>>();
       final rule = rules.firstWhere((r) => r.containsKey('package_name'));
       expect(rule['package_name'], ['com.bank.app']);
       expect(rule['outbound'], 'direct');
@@ -277,9 +324,12 @@ void main() {
       );
       keep('split_include', document);
 
-      final rules = (document['route']['rules'] as List).cast<Map<String, dynamic>>();
-      expect(rules.any((r) => r['package_name'] != null && r['outbound'] == 'proxy'),
-          isTrue);
+      final rules = (document['route']['rules'] as List)
+          .cast<Map<String, dynamic>>();
+      expect(
+        rules.any((r) => r['package_name'] != null && r['outbound'] == 'proxy'),
+        isTrue,
+      );
     });
 
     test('an empty package list leaves routing alone', () {
@@ -288,7 +338,8 @@ void main() {
         options: const TunnelOptions(splitTunnel: SplitTunnel.exclude([])),
       );
 
-      final rules = (document['route']['rules'] as List).cast<Map<String, dynamic>>();
+      final rules = (document['route']['rules'] as List)
+          .cast<Map<String, dynamic>>();
       expect(rules.any((r) => r.containsKey('package_name')), isFalse);
     });
 
@@ -300,7 +351,8 @@ void main() {
       );
       keep('mixed_only', document);
 
-      final inbounds = (document['inbounds'] as List).cast<Map<String, dynamic>>();
+      final inbounds = (document['inbounds'] as List)
+          .cast<Map<String, dynamic>>();
       expect(inbounds.single['type'], 'mixed');
       expect(inbounds.single['listen'], '127.0.0.1');
     });
@@ -313,27 +365,16 @@ void main() {
 
   group('every protocol produces a document', () {
     final links = {
-      'vless_reality':
-          'vless://u@1.2.3.4:443?security=reality&pbk=K&sid=ab&fp=chrome&sni=a.example&type=tcp',
-      'vless_ws':
-          'vless://u@1.2.3.4:443?security=tls&type=ws&path=%2Fws&host=h.example&sni=h.example',
-      'vless_grpc':
-          'vless://u@1.2.3.4:443?security=tls&type=grpc&serviceName=gun&sni=h.example',
+      'vless_reality': 'vless://u@1.2.3.4:443?security=reality&pbk=K&sid=ab&fp=chrome&sni=a.example&type=tcp',
+      'vless_ws': 'vless://u@1.2.3.4:443?security=tls&type=ws&path=%2Fws&host=h.example&sni=h.example',
+      'vless_grpc': 'vless://u@1.2.3.4:443?security=tls&type=grpc&serviceName=gun&sni=h.example',
       'trojan': 'trojan://pw@1.2.3.4:443?security=tls&sni=t.example',
       'shadowsocks':
           'ss://${base64.encode(utf8.encode('aes-256-gcm:secret'))}@1.2.3.4:8388',
       'hysteria2': 'hysteria2://pw@1.2.3.4:36712?sni=h.example',
       'tuic': 'tuic://uuid:pw@1.2.3.4:443?sni=t.example',
-      'vmess': 'vmess://${base64.encode(utf8.encode(jsonEncode({
-            'add': '1.2.3.4',
-            'port': '443',
-            'id': 'vmess-uuid',
-            'aid': '0',
-            'net': 'ws',
-            'path': '/p',
-            'tls': 'tls',
-            'sni': 's.example',
-          })))}',
+      'vmess':
+          'vmess://${base64.encode(utf8.encode(jsonEncode({'add': '1.2.3.4', 'port': '443', 'id': 'vmess-uuid', 'aid': '0', 'net': 'ws', 'path': '/p', 'tls': 'tls', 'sni': 's.example'})))}',
     };
 
     for (final MapEntry(key: name, value: link) in links.entries) {
@@ -354,8 +395,9 @@ void main() {
     final directory = Directory('build/tunnel_corpus');
     directory.createSync(recursive: true);
     for (final MapEntry(key: name, value: document) in _corpus.entries) {
-      File('${directory.path}/$name.json')
-          .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(document));
+      File(
+        '${directory.path}/$name.json',
+      ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(document));
     }
   });
 }

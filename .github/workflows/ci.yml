@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+  pull_request:
+  workflow_dispatch:
+
+# A newer push makes an in-flight run pointless; cancelling keeps the queue
+# short without losing any signal.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.47.1'
+  GO_VERSION: '1.24'
+
+jobs:
+  app:
+    name: App (analyze, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Verify generated localizations are current
+        run: |
+          flutter gen-l10n
+          # The generated files are committed, so a stale checkout means someone
+          # edited an .arb without regenerating and the two languages have
+          # drifted.
+          git diff --exit-code lib/l10n/ || {
+            echo "::error::lib/l10n is out of date — run 'flutter gen-l10n' and commit"
+            exit 1
+          }
+
+      - run: flutter analyze --no-pub
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - run: flutter test
+
+      - name: Upload the generated sing-box configurations
+        # Written by test/tunnel_config_test.dart; the core job parses each one
+        # with the real sing-box.
+        uses: actions/upload-artifact@v4
+        with:
+          name: tunnel-corpus
+          path: build/tunnel_corpus/
+          if-no-files-found: error
+
+  core:
+    name: Core (build, vet, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: core/go.sum
+
+      - name: Check formatting
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "::error::not gofmt'd: $unformatted"
+            exit 1
+          fi
+
+      - run: go build ./...
+      - run: go vet ./...
+
+      - name: Test
+        # -run excludes the corpus test, which needs the app job's artifact and
+        # runs in cross-validate instead.
+        run: go test ./... -run 'Test[^G]'
+
+      - name: Build the desktop shared library
+        run: go build -buildmode=c-shared -o /tmp/libpopocore.so ./cshared
+
+  cross-validate:
+    name: Cross-validate generated configs
+    needs: [app, core]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: core/go.sum
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tunnel-corpus
+          path: build/tunnel_corpus/
+
+      - name: Parse every generated config with the real sing-box
+        # Dart can only prove the shape it intended. A config the core rejects
+        # is a connection that silently never happens, so the two suites check
+        # each other.
+        run: go test ./... -run TestGeneratedConfigs -v
+        working-directory: core
+
+  build-flags:
+    name: Apple build ships no crawler
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build with discovery compiled out
+        run: |
+          flutter build web --release \
+            --dart-define=ENABLE_DISCOVERY=false \
+            --dart-define=ENABLE_SHARING=false
+
+      - name: Assert the crawler is absent
+        # Apple's 5.4 and 4.2 require that the binary not contain the crawler at
+        # all, which a runtime toggle cannot give. This asserts the const flags
+        # really do let the compiler drop it — an earlier version of the flags
+        # filtered screens at runtime and shipped everything.
+        run: |
+          bundle=build/web/main.dart.js
+          fail=0
+          for marker in 'html.duckduckgo.com' 'site:github.com' 'free v2ray config' 'share-socks'; do
+            if grep -qF "$marker" "$bundle"; then
+              echo "::error::'$marker' is still in the Apple build"
+              fail=1
+            else
+              echo "ok: '$marker' absent"
+            fi
+          done
+          exit $fail

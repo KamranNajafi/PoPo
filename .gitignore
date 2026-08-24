@@ -54,3 +54,9 @@ app.*.map.json
 /core/*.so
 /core/*.h
 /core/*.aar
+
+# Native core (rebuilt by tool/build_core_android.sh)
+android/app/libs/*.aar
+android/app/libs/*.jar
+linux/lib/
+RELEASE_NOTES.md.bak

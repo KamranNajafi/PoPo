@@ -35,11 +35,7 @@ class SimpleStartScreen extends StatelessWidget {
           const SizedBox(height: S.x22),
           const Center(child: Text('PoPo', style: T.wordmark)),
           const SizedBox(height: S.x14),
-          Text(
-            l.simpleIntro,
-            style: T.simpleBody,
-            textAlign: TextAlign.center,
-          ),
+          Text(l.simpleIntro, style: T.simpleBody, textAlign: TextAlign.center),
           const SizedBox(height: 44),
           PrimaryButton(l.startSetup, oversized: true, onTap: onStart),
           const SizedBox(height: S.x18),
@@ -69,7 +65,12 @@ class _Step {
 
 /// S2 · Steps running — three automatic steps, no technical error copy.
 class SimpleStepsScreen extends StatelessWidget {
-  const SimpleStepsScreen({super.key, this.coordinator, this.onCancel, this.onRetry});
+  const SimpleStepsScreen({
+    super.key,
+    this.coordinator,
+    this.onCancel,
+    this.onRetry,
+  });
 
   final RunCoordinator? coordinator;
   final VoidCallback? onCancel;
@@ -138,7 +139,9 @@ class SimpleStepsScreen extends StatelessWidget {
             child: StatusHero(
               state: failed
                   ? HeroState.idle
-                  : (stage == RunStage.done ? HeroState.ready : HeroState.working),
+                  : (stage == RunStage.done
+                        ? HeroState.ready
+                        : HeroState.working),
               size: 112,
             ),
           ),
@@ -161,9 +164,12 @@ class SimpleStepsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(step.title,
-                            style: T.simpleListItem
-                                .copyWith(fontWeight: FontWeight.w600)),
+                        Text(
+                          step.title,
+                          style: T.simpleListItem.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         const SizedBox(height: 3),
                         Text(step.note, style: T.small),
                       ],
@@ -286,9 +292,11 @@ class SimpleReadyScreen extends StatelessWidget {
           // things.
           if (c != null && !c.isSupported) ...[
             const SizedBox(height: S.x14),
-            Text(l.tunnelUnavailable,
-                style: T.small.copyWith(color: C.warning),
-                textAlign: TextAlign.center),
+            Text(
+              l.tunnelUnavailable,
+              style: T.small.copyWith(color: C.warning),
+              textAlign: TextAlign.center,
+            ),
           ] else if (c?.error != null) ...[
             const SizedBox(height: S.x14),
             Text(
@@ -334,34 +342,35 @@ class SimpleConnectedScreen extends StatelessWidget {
     Color color,
     bool isSelected,
     VoidCallback? onTap,
-  ) =>
-      GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: S.x12),
-          decoration: const BoxDecoration(border: hairlineBottom),
-          child: Row(
-            children: [
-              AppRadio(isSelected, onTap: onTap),
-              const SizedBox(width: S.x12),
-              Expanded(
-                child: Text(name,
-                    style: T.simpleListItem,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-              MonoText(ping, style: T.monoValue.copyWith(color: color)),
-            ],
+  ) => GestureDetector(
+    onTap: onTap,
+    behavior: HitTestBehavior.opaque,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: S.x12),
+      decoration: const BoxDecoration(border: hairlineBottom),
+      child: Row(
+        children: [
+          AppRadio(isSelected, onTap: onTap),
+          const SizedBox(width: S.x12),
+          Expanded(
+            child: Text(
+              name,
+              style: T.simpleListItem,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
-      );
+          MonoText(ping, style: T.monoValue.copyWith(color: color)),
+        ],
+      ),
+    ),
+  );
 
   static List<(String, String, Color, bool)> _servers(L l) => [
-        (l.placeNlAmsterdam, '42 ms', C.success, true),
-        (l.placeDeFrankfurt, '78 ms', C.success, false),
-        (l.placeFiHelsinki, '126 ms', C.warning, false),
-      ];
+    (l.placeNlAmsterdam, '42 ms', C.success, true),
+    (l.placeDeFrankfurt, '78 ms', C.success, false),
+    (l.placeFiHelsinki, '126 ms', C.warning, false),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -397,7 +406,7 @@ class SimpleConnectedScreen extends StatelessWidget {
               c == null
                   ? '42 ms · 00:37:12'
                   : '${c.endpoint == null ? '—' : pingLabel(c.endpoint!)}'
-                      ' · ${formatUptime(c.uptime)}',
+                        ' · ${formatUptime(c.uptime)}',
               style: const TextStyle(
                 fontFamily: kMono,
                 fontSize: 14,
@@ -421,8 +430,12 @@ class SimpleConnectedScreen extends StatelessWidget {
                 onSelect == null ? null : () => onSelect!(endpoint),
               ),
           const SizedBox(height: S.x24),
-          PrimaryButton(l.disconnect,
-              oversized: true, showConnectedDot: true, onTap: onDisconnect),
+          PrimaryButton(
+            l.disconnect,
+            oversized: true,
+            showConnectedDot: true,
+            onTap: onDisconnect,
+          ),
           const SizedBox(height: S.x12),
           GhostButton(
             l.redoSetup,
@@ -430,7 +443,11 @@ class SimpleConnectedScreen extends StatelessWidget {
             expand: true,
             large: true,
             color: C.primaryMuted,
-            leading: const AppIcon(AppIcons.refresh, size: 16, color: C.primaryMuted),
+            leading: const AppIcon(
+              AppIcons.refresh,
+              size: 16,
+              color: C.primaryMuted,
+            ),
           ),
         ],
       ),

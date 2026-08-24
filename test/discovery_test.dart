@@ -21,7 +21,10 @@ class FakeFetcher implements Fetcher {
   final List<String> requested = [];
 
   @override
-  Future<FetchResult> get(String url, {Map<String, String> headers = const {}}) async {
+  Future<FetchResult> get(
+    String url, {
+    Map<String, String> headers = const {},
+  }) async {
     requested.add(url);
     for (final f in failFor) {
       if (url.contains(f)) throw const FetchException('boom');
@@ -30,14 +33,21 @@ class FakeFetcher implements Fetcher {
       if (url.contains(host)) return FetchResult(statusCode: 200, body: body);
     }
     for (final MapEntry(key: pattern, value: body) in pages.entries) {
-      if (url.contains(pattern)) return FetchResult(statusCode: 200, body: body);
+      if (url.contains(pattern)) {
+        return FetchResult(statusCode: 200, body: body);
+      }
     }
     return const FetchResult(statusCode: 404, body: '');
   }
 }
 
 String vmessUri(String host, int port, String id) {
-  final json = jsonEncode({'add': host, 'port': '$port', 'id': id, 'net': 'ws'});
+  final json = jsonEncode({
+    'add': host,
+    'port': '$port',
+    'id': id,
+    'net': 'ws',
+  });
   return 'vmess://${base64.encode(utf8.encode(json))}';
 }
 
@@ -47,18 +57,24 @@ void main() {
       final keywords = const KeywordGenerator().generate(limit: 30);
 
       expect(keywords, hasLength(30));
-      expect(keywords.map((k) => k.text).toSet(), hasLength(30),
-          reason: 'phrases must be unique');
+      expect(
+        keywords.map((k) => k.text).toSet(),
+        hasLength(30),
+        reason: 'phrases must be unique',
+      );
 
       for (var i = 1; i < keywords.length; i++) {
-        expect(keywords[i - 1].weight, greaterThanOrEqualTo(keywords[i].weight),
-            reason: 'best phrases must come first, the budget is spent in order');
+        expect(
+          keywords[i - 1].weight,
+          greaterThanOrEqualTo(keywords[i].weight),
+          reason: 'best phrases must come first, the budget is spent in order',
+        );
       }
     });
 
     test('stamps the current month and year so stale lists rank lower', () {
-      final keywords =
-          KeywordGenerator(now: DateTime(2026, 3, 14)).generate(limit: 200);
+      final keywords = KeywordGenerator(now: DateTime(2026, 3, 14))
+          .generate(limit: 200);
       final texts = keywords.map((k) => k.text).toList();
 
       expect(texts, contains('vless config march 2026'));
@@ -69,8 +85,8 @@ void main() {
       final withFa = const KeywordGenerator().generate(limit: 200);
       expect(withFa.any((k) => k.tags.contains('persian')), isTrue);
 
-      final withoutFa =
-          const KeywordGenerator(includePersian: false).generate(limit: 200);
+      final withoutFa = const KeywordGenerator(includePersian: false)
+          .generate(limit: 200);
       expect(withoutFa.any((k) => k.tags.contains('persian')), isFalse);
     });
 
@@ -102,22 +118,33 @@ void main() {
         <a href="https://example.com/page">unrelated</a>
       ''';
 
-      final found = extractor.extract(page, source: 'https://blog.example/list');
+      final found = extractor.extract(
+        page,
+        source: 'https://blog.example/list',
+      );
       final protocols = found.map((e) => e.protocol).toSet();
 
-      expect(protocols, containsAll([
-        Protocol.vless,
-        Protocol.trojan,
-        Protocol.shadowsocks,
-        Protocol.hysteria2,
-      ]));
+      expect(
+        protocols,
+        containsAll([
+          Protocol.vless,
+          Protocol.trojan,
+          Protocol.shadowsocks,
+          Protocol.hysteria2,
+        ]),
+      );
       expect(found.every((e) => e.kind == EndpointKind.config), isTrue);
-      expect(found.every((e) => e.sources.contains('https://blog.example/list')), isTrue);
+      expect(
+        found.every((e) => e.sources.contains('https://blog.example/list')),
+        isTrue,
+      );
     });
 
     test('decodes a vmess payload into host and port', () {
-      final found = extractor.extract(vmessUri('example.net', 8443, 'abc-123'),
-          source: 's');
+      final found = extractor.extract(
+        vmessUri('example.net', 8443, 'abc-123'),
+        source: 's',
+      );
 
       expect(found, hasLength(1));
       expect(found.single.protocol, Protocol.vmess);
@@ -125,17 +152,24 @@ void main() {
       expect(found.single.port, 8443);
     });
 
-    test('decodes a base64 subscription blob, which is how subs are served', () {
-      final payload = base64.encode(utf8.encode([
-        'vless://u1@10.0.0.1:443?security=reality#A',
-        'trojan://p@10.0.0.2:443#B',
-      ].join('\n')));
+    test(
+      'decodes a base64 subscription blob, which is how subs are served',
+      () {
+        final payload = base64.encode(
+          utf8.encode(
+            [
+              'vless://u1@10.0.0.1:443?security=reality#A',
+              'trojan://p@10.0.0.2:443#B',
+            ].join('\n'),
+          ),
+        );
 
-      final found = extractor.extract('key: $payload', source: 's');
+        final found = extractor.extract('key: $payload', source: 's');
 
-      expect(found, hasLength(2));
-      expect(found.map((e) => e.host), containsAll(['10.0.0.1', '10.0.0.2']));
-    });
+        expect(found, hasLength(2));
+        expect(found.map((e) => e.host), containsAll(['10.0.0.1', '10.0.0.2']));
+      },
+    );
 
     test('collapses the same server republished under different names', () {
       const page = '''
@@ -146,8 +180,11 @@ void main() {
 
       final found = extractor.extract(page, source: 's');
 
-      expect(found, hasLength(1),
-          reason: 'the display name is the one part publishers always change');
+      expect(
+        found,
+        hasLength(1),
+        reason: 'the display name is the one part publishers always change',
+      );
     });
 
     test('keeps two accounts on one server apart', () {
@@ -169,34 +206,50 @@ void main() {
       expect(found.where((e) => e.kind == EndpointKind.proxy), hasLength(3));
     });
 
-    test('rejects version strings, dates and loopback that look like addresses', () {
-      const page = 'version 1.2.3.4:5 released, see 127.0.0.1:8080 and 999.1.1.1:80';
+    test(
+      'rejects version strings, dates and loopback that look like addresses',
+      () {
+        const page =
+            'version 1.2.3.4:5 released, see 127.0.0.1:8080 and 999.1.1.1:80';
 
-      final proxies = extractor
-          .extract(page, source: 's')
-          .where((e) => e.kind == EndpointKind.proxy);
+        final proxies = extractor
+            .extract(page, source: 's')
+            .where((e) => e.kind == EndpointKind.proxy);
 
-      expect(proxies.any((e) => e.host == '127.0.0.1'), isFalse);
-      expect(proxies.any((e) => e.host == '999.1.1.1'), isFalse);
-    });
+        expect(proxies.any((e) => e.host == '127.0.0.1'), isFalse);
+        expect(proxies.any((e) => e.host == '999.1.1.1'), isFalse);
+      },
+    );
 
-    test('ignores an unparseable link instead of emitting a broken endpoint', () {
-      final found = extractor.extract('vless://@:99999 and vless://nohost', source: 's');
-      expect(found, isEmpty);
-    });
+    test(
+      'ignores an unparseable link instead of emitting a broken endpoint',
+      () {
+        final found = extractor.extract(
+          'vless://@:99999 and vless://nohost',
+          source: 's',
+        );
+        expect(found, isEmpty);
+      },
+    );
 
-    test('strips trailing punctuation from a link at the end of a sentence', () {
-      final found =
-          extractor.extract('use vless://u@1.2.3.4:443?a=b#Name, then connect.', source: 's');
-      expect(found.single.port, 443);
-      expect(found.single.raw.endsWith(','), isFalse);
-    });
+    test(
+      'strips trailing punctuation from a link at the end of a sentence',
+      () {
+        final found = extractor.extract(
+          'use vless://u@1.2.3.4:443?a=b#Name, then connect.',
+          source: 's',
+        );
+        expect(found.single.port, 443);
+        expect(found.single.raw.endsWith(','), isFalse);
+      },
+    );
   });
 
   group('SearchEngine', () {
     test('unwraps the DuckDuckGo redirector', () {
       final ddg = engineById('duckduckgo')!;
-      const html = '<a href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fgithub.com%2Fa%2Fb">x</a>';
+      const html =
+          '<a href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fgithub.com%2Fa%2Fb">x</a>';
 
       expect(ddg.parseLinks(html), contains('https://github.com/a/b'));
     });
@@ -217,41 +270,60 @@ void main() {
       expect(yandex.classify(200, 'showcaptcha please'), EngineStatus.captcha);
       expect(yandex.classify(429, ''), EngineStatus.blocked);
       expect(yandex.classify(503, ''), EngineStatus.failed);
-      expect(yandex.classify(200, '<html>no results</html>'), EngineStatus.done);
+      expect(
+        yandex.classify(200, '<html>no results</html>'),
+        EngineStatus.done,
+      );
     });
 
     test('every engine builds a URL that encodes the phrase', () {
       for (final engine in kEngines) {
         final url = engine.buildUrl('free v2ray config site:github.com');
-        expect(url, isNot(contains(' ')), reason: '${engine.id} left a raw space');
+        expect(
+          url,
+          isNot(contains(' ')),
+          reason: '${engine.id} left a raw space',
+        );
         expect(url, startsWith('https://'));
       }
     });
   });
 
   group('DiscoveryPipeline', () {
-    const serp = '<a href="https://gist.github.com/list1">a</a>'
+    const serp =
+        '<a href="https://gist.github.com/list1">a</a>'
         '<a href="https://raw.githubusercontent.com/u/r/list2">b</a>';
 
-    test('searches, follows links, extracts and dedups across sources', () async {
-      final fetcher = FakeFetcher({
-        'duckduckgo.com': serp,
-        'gist.github.com/list1': 'vless://u1@1.2.3.4:443?security=reality#A',
-        'raw.githubusercontent.com': 'vless://u1@1.2.3.4:443?security=reality#B',
-      });
+    test(
+      'searches, follows links, extracts and dedups across sources',
+      () async {
+        final fetcher = FakeFetcher({
+          'duckduckgo.com': serp,
+          'gist.github.com/list1': 'vless://u1@1.2.3.4:443?security=reality#A',
+          'raw.githubusercontent.com':
+              'vless://u1@1.2.3.4:443?security=reality#B',
+        });
 
-      final pipeline = DiscoveryPipeline(
-        fetcher: fetcher,
-        engines: [engineById('duckduckgo')!],
-        config: const DiscoveryConfig(queriesPerEngine: 1),
-      );
+        final pipeline = DiscoveryPipeline(
+          fetcher: fetcher,
+          engines: [engineById('duckduckgo')!],
+          config: const DiscoveryConfig(queriesPerEngine: 1),
+        );
 
-      final results = await pipeline.run();
+        final results = await pipeline.run();
 
-      expect(results, hasLength(1), reason: 'both pages carry the same server');
-      expect(results.single.sources, hasLength(2),
-          reason: 'corroboration from both pages must be recorded');
-    });
+        expect(
+          results,
+          hasLength(1),
+          reason: 'both pages carry the same server',
+        );
+        expect(
+          results.single.sources,
+          hasLength(2),
+          reason: 'corroboration from both pages must be recorded',
+        );
+      },
+    );
 
     test('stops querying an engine once it is blocked', () async {
       final fetcher = FakeFetcher(
@@ -267,10 +339,14 @@ void main() {
 
       await pipeline.run();
 
-      final yandexCalls =
-          fetcher.requested.where((u) => u.contains('yandex.com')).length;
-      expect(yandexCalls, 1,
-          reason: 'retrying a rate-limit is what turns it into a ban');
+      final yandexCalls = fetcher.requested
+          .where((u) => u.contains('yandex.com'))
+          .length;
+      expect(
+        yandexCalls,
+        1,
+        reason: 'retrying a rate-limit is what turns it into a ban',
+      );
     });
 
     test('a failing engine does not take the run down with it', () async {
@@ -292,26 +368,30 @@ void main() {
       expect(results, isNotEmpty);
     });
 
-    test('never fetches the same page twice, however many engines find it', () async {
-      final fetcher = FakeFetcher({
-        'duckduckgo.com': serp,
-        'bing.com': serp,
-        'gist.github.com/list1': 'vless://u@1.2.3.4:443#A',
-        'raw.githubusercontent.com': 'trojan://p@5.6.7.8:443#B',
-      });
+    test(
+      'never fetches the same page twice, however many engines find it',
+      () async {
+        final fetcher = FakeFetcher({
+          'duckduckgo.com': serp,
+          'bing.com': serp,
+          'gist.github.com/list1': 'vless://u@1.2.3.4:443#A',
+          'raw.githubusercontent.com': 'trojan://p@5.6.7.8:443#B',
+        });
 
-      final pipeline = DiscoveryPipeline(
-        fetcher: fetcher,
-        engines: [engineById('duckduckgo')!, engineById('bing')!],
-        config: const DiscoveryConfig(queriesPerEngine: 2),
-      );
+        final pipeline = DiscoveryPipeline(
+          fetcher: fetcher,
+          engines: [engineById('duckduckgo')!, engineById('bing')!],
+          config: const DiscoveryConfig(queriesPerEngine: 2),
+        );
 
-      await pipeline.run();
+        await pipeline.run();
 
-      final listFetches =
-          fetcher.requested.where((u) => u.contains('gist.github.com/list1')).length;
-      expect(listFetches, 1);
-    });
+        final listFetches = fetcher.requested
+            .where((u) => u.contains('gist.github.com/list1'))
+            .length;
+        expect(listFetches, 1);
+      },
+    );
 
     test('honours the global page ceiling', () async {
       final many = List.generate(
@@ -336,30 +416,35 @@ void main() {
 
       await pipeline.run();
 
-      final pageFetches =
-          fetcher.requested.where((u) => u.contains('example.com/page')).length;
+      final pageFetches = fetcher.requested
+          .where((u) => u.contains('example.com/page'))
+          .length;
       expect(pageFetches, lessThanOrEqualTo(5));
     });
 
-    test('skips links that never carry configs before spending a fetch', () async {
-      final fetcher = FakeFetcher({
-        'duckduckgo.com': '<a href="https://youtube.com/watch?v=1">v</a>'
-            '<a href="https://example.com/a.png">i</a>'
-            '<a href="https://gist.github.com/ok">g</a>',
-        'gist.github.com/ok': 'vless://u@1.2.3.4:443#A',
-      });
+    test(
+      'skips links that never carry configs before spending a fetch',
+      () async {
+        final fetcher = FakeFetcher({
+          'duckduckgo.com':
+              '<a href="https://youtube.com/watch?v=1">v</a>'
+              '<a href="https://example.com/a.png">i</a>'
+              '<a href="https://gist.github.com/ok">g</a>',
+          'gist.github.com/ok': 'vless://u@1.2.3.4:443#A',
+        });
 
-      final pipeline = DiscoveryPipeline(
-        fetcher: fetcher,
-        engines: [engineById('duckduckgo')!],
-        config: const DiscoveryConfig(queriesPerEngine: 1),
-      );
+        final pipeline = DiscoveryPipeline(
+          fetcher: fetcher,
+          engines: [engineById('duckduckgo')!],
+          config: const DiscoveryConfig(queriesPerEngine: 1),
+        );
 
-      await pipeline.run();
+        await pipeline.run();
 
-      expect(fetcher.requested.any((u) => u.contains('youtube')), isFalse);
-      expect(fetcher.requested.any((u) => u.endsWith('.png')), isFalse);
-    });
+        expect(fetcher.requested.any((u) => u.contains('youtube')), isFalse);
+        expect(fetcher.requested.any((u) => u.endsWith('.png')), isFalse);
+      },
+    );
 
     test('ranks corroborated Reality endpoints above lone bare ones', () async {
       final fetcher = FakeFetcher({
@@ -368,7 +453,7 @@ void main() {
             'vless://u1@1.2.3.4:443?security=reality#Good\nvmess://bad',
         'raw.githubusercontent.com':
             'vless://u1@1.2.3.4:443?security=reality#Good2\n'
-                'shadowsocksy\nss://YWVz@9.9.9.9:8388#Lone',
+            'shadowsocksy\nss://YWVz@9.9.9.9:8388#Lone',
       });
 
       final pipeline = DiscoveryPipeline(
@@ -405,19 +490,22 @@ void main() {
       expect(seen.last.found, greaterThan(0));
     });
 
-    test('drops site: phrases for engines that do not support the operator', () async {
-      final fetcher = FakeFetcher({'baidu.com': '<html></html>'});
+    test(
+      'drops site: phrases for engines that do not support the operator',
+      () async {
+        final fetcher = FakeFetcher({'baidu.com': '<html></html>'});
 
-      final pipeline = DiscoveryPipeline(
-        fetcher: fetcher,
-        engines: [engineById('baidu')!],
-        config: const DiscoveryConfig(queriesPerEngine: 6),
-      );
+        final pipeline = DiscoveryPipeline(
+          fetcher: fetcher,
+          engines: [engineById('baidu')!],
+          config: const DiscoveryConfig(queriesPerEngine: 6),
+        );
 
-      await pipeline.run();
+        await pipeline.run();
 
-      expect(fetcher.requested.any((u) => u.contains('site%3A')), isFalse);
-      expect(fetcher.requested, isNotEmpty);
-    });
+        expect(fetcher.requested.any((u) => u.contains('site%3A')), isFalse);
+        expect(fetcher.requested, isNotEmpty);
+      },
+    );
   });
 }

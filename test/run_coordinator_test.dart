@@ -16,9 +16,14 @@ class FakeFetcher implements Fetcher {
   final Map<String, String> pages;
 
   @override
-  Future<FetchResult> get(String url, {Map<String, String> headers = const {}}) async {
+  Future<FetchResult> get(
+    String url, {
+    Map<String, String> headers = const {},
+  }) async {
     for (final MapEntry(key: pattern, value: body) in pages.entries) {
-      if (url.contains(pattern)) return FetchResult(statusCode: 200, body: body);
+      if (url.contains(pattern)) {
+        return FetchResult(statusCode: 200, body: body);
+      }
     }
     return const FetchResult(statusCode: 404, body: '');
   }
@@ -31,7 +36,11 @@ class FakeProbe implements LatencyProbe {
   final bool supported;
 
   @override
-  Future<ProbeResult> probe(String host, int port, {required Duration timeout}) async {
+  Future<ProbeResult> probe(
+    String host,
+    int port, {
+    required Duration timeout,
+  }) async {
     if (!supported) return const ProbeResult.unsupported();
     final ms = answers[host];
     return ms == null
@@ -64,7 +73,9 @@ RunCoordinator build({
 extension on DiscoveryController {
   void toggleEngineForTest() {
     for (final engine in kEngines) {
-      if (engine.id != 'duckduckgo' && isEnabled(engine.id)) toggleEngine(engine.id);
+      if (engine.id != 'duckduckgo' && isEnabled(engine.id)) {
+        toggleEngine(engine.id);
+      }
     }
   }
 }
@@ -76,7 +87,8 @@ void main() {
     final coordinator = build(
       pages: {
         'duckduckgo.com': serp,
-        'gist.github.com': 'vless://u1@1.1.1.1:443?security=reality#Fast\n'
+        'gist.github.com':
+            'vless://u1@1.1.1.1:443?security=reality#Fast\n'
             'vless://u2@2.2.2.2:443?security=reality#Slow\n'
             'vless://u3@3.3.3.3:443?security=reality#Dead',
       },
@@ -95,13 +107,19 @@ void main() {
     expect(byHost['2.2.2.2']!.health, Health.slow);
     expect(byHost['3.3.3.3']!.health, Health.dead);
 
-    expect(coordinator.best!.host, '1.1.1.1',
-        reason: 'the fastest proven-healthy endpoint is what a connect uses');
+    expect(
+      coordinator.best!.host,
+      '1.1.1.1',
+      reason: 'the fastest proven-healthy endpoint is what a connect uses',
+    );
   });
 
   test('records the run in history', () async {
     final coordinator = build(
-      pages: {'duckduckgo.com': serp, 'gist.github.com': 'vless://u@1.1.1.1:443#A'},
+      pages: {
+        'duckduckgo.com': serp,
+        'gist.github.com': 'vless://u@1.1.1.1:443#A',
+      },
       pings: {'1.1.1.1': 30},
     );
 
@@ -115,7 +133,10 @@ void main() {
 
   test('a platform without sockets does not condemn everything', () async {
     final coordinator = build(
-      pages: {'duckduckgo.com': serp, 'gist.github.com': 'vless://u@1.1.1.1:443#A'},
+      pages: {
+        'duckduckgo.com': serp,
+        'gist.github.com': 'vless://u@1.1.1.1:443#A',
+      },
       pings: const {},
       probingSupported: false,
     );
@@ -128,7 +149,10 @@ void main() {
 
   test('best is null when a run finds nothing healthy', () async {
     final coordinator = build(
-      pages: {'duckduckgo.com': serp, 'gist.github.com': 'vless://u@9.9.9.9:443#A'},
+      pages: {
+        'duckduckgo.com': serp,
+        'gist.github.com': 'vless://u@9.9.9.9:443#A',
+      },
       pings: {'9.9.9.9': null},
     );
 
@@ -139,7 +163,10 @@ void main() {
 
   test('moves through the stages the simple-mode cards show', () async {
     final coordinator = build(
-      pages: {'duckduckgo.com': serp, 'gist.github.com': 'vless://u@1.1.1.1:443#A'},
+      pages: {
+        'duckduckgo.com': serp,
+        'gist.github.com': 'vless://u@1.1.1.1:443#A',
+      },
       pings: {'1.1.1.1': 30},
     );
 
@@ -152,13 +179,19 @@ void main() {
 
     await coordinator.run();
 
-    expect(stages, containsAllInOrder([RunStage.searching, RunStage.testing, RunStage.done]));
+    expect(
+      stages,
+      containsAllInOrder([RunStage.searching, RunStage.testing, RunStage.done]),
+    );
   });
 
   test('retesting re-measures without searching again', () async {
     final prefs = MemoryPrefs();
     final coordinator = build(
-      pages: {'duckduckgo.com': serp, 'gist.github.com': 'vless://u@1.1.1.1:443#A'},
+      pages: {
+        'duckduckgo.com': serp,
+        'gist.github.com': 'vless://u@1.1.1.1:443#A',
+      },
       pings: {'1.1.1.1': 30},
       prefs: prefs,
     );
@@ -168,8 +201,14 @@ void main() {
 
     await coordinator.retestExisting();
 
-    expect(coordinator.results.all.single.ping, const Duration(milliseconds: 30));
-    expect(coordinator.results.history, hasLength(1),
-        reason: 'a retest is not a new run and must not add a history row');
+    expect(
+      coordinator.results.all.single.ping,
+      const Duration(milliseconds: 30),
+    );
+    expect(
+      coordinator.results.history,
+      hasLength(1),
+      reason: 'a retest is not a new run and must not add a history row',
+    );
   });
 }

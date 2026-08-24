@@ -35,7 +35,9 @@ class KeywordStore extends ChangeNotifier {
     _removed = (prefs.getStringList(_removedKey) ?? []).toSet();
     final disabled = prefs.getStringList(_disabledSetsKey) ?? const [];
     _disabledSets = disabled
-        .map((name) => KeywordSet.values.where((s) => s.name == name).firstOrNull)
+        .map(
+          (name) => KeywordSet.values.where((s) => s.name == name).firstOrNull,
+        )
         .nonNulls
         .toSet();
   }
@@ -73,7 +75,8 @@ class KeywordStore extends ChangeNotifier {
     final seen = <String>{};
     final out = <Keyword>[];
     for (final keyword in [
-      for (final text in _custom) Keyword(text, weight: 2.0, tags: const {'custom'}),
+      for (final text in _custom)
+        Keyword(text, weight: 2.0, tags: const {'custom'}),
       ...activeGenerated,
     ]) {
       if (seen.add(keyword.text.toLowerCase())) out.add(keyword);
@@ -93,7 +96,9 @@ class KeywordStore extends ChangeNotifier {
   Future<bool> add(String text) async {
     final phrase = text.trim();
     if (phrase.isEmpty) return false;
-    if (_custom.any((k) => k.toLowerCase() == phrase.toLowerCase())) return false;
+    if (_custom.any((k) => k.toLowerCase() == phrase.toLowerCase())) {
+      return false;
+    }
 
     _custom = [..._custom, phrase];
     // Adding back something previously removed should un-remove it.
@@ -134,7 +139,9 @@ class KeywordStore extends ChangeNotifier {
     await prefs.setStringList(_customKey, _custom);
     await prefs.setStringList(_removedKey, _removed.toList());
     await prefs.setStringList(
-        _disabledSetsKey, _disabledSets.map((s) => s.name).toList());
+      _disabledSetsKey,
+      _disabledSets.map((s) => s.name).toList(),
+    );
     notifyListeners();
   }
 }

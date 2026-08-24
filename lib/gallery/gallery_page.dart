@@ -36,9 +36,7 @@ class GalleryPage extends StatelessWidget {
                   large: true,
                   color: C.primaryMuted,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AppFlow(),
-                    ),
+                    MaterialPageRoute<void>(builder: (_) => const AppFlow()),
                   ),
                 ),
               ),
@@ -75,9 +73,7 @@ class _Openable extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (context) => ScreenPage(spec: spec),
-        ),
+        MaterialPageRoute<void>(builder: (context) => ScreenPage(spec: spec)),
       ),
       child: spec.builder(context),
     );
@@ -99,7 +95,9 @@ class ScreenPage extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: S.x16, vertical: S.x10),
+                horizontal: S.x16,
+                vertical: S.x10,
+              ),
               child: Row(
                 children: [
                   // BackButton rather than a hardcoded arrow: the direction it
@@ -120,9 +118,7 @@ class ScreenPage extends StatelessWidget {
             Expanded(
               child: Center(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: spec.wide ? 900 : 390,
-                  ),
+                  constraints: BoxConstraints(maxWidth: spec.wide ? 900 : 390),
                   child: Padding(
                     padding: const EdgeInsets.all(S.x16),
                     child: spec.builder(context),
@@ -158,10 +154,10 @@ class _Legend extends StatelessWidget {
   const _Legend();
 
   static List<(Availability, String, Color)> _entries(L l) => [
-        (Availability.noApple, l.availAndroidDesktop, C.warning),
-        (Availability.androidOnly, l.availAndroidOnly, C.primary),
-        (Availability.desktopOnly, l.availDesktopOnly, C.primaryMuted),
-      ];
+    (Availability.noApple, l.availAndroidDesktop, C.warning),
+    (Availability.androidOnly, l.availAndroidOnly, C.primary),
+    (Availability.desktopOnly, l.availDesktopOnly, C.primaryMuted),
+  ];
 
   @override
   Widget build(BuildContext context) {

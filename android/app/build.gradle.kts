@@ -19,7 +19,9 @@ android {
         applicationId = "com.popo.popo"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // VpnService needs 21; sing-box's TUN stack and the foreground service
+        // types used here need more. 24 is the floor that actually works.
+        minSdk = maxOf(flutter.minSdkVersion, 24)
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
@@ -46,4 +48,14 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // The Go core, produced by tool/build_core_android.sh into app/libs/.
+    //
+    // A fileTree rather than a hard reference: the app has to build without it.
+    // Discovery, health testing and the whole interface work with no core, and
+    // PopoCore reports that connecting is unavailable — a missing .aar should
+    // not stop a contributor building the app.
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar", "*.jar"))))
 }

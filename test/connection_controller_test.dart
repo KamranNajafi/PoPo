@@ -52,10 +52,14 @@ class FakeTunnelService implements TunnelService {
   void push(TunnelStatus status) => _controller.add(status);
 }
 
-Endpoint endpoint([String raw = 'vless://u@1.2.3.4:443?security=tls&sni=a.example']) {
+Endpoint endpoint([
+  String raw = 'vless://u@1.2.3.4:443?security=tls&sni=a.example',
+]) {
   // Derive the address from the link so a test that swaps servers really swaps.
   final authority = raw.split('://').last.split('?').first.split('#').first;
-  final address = authority.contains('@') ? authority.split('@').last : authority;
+  final address = authority.contains('@')
+      ? authority.split('@').last
+      : authority;
   final host = address.split(':').first;
   final port = int.parse(address.split(':').last);
 
@@ -90,23 +94,31 @@ void main() {
     await controller.connect(endpoint());
 
     expect(controller.error, ConnectionError.permissionDenied);
-    expect(service.startedConfigs, isEmpty,
-        reason: 'starting without permission would fail anyway');
+    expect(
+      service.startedConfigs,
+      isEmpty,
+      reason: 'starting without permission would fail anyway',
+    );
     controller.dispose();
   });
 
-  test('a config that cannot be built never reaches the permission prompt',
-      () async {
-    final service = FakeTunnelService();
-    final controller = ConnectionController(service: service);
+  test(
+    'a config that cannot be built never reaches the permission prompt',
+    () async {
+      final service = FakeTunnelService();
+      final controller = ConnectionController(service: service);
 
-    await controller.connect(endpoint('wireguard://x@1.2.3.4:51820'));
+      await controller.connect(endpoint('wireguard://x@1.2.3.4:51820'));
 
-    expect(controller.error, ConnectionError.unsupportedConfig);
-    expect(service.permissionRequests, 0,
-        reason: 'a malformed config should not cost the user a system prompt');
-    controller.dispose();
-  });
+      expect(controller.error, ConnectionError.unsupportedConfig);
+      expect(
+        service.permissionRequests,
+        0,
+        reason: 'a malformed config should not cost the user a system prompt',
+      );
+      controller.dispose();
+    },
+  );
 
   test('a platform failure surfaces as a platform failure', () async {
     final service = FakeTunnelService(
@@ -151,11 +163,16 @@ void main() {
     final controller = ConnectionController(service: service);
 
     await controller.connect(endpoint());
-    await controller.switchTo(endpoint('vless://u2@5.6.7.8:443?security=tls&sni=b.example'));
+    await controller.switchTo(
+      endpoint('vless://u2@5.6.7.8:443?security=tls&sni=b.example'),
+    );
 
     expect(service.startedConfigs, hasLength(2));
-    expect(service.stopCount, 0,
-        reason: 'the core replaces its instance, so the user sees no gap');
+    expect(
+      service.stopCount,
+      0,
+      reason: 'the core replaces its instance, so the user sees no gap',
+    );
     expect(controller.endpoint!.host, '5.6.7.8');
     controller.dispose();
   });
@@ -164,10 +181,12 @@ void main() {
     final service = FakeTunnelService();
     final controller = ConnectionController(service: service);
 
-    service.push(const TunnelStatus(
-      state: TunnelState.connected,
-      uptime: Duration(minutes: 5),
-    ));
+    service.push(
+      const TunnelStatus(
+        state: TunnelState.connected,
+        uptime: Duration(minutes: 5),
+      ),
+    );
     await Future<void>.delayed(Duration.zero);
 
     expect(controller.isConnected, isTrue);
@@ -182,8 +201,11 @@ void main() {
     await controller.connect(endpoint());
     await controller.setOptions(const TunnelOptions(killSwitch: false));
 
-    expect(service.startedConfigs, hasLength(2),
-        reason: 'a kill switch that waits until next time is not a kill switch');
+    expect(
+      service.startedConfigs,
+      hasLength(2),
+      reason: 'a kill switch that waits until next time is not a kill switch',
+    );
     expect(service.startedConfigs.last, contains('"final":"direct"'));
     controller.dispose();
   });
@@ -205,10 +227,14 @@ void main() {
 
   group('formatUptime', () {
     test('renders the design\'s clock', () {
-      expect(formatUptime(const Duration(hours: 0, minutes: 37, seconds: 12)),
-          '00:37:12');
-      expect(formatUptime(const Duration(hours: 25, minutes: 1, seconds: 2)),
-          '25:01:02');
+      expect(
+        formatUptime(const Duration(hours: 0, minutes: 37, seconds: 12)),
+        '00:37:12',
+      );
+      expect(
+        formatUptime(const Duration(hours: 25, minutes: 1, seconds: 2)),
+        '25:01:02',
+      );
       expect(formatUptime(Duration.zero), '00:00:00');
     });
   });
