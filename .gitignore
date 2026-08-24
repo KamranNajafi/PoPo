@@ -49,3 +49,8 @@ app.*.map.json
 
 # Local Flutter build output
 /build/
+
+# Go core build output
+/core/*.so
+/core/*.h
+/core/*.aar
