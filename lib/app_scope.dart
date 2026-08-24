@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'core/util/locale_controller.dart';
 import 'core/util/prefs.dart';
 import 'features/keywords/keyword_store.dart';
+import 'features/results/app_settings.dart';
+import 'features/results/results_store.dart';
 
 /// The app's long-lived controllers, handed down the tree.
 ///
@@ -15,12 +17,16 @@ class AppScope extends InheritedWidget {
     required this.prefs,
     required this.localeController,
     required this.keywordStore,
+    required this.resultsStore,
+    required this.settings,
     required super.child,
   });
 
   final Prefs prefs;
   final LocaleController localeController;
   final KeywordStore keywordStore;
+  final ResultsStore resultsStore;
+  final AppSettings settings;
 
   static AppScope of(BuildContext context) {
     final scope = maybeOf(context);
@@ -37,5 +43,7 @@ class AppScope extends InheritedWidget {
   bool updateShouldNotify(AppScope oldWidget) =>
       prefs != oldWidget.prefs ||
       localeController != oldWidget.localeController ||
-      keywordStore != oldWidget.keywordStore;
+      keywordStore != oldWidget.keywordStore ||
+      resultsStore != oldWidget.resultsStore ||
+      settings != oldWidget.settings;
 }

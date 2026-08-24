@@ -6,6 +6,8 @@ import 'core/theme/typography.dart';
 import 'core/util/locale_controller.dart';
 import 'core/util/prefs.dart';
 import 'features/keywords/keyword_store.dart';
+import 'features/results/app_settings.dart';
+import 'features/results/results_store.dart';
 import 'gallery/gallery_page.dart';
 import 'l10n/app_localizations.dart';
 
@@ -29,11 +31,15 @@ class PoPoApp extends StatefulWidget {
 class _PoPoAppState extends State<PoPoApp> {
   late final LocaleController _locale = LocaleController(widget.prefs);
   late final KeywordStore _keywords = KeywordStore(prefs: widget.prefs);
+  late final ResultsStore _results = ResultsStore(prefs: widget.prefs);
+  late final AppSettings _settings = AppSettings(widget.prefs);
 
   @override
   void dispose() {
     _locale.dispose();
     _keywords.dispose();
+    _results.dispose();
+    _settings.dispose();
     super.dispose();
   }
 
@@ -43,6 +49,8 @@ class _PoPoAppState extends State<PoPoApp> {
       prefs: widget.prefs,
       localeController: _locale,
       keywordStore: _keywords,
+      resultsStore: _results,
+      settings: _settings,
       child: ListenableBuilder(
         listenable: _locale,
         builder: (context, _) => MaterialApp(

@@ -252,5 +252,21 @@
   "placeTrIstanbul": "ترکیه · استانبول",
   "placeNl": "هلند",
   "listSeparator": "، ",
-  "languageSystem": "مطابق دستگاه"
+  "languageSystem": "مطابق دستگاه",
+  "noResultsYet": "هنوز نتیجه‌ای نیست. جست‌وجو کنید یا سابسکریپشن ایمپورت کنید.",
+  "probingUnsupported": "روی این پلتفرم پینگ اندازه‌گیری نمی‌شود، پس چیزی مرده علامت نخورده.",
+  "retestAll": "تست دوباره",
+  "importedCount": "{count} مورد ایمپورت شد",
+  "importedNothing": "در آن متن چیز قابل‌تشخیصی نبود.",
+  "clipboardEmpty": "کلیپ‌بورد خالی است.",
+  "pasteSubscription": "لینک سابسکریپشن یا متن کانفیگ را بچسبانید",
+  "importAction": "ایمپورت",
+  "savedEmpty": "هنوز چیزی ذخیره نشده.",
+  "unsaveSelected": "حذف انتخاب‌شده‌ها",
+  "copied": "کپی شد",
+  "testing": "در حال تست",
+  "picking": "انتخاب بهترین گزینه",
+  "stageSearching": "جست‌وجو در موتورها",
+  "noHealthyFound": "چیز قابل‌استفاده‌ای پیدا نشد. دوباره تلاش کنید یا موتور بیشتری روشن کنید.",
+  "openDetail": "جزئیات"
 }

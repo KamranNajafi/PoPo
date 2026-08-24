@@ -939,4 +939,61 @@ class LFa extends L {
 
   @override
   String get languageSystem => 'مطابق دستگاه';
+
+  @override
+  String get noResultsYet =>
+      'هنوز نتیجه‌ای نیست. جست‌وجو کنید یا سابسکریپشن ایمپورت کنید.';
+
+  @override
+  String get probingUnsupported =>
+      'روی این پلتفرم پینگ اندازه‌گیری نمی‌شود، پس چیزی مرده علامت نخورده.';
+
+  @override
+  String get retestAll => 'تست دوباره';
+
+  @override
+  String importedCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString مورد ایمپورت شد';
+  }
+
+  @override
+  String get importedNothing => 'در آن متن چیز قابل‌تشخیصی نبود.';
+
+  @override
+  String get clipboardEmpty => 'کلیپ‌بورد خالی است.';
+
+  @override
+  String get pasteSubscription => 'لینک سابسکریپشن یا متن کانفیگ را بچسبانید';
+
+  @override
+  String get importAction => 'ایمپورت';
+
+  @override
+  String get savedEmpty => 'هنوز چیزی ذخیره نشده.';
+
+  @override
+  String get unsaveSelected => 'حذف انتخاب‌شده‌ها';
+
+  @override
+  String get copied => 'کپی شد';
+
+  @override
+  String get testing => 'در حال تست';
+
+  @override
+  String get picking => 'انتخاب بهترین گزینه';
+
+  @override
+  String get stageSearching => 'جست‌وجو در موتورها';
+
+  @override
+  String get noHealthyFound =>
+      'چیز قابل‌استفاده‌ای پیدا نشد. دوباره تلاش کنید یا موتور بیشتری روشن کنید.';
+
+  @override
+  String get openDetail => 'جزئیات';
 }

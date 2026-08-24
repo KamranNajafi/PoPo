@@ -1,6 +1,10 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../core/discovery/engines.dart';
+import '../core/discovery/models.dart';
+import '../features/results/ping_display.dart';
+import '../features/results/results_store.dart';
 import '../features/discovery/discovery_controller.dart';
 import '../features/discovery/engine_row_status.dart';
 
@@ -22,10 +26,11 @@ import '../core/widgets/surfaces.dart';
 /// static values otherwise. The gallery relies on the second form: a canvas of
 /// 22 screens must not fire off 22 network runs to draw itself.
 class SearchScreen extends StatelessWidget {
-  const SearchScreen({super.key, this.controller, this.onSearch});
+  const SearchScreen({super.key, this.controller, this.onSearch, this.onNavigate});
 
   final DiscoveryController? controller;
   final VoidCallback? onSearch;
+  final ValueChanged<int>? onNavigate;
 
   /// The five phrases the design shows when there is no live run. These are
   /// search terms, not UI copy, so they are not translated.
@@ -56,7 +61,7 @@ class SearchScreen extends StatelessWidget {
         c == null ? _demoKeywords : c.keywords.take(5).map((k) => k.text).toList();
 
     return PhoneFrame(
-      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.search),
+      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.search, onTap: onNavigate),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -270,7 +275,38 @@ class ResultCard extends StatelessWidget {
     required this.pingColor,
     required this.age,
     required this.source,
+    this.onTap,
+    this.onCopy,
+    this.saved = false,
+    this.onToggleSaved,
   });
+
+  /// Builds the card from a real endpoint.
+  factory ResultCard.fromEndpoint(
+    Endpoint endpoint, {
+    Key? key,
+    required DateTime now,
+    VoidCallback? onTap,
+    VoidCallback? onCopy,
+    VoidCallback? onToggleSaved,
+  }) =>
+      ResultCard(
+        key: key,
+        place: endpoint.displayName,
+        protocol: protocolLine(endpoint),
+        ping: pingLabel(endpoint),
+        pingColor: pingColorOf(endpoint),
+        age: testedAgo(endpoint, now),
+        // The host of the page it came from is the useful part; the full URL
+        // does not fit and does not help.
+        source: endpoint.sources.isEmpty
+            ? ''
+            : (Uri.tryParse(endpoint.sources.first)?.host ?? ''),
+        onTap: onTap,
+        onCopy: onCopy,
+        saved: endpoint.saved,
+        onToggleSaved: onToggleSaved,
+      );
 
   final String place;
   final String protocol;
@@ -278,10 +314,17 @@ class ResultCard extends StatelessWidget {
   final Color pingColor;
   final String age;
   final String source;
+  final VoidCallback? onTap;
+  final VoidCallback? onCopy;
+  final bool saved;
+  final VoidCallback? onToggleSaved;
 
   @override
   Widget build(BuildContext context) {
-    return ListCard(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: ListCard(
       padding: const EdgeInsets.all(13),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,12 +332,21 @@ class ResultCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(7)),
-                  border: Border.all(color: C.primaryMuted, width: 2),
+              GestureDetector(
+                onTap: onToggleSaved,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: saved ? C.accentTint : null,
+                    borderRadius: const BorderRadius.all(Radius.circular(7)),
+                    border: Border.all(color: C.primaryMuted, width: 2),
+                  ),
+                  child: saved
+                      ? const Center(
+                          child: AppIcon(AppIcons.bookmark,
+                              size: 14, color: C.primaryMuted))
+                      : null,
                 ),
               ),
               const SizedBox(width: S.x10),
@@ -329,35 +381,133 @@ class ResultCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis),
               ),
               const SizedBox(width: S.x8),
-              GhostButton(L.of(context).copy),
+              GhostButton(L.of(context).copy, onTap: onCopy),
             ],
           ),
         ],
+      ),
       ),
     );
   }
 }
 
 /// 03 · Results — the found endpoints.
+///
+/// Real once a [ResultsStore] is passed: counts, filter chips and cards all
+/// come from tested data. Without one it renders the design's sample rows, so
+/// the canvas still shows the intended state.
 class ResultsScreen extends StatelessWidget {
-  const ResultsScreen({super.key});
+  const ResultsScreen({
+    super.key,
+    this.store,
+    this.probingSupported = true,
+    this.onOpen,
+    this.onRetest,
+    this.onNavigate,
+  });
 
-  static List<String> _filters(L l) => [
-        l.filterAll,
-        'VLESS',
-        'VMess',
-        'Shadowsocks',
-        'Trojan',
-        'HTTP/S',
-        'SOCKS5',
-      ];
+  final ResultsStore? store;
+
+  /// False on platforms with no sockets — the list is shown, but the screen
+  /// says why nothing is marked dead.
+  final bool probingSupported;
+
+  final void Function(Endpoint)? onOpen;
+  final VoidCallback? onRetest;
+  final ValueChanged<int>? onNavigate;
 
   @override
   Widget build(BuildContext context) {
+    final s = store;
+    if (s == null) return _demo(context);
+    return ListenableBuilder(
+      listenable: s,
+      builder: (context, _) => _live(context, s),
+    );
+  }
+
+  Widget _live(BuildContext context, ResultsStore store) {
     final l = L.of(context);
-    final filters = _filters(l);
+    final now = DateTime.now();
+    final filters = store.filters;
+    final visible = store.visible;
+    final protocols = store.availableProtocols;
+
     return PhoneFrame(
-      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.results),
+      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.results, onTap: onNavigate),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ScreenHeader(
+            leading: Text(l.resultsCount(visible.length), style: T.screenTitle),
+            trailing: GhostButton(l.retestAll, onTap: onRetest),
+          ),
+          const SizedBox(height: S.x16),
+          _SegmentedTabs(
+            labels: [
+              '${l.tabConfigs} (${formatNumber(context, store.configCount)})',
+              '${l.tabProxies} (${formatNumber(context, store.proxyCount)})',
+            ],
+            activeIndex: filters.kind == EndpointKind.config ? 0 : 1,
+            onTap: (index) => store.setFilters(filters.copyWith(
+              kind: index == 0 ? EndpointKind.config : EndpointKind.proxy,
+              clearProtocol: true,
+            )),
+          ),
+          const SizedBox(height: S.x14),
+          SizedBox(
+            height: 32,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                AppChip(
+                  l.filterAll,
+                  selected: filters.protocol == null,
+                  onTap: () =>
+                      store.setFilters(filters.copyWith(clearProtocol: true)),
+                ),
+                for (final protocol in protocols) ...[
+                  const SizedBox(width: S.x8),
+                  AppChip(
+                    protocol.name.toUpperCase(),
+                    selected: filters.protocol == protocol,
+                    onTap: () =>
+                        store.setFilters(filters.copyWith(protocol: protocol)),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: S.x14),
+          if (!probingSupported) ...[
+            Text(l.probingUnsupported,
+                style: T.small.copyWith(color: C.warning)),
+            const SizedBox(height: S.x12),
+          ],
+          if (visible.isEmpty)
+            Text(l.noResultsYet, style: T.caption)
+          else
+            for (final endpoint in visible) ...[
+              ResultCard.fromEndpoint(
+                endpoint,
+                now: now,
+                onTap: onOpen == null ? null : () => onOpen!(endpoint),
+                onCopy: () => Clipboard.setData(ClipboardData(text: endpoint.raw)),
+                onToggleSaved: () => store.toggleSaved(endpoint.fingerprint),
+              ),
+              const SizedBox(height: S.x10),
+            ],
+        ],
+      ),
+    );
+  }
+
+  Widget _demo(BuildContext context) {
+    final l = L.of(context);
+    final filters = ['VLESS', 'VMess', 'Shadowsocks', 'Trojan', 'HTTP/S', 'SOCKS5'];
+
+    return PhoneFrame(
+      nav: BottomNav(items: Navs.items(l), activeIndex: Navs.results, onTap: onNavigate),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -370,11 +520,15 @@ class ResultsScreen extends StatelessWidget {
           const SizedBox(height: S.x14),
           SizedBox(
             height: 32,
-            child: ListView.separated(
+            child: ListView(
               scrollDirection: Axis.horizontal,
-              itemCount: filters.length,
-              separatorBuilder: (_, _) => const SizedBox(width: S.x8),
-              itemBuilder: (_, i) => AppChip(filters[i], selected: i == 0),
+              children: [
+                AppChip(l.filterAll, selected: true),
+                for (final name in filters) ...[
+                  const SizedBox(width: S.x8),
+                  AppChip(name),
+                ],
+              ],
             ),
           ),
           const SizedBox(height: S.x14),
@@ -420,10 +574,15 @@ class ResultsScreen extends StatelessWidget {
 }
 
 class _SegmentedTabs extends StatelessWidget {
-  const _SegmentedTabs({required this.labels, required this.activeIndex});
+  const _SegmentedTabs({
+    required this.labels,
+    required this.activeIndex,
+    this.onTap,
+  });
 
   final List<String> labels;
   final int activeIndex;
+  final ValueChanged<int>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -438,7 +597,10 @@ class _SegmentedTabs extends StatelessWidget {
         children: [
           for (var i = 0; i < labels.length; i++)
             Expanded(
-              child: Container(
+              child: GestureDetector(
+                onTap: onTap == null ? null : () => onTap!(i),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
                 padding: const EdgeInsets.symmetric(vertical: S.x10),
                 decoration: i == activeIndex
                     ? const BoxDecoration(gradient: C.primaryGradient, borderRadius: R.pill)
@@ -452,6 +614,7 @@ class _SegmentedTabs extends StatelessWidget {
                     color: i == activeIndex ? C.onPrimary : C.body,
                   ),
                 ),
+                ),
               ),
             ),
         ],
@@ -462,9 +625,13 @@ class _SegmentedTabs extends StatelessWidget {
 
 /// 04 · Config detail.
 class ConfigDetailScreen extends StatelessWidget {
-  const ConfigDetailScreen({super.key});
+  const ConfigDetailScreen({super.key, this.endpoint, this.onToggleSaved});
 
-  static const _raw =
+  /// Null on the design canvas, which shows the sample config.
+  final Endpoint? endpoint;
+  final VoidCallback? onToggleSaved;
+
+  static const _sampleRaw =
       'vless://8f3c9a20-4d11-4e7a-9b62-1c0d5e8a7f34@185.199.110.12:443'
       '?encryption=none&security=reality&sni=www.microsoft.com&fp=chrome'
       '&pbk=xnQ7Ip9dK2mV0tRfLb3sYcEuHgWj&type=tcp#PoPo-NL-Amsterdam';
@@ -472,13 +639,24 @@ class ConfigDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
+    final e = endpoint;
+    final now = DateTime.now();
+
+    final raw = e?.raw ?? _sampleRaw;
+    final title = e?.displayName ?? l.placeNlAmsterdam;
+    final ping = e == null ? '42' : (e.ping?.inMilliseconds.toString() ?? '—');
+    final pingTint = e == null ? C.success : pingColorOf(e);
+
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ScreenHeader(
             leading: Text(l.configDetailTitle, style: T.screenTitle),
-            trailing: const RoundIconButton(AppIcons.bookmark, square: true),
+            trailing: GestureDetector(
+              onTap: onToggleSaved,
+              child: RoundIconButton(AppIcons.bookmark, square: true, onTap: onToggleSaved),
+            ),
           ),
           const SizedBox(height: S.x24),
           Center(
@@ -492,8 +670,8 @@ class ConfigDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Text('42',
-                        style: T.mono(26, weight: FontWeight.w500, color: C.success)),
+                    Text(ping,
+                        style: T.mono(26, weight: FontWeight.w500, color: pingTint)),
                     const SizedBox(width: 3),
                     Text('ms', style: T.mono(12, color: C.muted)),
                   ],
@@ -505,27 +683,50 @@ class ConfigDetailScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Text(l.placeNlAmsterdam, style: T.hero),
+                Text(title, style: T.hero, textAlign: TextAlign.center),
                 const SizedBox(height: 5),
-                const MonoText('VLESS · TCP · Reality', style: T.monoName),
+                MonoText(
+                  e == null ? 'VLESS · TCP · Reality' : protocolLine(e),
+                  style: T.monoName,
+                ),
               ],
             ),
           ),
           const SizedBox(height: S.x22),
-          MetaRow(l.metaProtocol, 'VLESS / Reality'),
-          MetaRow(l.metaIpPort, '185.***.**.12 : 443'),
-          MetaRow(l.metaLastSuccess, '2 min ago · 42 ms'),
-          MetaRow(l.metaSource, 'DuckDuckGo · gist.github', showDivider: false),
-          const SizedBox(height: S.x16),
-          const SunkenBlock(
-            child: MonoText(_raw, style: T.monoRaw, textAlign: TextAlign.left),
+          MetaRow(l.metaProtocol,
+              e == null ? 'VLESS / Reality' : e.protocol.name.toUpperCase()),
+          MetaRow(l.metaIpPort,
+              e == null ? '185.***.**.12 : 443' : '${e.host} : ${e.port}'),
+          MetaRow(
+            l.metaLastSuccess,
+            e == null
+                ? '2 min ago · 42 ms'
+                : (e.lastTestedAt == null
+                    ? '—'
+                    : '${testedAgo(e, now)} · ${pingLabel(e)}'),
+          ),
+          MetaRow(
+            l.metaSource,
+            e == null
+                ? 'DuckDuckGo · gist.github'
+                : (e.sources.isEmpty
+                    ? '—'
+                    : (Uri.tryParse(e.sources.first)?.host ?? '—')),
+            showDivider: false,
           ),
           const SizedBox(height: S.x16),
-          PrimaryButton(l.copyLink),
+          SunkenBlock(
+            child: MonoText(raw, style: T.monoRaw, textAlign: TextAlign.left),
+          ),
+          const SizedBox(height: S.x16),
+          PrimaryButton(
+            l.copyLink,
+            onTap: () => Clipboard.setData(ClipboardData(text: raw)),
+          ),
           const SizedBox(height: S.x10),
           SplitRow(
             start: SecondaryButton(l.testAgain),
-            end: SecondaryButton(l.save),
+            end: SecondaryButton(l.save, onTap: onToggleSaved),
           ),
         ],
       ),

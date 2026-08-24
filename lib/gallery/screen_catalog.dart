@@ -142,7 +142,9 @@ Widget _settings(BuildContext context) {
   if (scope == null) return const SettingsScreen();
 
   return SettingsScreen(
+    settings: scope.settings,
     keywordCount: scope.keywordStore.effective.length,
+    onClearResults: scope.resultsStore.clearResults,
     onOpenKeywords: () => Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => _framed(KeywordsScreen(store: scope.keywordStore)),

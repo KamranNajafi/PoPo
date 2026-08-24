@@ -36,6 +36,19 @@ class DiscoveryConfig {
 
   /// Raise above 1 to keep only endpoints corroborated by several pages.
   final int minSourcesToTrust;
+
+  DiscoveryConfig copyWith({int? keywordLimit, int? perEngineResultCap}) =>
+      DiscoveryConfig(
+        keywordLimit: keywordLimit ?? this.keywordLimit,
+        queriesPerEngine: queriesPerEngine,
+        pagesPerQuery: pagesPerQuery,
+        maxPagesTotal: maxPagesTotal,
+        perEngineResultCap: perEngineResultCap ?? this.perEngineResultCap,
+        engineConcurrency: engineConcurrency,
+        pageConcurrency: pageConcurrency,
+        requestTimeout: requestTimeout,
+        minSourcesToTrust: minSourcesToTrust,
+      );
 }
 
 /// Progress emitted while a run is in flight — this is what screen 02 renders.

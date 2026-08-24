@@ -497,5 +497,29 @@
   "placeTrIstanbul": "Türkiye · Istanbul",
   "placeNl": "Netherlands",
   "listSeparator": ", ",
-  "languageSystem": "Follow the device"
+  "languageSystem": "Follow the device",
+  "noResultsYet": "No results yet. Run a search or import a subscription.",
+  "probingUnsupported": "Latency cannot be measured on this platform, so nothing here is marked dead.",
+  "retestAll": "Test again",
+  "importedCount": "{count} imported",
+  "importedNothing": "Nothing recognisable in that text.",
+  "clipboardEmpty": "The clipboard is empty.",
+  "pasteSubscription": "Paste a subscription link or config text",
+  "importAction": "Import",
+  "savedEmpty": "Nothing saved yet.",
+  "unsaveSelected": "Remove selected",
+  "copied": "Copied",
+  "testing": "Testing",
+  "picking": "Picking the best option",
+  "stageSearching": "Searching the engines",
+  "noHealthyFound": "Nothing usable was found. Try again or enable more engines.",
+  "openDetail": "Details",
+  "@importedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  }
 }

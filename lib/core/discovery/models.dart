@@ -41,7 +41,31 @@ enum Protocol {
       };
 }
 
-/// One endpoint as discovered — before any latency or liveness testing.
+/// How an endpoint performed when it was last tested.
+enum Health {
+  /// Never tested.
+  untested,
+
+  /// Answered quickly. The design's threshold is 100ms.
+  ok,
+
+  /// Answered, but slowly. Up to 180ms; above that it is still `slow` but shown
+  /// in the danger colour.
+  slow,
+
+  /// Did not answer.
+  dead;
+
+  /// Classifies a latency. Thresholds come from the design's ping colours.
+  static Health fromLatency(Duration? latency) {
+    if (latency == null) return dead;
+    final ms = latency.inMilliseconds;
+    if (ms <= 100) return ok;
+    return slow;
+  }
+}
+
+/// One endpoint, as discovered and then as tested.
 class Endpoint {
   const Endpoint({
     required this.raw,
@@ -53,6 +77,11 @@ class Endpoint {
     this.label,
     this.sources = const {},
     this.score = 0,
+    this.ping,
+    this.health = Health.untested,
+    this.lastTestedAt,
+    this.failureCount = 0,
+    this.saved = false,
   });
 
   /// The original link or `ip:port`, exactly as found.
@@ -75,9 +104,31 @@ class Endpoint {
   /// places is the strongest signal available before testing.
   final Set<String> sources;
 
+  /// Pre-test ranking. Once [ping] exists, measurement replaces this guess.
   final double score;
 
-  Endpoint copyWith({Set<String>? sources, double? score}) => Endpoint(
+  /// Measured round trip, null until tested or when the last test failed.
+  final Duration? ping;
+
+  final Health health;
+  final DateTime? lastTestedAt;
+
+  /// Consecutive failed tests. The auto-remove setting acts on this.
+  final int failureCount;
+
+  final bool saved;
+
+  Endpoint copyWith({
+    Set<String>? sources,
+    double? score,
+    Duration? ping,
+    Health? health,
+    DateTime? lastTestedAt,
+    int? failureCount,
+    bool? saved,
+    bool clearPing = false,
+  }) =>
+      Endpoint(
         raw: raw,
         kind: kind,
         protocol: protocol,
@@ -87,10 +138,60 @@ class Endpoint {
         label: label,
         sources: sources ?? this.sources,
         score: score ?? this.score,
+        // A failed retest has to be able to clear a previously good ping, which
+        // `ping ?? this.ping` alone cannot express.
+        ping: clearPing ? null : (ping ?? this.ping),
+        health: health ?? this.health,
+        lastTestedAt: lastTestedAt ?? this.lastTestedAt,
+        failureCount: failureCount ?? this.failureCount,
+        saved: saved ?? this.saved,
+      );
+
+  /// A display name: the publisher's label when there is one, else the address.
+  String get displayName => label?.trim().isNotEmpty == true
+      ? label!.trim()
+      : '\$host:\$port';
+
+  Map<String, dynamic> toJson() => {
+        'raw': raw,
+        'kind': kind.name,
+        'protocol': protocol.name,
+        'host': host,
+        'port': port,
+        'fingerprint': fingerprint,
+        'label': label,
+        'sources': sources.toList(),
+        'score': score,
+        'pingMs': ping?.inMilliseconds,
+        'health': health.name,
+        'lastTestedAt': lastTestedAt?.toIso8601String(),
+        'failureCount': failureCount,
+        'saved': saved,
+      };
+
+  static Endpoint fromJson(Map<String, dynamic> json) => Endpoint(
+        raw: json['raw'] as String,
+        kind: EndpointKind.values.byName(json['kind'] as String),
+        protocol: Protocol.values.byName(json['protocol'] as String),
+        host: json['host'] as String,
+        port: json['port'] as int,
+        fingerprint: json['fingerprint'] as String,
+        label: json['label'] as String?,
+        sources: ((json['sources'] as List?) ?? const []).cast<String>().toSet(),
+        score: (json['score'] as num?)?.toDouble() ?? 0,
+        ping: json['pingMs'] == null
+            ? null
+            : Duration(milliseconds: json['pingMs'] as int),
+        health: Health.values.byName((json['health'] as String?) ?? 'untested'),
+        lastTestedAt: json['lastTestedAt'] == null
+            ? null
+            : DateTime.parse(json['lastTestedAt'] as String),
+        failureCount: (json['failureCount'] as int?) ?? 0,
+        saved: (json['saved'] as bool?) ?? false,
       );
 
   @override
-  String toString() => '$protocol $host:$port (${sources.length} sources)';
+  String toString() => '\$protocol \$host:\$port (\${sources.length} sources)';
 }
 
 /// A generated search phrase, with the reason it was generated.

@@ -5,7 +5,7 @@ import '../core/theme/typography.dart';
 import '../l10n/app_localizations.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/phone_frame.dart';
-import '../features/discovery/discovery_flow.dart';
+import '../features/discovery/app_flow.dart';
 import 'screen_catalog.dart';
 
 /// The design canvas: every screen laid out side by side, the way the prototype
@@ -37,7 +37,7 @@ class GalleryPage extends StatelessWidget {
                   color: C.primaryMuted,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => const DiscoveryFlowPage(),
+                      builder: (_) => const AppFlow(),
                     ),
                   ),
                 ),

@@ -16,10 +16,18 @@ class NavItem {
 /// The floating pill nav. Max three items: the active one shows icon + label,
 /// the rest are icon-only at 70% opacity.
 class BottomNav extends StatelessWidget {
-  const BottomNav({super.key, required this.items, required this.activeIndex});
+  const BottomNav({
+    super.key,
+    required this.items,
+    required this.activeIndex,
+    this.onTap,
+  });
 
   final List<NavItem> items;
   final int activeIndex;
+
+  /// Null on the design canvas, where the nav is a picture of a nav.
+  final ValueChanged<int>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +41,11 @@ class BottomNav extends StatelessWidget {
           children: [
             for (var i = 0; i < items.length; i++) ...[
               if (i > 0) const SizedBox(width: S.x20),
-              _NavEntry(item: items[i], active: i == activeIndex),
+              GestureDetector(
+                onTap: onTap == null ? null : () => onTap!(i),
+                behavior: HitTestBehavior.opaque,
+                child: _NavEntry(item: items[i], active: i == activeIndex),
+              ),
             ],
           ],
         ),

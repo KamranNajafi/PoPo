@@ -1614,6 +1614,102 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Follow the device'**
   String get languageSystem;
+
+  /// No description provided for @noResultsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No results yet. Run a search or import a subscription.'**
+  String get noResultsYet;
+
+  /// No description provided for @probingUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency cannot be measured on this platform, so nothing here is marked dead.'**
+  String get probingUnsupported;
+
+  /// No description provided for @retestAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Test again'**
+  String get retestAll;
+
+  /// No description provided for @importedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} imported'**
+  String importedCount(int count);
+
+  /// No description provided for @importedNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recognisable in that text.'**
+  String get importedNothing;
+
+  /// No description provided for @clipboardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The clipboard is empty.'**
+  String get clipboardEmpty;
+
+  /// No description provided for @pasteSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a subscription link or config text'**
+  String get pasteSubscription;
+
+  /// No description provided for @importAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importAction;
+
+  /// No description provided for @savedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing saved yet.'**
+  String get savedEmpty;
+
+  /// No description provided for @unsaveSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove selected'**
+  String get unsaveSelected;
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get copied;
+
+  /// No description provided for @testing.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing'**
+  String get testing;
+
+  /// No description provided for @picking.
+  ///
+  /// In en, this message translates to:
+  /// **'Picking the best option'**
+  String get picking;
+
+  /// No description provided for @stageSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching the engines'**
+  String get stageSearching;
+
+  /// No description provided for @noHealthyFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing usable was found. Try again or enable more engines.'**
+  String get noHealthyFound;
+
+  /// No description provided for @openDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get openDetail;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

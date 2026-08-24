@@ -958,4 +958,61 @@ class LEn extends L {
 
   @override
   String get languageSystem => 'Follow the device';
+
+  @override
+  String get noResultsYet =>
+      'No results yet. Run a search or import a subscription.';
+
+  @override
+  String get probingUnsupported =>
+      'Latency cannot be measured on this platform, so nothing here is marked dead.';
+
+  @override
+  String get retestAll => 'Test again';
+
+  @override
+  String importedCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString imported';
+  }
+
+  @override
+  String get importedNothing => 'Nothing recognisable in that text.';
+
+  @override
+  String get clipboardEmpty => 'The clipboard is empty.';
+
+  @override
+  String get pasteSubscription => 'Paste a subscription link or config text';
+
+  @override
+  String get importAction => 'Import';
+
+  @override
+  String get savedEmpty => 'Nothing saved yet.';
+
+  @override
+  String get unsaveSelected => 'Remove selected';
+
+  @override
+  String get copied => 'Copied';
+
+  @override
+  String get testing => 'Testing';
+
+  @override
+  String get picking => 'Picking the best option';
+
+  @override
+  String get stageSearching => 'Searching the engines';
+
+  @override
+  String get noHealthyFound =>
+      'Nothing usable was found. Try again or enable more engines.';
+
+  @override
+  String get openDetail => 'Details';
 }
