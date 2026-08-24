@@ -6,7 +6,13 @@ name: Release
 # itself when it publishes.
 on:
   push:
-    paths: ['VERSION']
+    # The workflow itself is a trigger too: a release that failed on a pipeline
+    # bug should re-attempt when the bug is fixed, without needing a version
+    # number the release never actually reached.
+    paths:
+      - 'VERSION'
+      - '.github/workflows/release.yml'
+      - 'tool/build_core_android.sh'
   workflow_dispatch:
     inputs:
       tag:
@@ -22,7 +28,7 @@ permissions:
 
 env:
   FLUTTER_VERSION: '3.47.1'
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.26'
 
 jobs:
   version:
@@ -87,7 +93,7 @@ jobs:
         env:
           # gomobile needs the NDK explicitly; ANDROID_NDK_LATEST_HOME on the
           # runner moves between images, so the version is pinned above.
-          ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.0.12077973
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.0.12077973
         run: |
           echo "using NDK at $ANDROID_NDK_HOME"
           tool/build_core_android.sh
