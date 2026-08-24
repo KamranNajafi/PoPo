@@ -1,8 +1,13 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../core/theme/tokens.dart';
 import '../core/theme/typography.dart';
 import '../core/util/fa.dart';
+import '../features/sharing/qr_painter.dart';
+import '../features/sharing/share_controller.dart';
+import '../features/tunnel/connection_controller.dart';
+import '../features/tunnel/split_tunnel_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../core/widgets/buttons.dart';
 import '../core/widgets/controls.dart';
@@ -17,28 +22,59 @@ import '../core/widgets/surfaces.dart';
 /// Android and desktop only: iOS cannot keep a background listener alive, so this
 /// screen sits behind the same kind of build flag as discovery.
 class ProxyServerScreen extends StatelessWidget {
-  const ProxyServerScreen({super.key});
+  const ProxyServerScreen({super.key, this.share, this.onShowQr, this.connection});
+
+  /// Null on the design canvas; live it drives the toggle and the meta rows.
+  final ShareController? share;
+  final ConnectionController? connection;
+  final VoidCallback? onShowQr;
 
   @override
   Widget build(BuildContext context) {
+    final s = share;
+    if (s == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: s,
+      builder: (context, _) => _build(context, s),
+    );
+  }
+
+  Widget _build(BuildContext context, ShareController? share) {
     final l = L.of(context);
+    final on = share?.isEnabled ?? true;
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ScreenHeader(
             leading: Text(l.shareConnection, style: T.screenTitle),
-            trailing: const AppToggle(true),
+            trailing: AppToggle(
+              on,
+              onChanged: share == null
+                  ? null
+                  : (value) => share.setEnabled(
+                        value,
+                        upstream: connection?.endpoint,
+                      ),
+            ),
           ),
           const SizedBox(height: S.x24),
-          const Center(child: StatusHero(state: HeroState.ready, size: 96)),
+          Center(
+            child: StatusHero(
+              state: on ? HeroState.ready : HeroState.idle,
+              size: 96,
+            ),
+          ),
           const SizedBox(height: S.x18),
-          Center(child: Text(l.serverOn, style: T.connectedHero)),
+          Center(
+            child: Text(on ? l.serverOn : l.shareConnection,
+                style: T.connectedHero),
+          ),
           const SizedBox(height: S.x10),
-          const Center(
+          Center(
             child: MonoText(
-              '192.168.43.1 : 8888',
-              style: TextStyle(
+              share?.address ?? '192.168.43.1 : 8888',
+              style: const TextStyle(
                 fontFamily: kMono,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -47,18 +83,38 @@ class ProxyServerScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Center(child: Text(l.shareDevicesAndUsage(3, '1.4 GB'), style: T.small)),
+          Center(
+            child: Text(
+              l.shareDevicesAndUsage(
+                share?.activeDeviceCount ?? 3,
+                share?.usageToday ?? '1.4 GB',
+              ),
+              style: T.small,
+            ),
+          ),
+          if (share?.error != null) ...[
+            const SizedBox(height: S.x10),
+            Center(
+              child: Text(share!.error!,
+                  style: T.small.copyWith(color: C.warning),
+                  textAlign: TextAlign.center),
+            ),
+          ],
           const SizedBox(height: S.x22),
-          MetaRow(l.metaProxyAddress, '192.168.43.1'),
-          MetaRow(l.metaHttpPort, '8888'),
-          MetaRow(l.metaSocksPort, '1080'),
-          MetaRow(l.metaUsername, 'popo'),
-          MetaRow(l.metaPassword, '•••• ••••', showDivider: false),
+          MetaRow(l.metaProxyAddress, share?.hotspotAddress ?? '192.168.43.1'),
+          MetaRow(l.metaHttpPort, '${ShareController.httpPort}'),
+          MetaRow(l.metaSocksPort, '${ShareController.socksPort}'),
+          MetaRow(l.metaUsername, ShareController.username),
+          // Masked: the pairing QR carries it, so there is no reason to leave
+          // it readable over someone's shoulder.
+          MetaRow(l.metaPassword, '•' * (share?.password.length ?? 8),
+              showDivider: false),
           const SizedBox(height: S.x18),
-          PrimaryButton(l.showConnectionQr),
+          PrimaryButton(l.showConnectionQr, onTap: onShowQr),
           const SizedBox(height: S.x10),
           SplitRow(
-            start: SecondaryButton(l.changePassword),
+            start: SecondaryButton(l.changePassword,
+                onTap: share?.regeneratePassword),
             end: SecondaryButton(l.turnOnHotspot),
           ),
         ],
@@ -69,7 +125,9 @@ class ProxyServerScreen extends StatelessWidget {
 
 /// 13 · Connected devices.
 class ConnectedDevicesScreen extends StatelessWidget {
-  const ConnectedDevicesScreen({super.key});
+  const ConnectedDevicesScreen({super.key, this.share});
+
+  final ShareController? share;
 
   static List<(IconData, String, String, String, Color, String)> _devices(L l) => [
         (AppIcons.laptop, l.deviceWorkLaptop, '192.168.43.24', l.deviceActive,
@@ -82,14 +140,46 @@ class ConnectedDevicesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = share;
+    if (s == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: s,
+      builder: (context, _) => _build(context, s),
+    );
+  }
+
+  Widget _build(BuildContext context, ShareController? share) {
     final l = L.of(context);
+    final rows = share == null
+        ? _devices(l)
+        : [
+            for (final device in share.devices)
+              (
+                AppIcons.device,
+                device.name,
+                device.address,
+                switch (device.state) {
+                  SharedDeviceState.active => l.deviceActive,
+                  SharedDeviceState.awaitingApproval => l.devicePendingApproval,
+                  SharedDeviceState.blocked => l.deviceDisconnect,
+                },
+                switch (device.state) {
+                  SharedDeviceState.active => C.success,
+                  SharedDeviceState.awaitingApproval => C.warning,
+                  SharedDeviceState.blocked => C.danger,
+                },
+                l.deviceUsageToday(formatBytes(device.bytesToday)),
+              ),
+          ];
+
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(l.connectedDevices, style: T.screenTitle),
           const SizedBox(height: S.x16),
-          for (final (icon, name, ip, state, color, usage) in _devices(l)) ...[
+          if (rows.isEmpty) Text(l.noResultsYet, style: T.caption),
+          for (final (icon, name, ip, state, color, usage) in rows) ...[
             ListCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +224,14 @@ class ConnectedDevicesScreen extends StatelessWidget {
             const SizedBox(height: S.x12),
           ],
           const SizedBox(height: S.x8),
-          SecondaryButton(l.onlyApprovedDevices),
+          SettingRow(
+            label: l.onlyApprovedDevices,
+            trailing: AppToggle(
+              share?.requireApproval ?? true,
+              onChanged: share?.setRequireApproval,
+            ),
+            showDivider: false,
+          ),
         ],
       ),
     );
@@ -143,7 +240,9 @@ class ConnectedDevicesScreen extends StatelessWidget {
 
 /// 14 · Pairing guide — how a second device joins.
 class PairingGuideScreen extends StatelessWidget {
-  const PairingGuideScreen({super.key});
+  const PairingGuideScreen({super.key, this.share});
+
+  final ShareController? share;
 
   static List<(String, String)> _steps(L l) => [
         (l.pairStep1Title, l.pairStep1Body),
@@ -154,8 +253,19 @@ class PairingGuideScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = share;
+    if (s == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: s,
+      builder: (context, _) => _build(context, s),
+    );
+  }
+
+  Widget _build(BuildContext context, ShareController? share) {
     final l = L.of(context);
     final steps = _steps(l);
+    final address = share?.address ?? '192.168.43.1 : 8888';
+    final qr = share == null ? null : PairingQr.encode(share.qrPayload);
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -170,9 +280,13 @@ class PairingGuideScreen extends StatelessWidget {
                 color: C.heading,
                 borderRadius: R.mdAll,
               ),
-              child: const Center(
-                child: AppIcon(AppIcons.qr, size: 104, color: C.gradientBottom),
-              ),
+              clipBehavior: Clip.antiAlias,
+              child: qr == null
+                  ? const Center(
+                      child: AppIcon(AppIcons.qr,
+                          size: 104, color: C.gradientBottom),
+                    )
+                  : CustomPaint(painter: QrPainter(qr)),
             ),
           ),
           const SizedBox(height: S.x22),
@@ -203,10 +317,11 @@ class PairingGuideScreen extends StatelessWidget {
                       Text(steps[i].$2, style: T.caption),
                       if (i == 2) ...[
                         const SizedBox(height: S.x8),
-                        const SunkenBlock(
-                          padding: EdgeInsets.symmetric(vertical: S.x10, horizontal: S.x12),
-                          child: MonoText('192.168.43.1 : 8888',
-                              style: TextStyle(
+                        SunkenBlock(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: S.x10, horizontal: S.x12),
+                          child: MonoText(address,
+                              style: const TextStyle(
                                 fontFamily: kMono,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
@@ -222,7 +337,11 @@ class PairingGuideScreen extends StatelessWidget {
             const SizedBox(height: S.x16),
           ],
           const SizedBox(height: S.x4),
-          PrimaryButton(l.copyAddressPort),
+          PrimaryButton(
+            l.copyAddressPort,
+            onTap: () => Clipboard.setData(
+                ClipboardData(text: address.replaceAll(' ', ''))),
+          ),
         ],
       ),
     );
@@ -231,7 +350,9 @@ class PairingGuideScreen extends StatelessWidget {
 
 /// 15 · Split tunneling. Android only — iOS has no per-app routing API.
 class SplitTunnelScreen extends StatelessWidget {
-  const SplitTunnelScreen({super.key});
+  const SplitTunnelScreen({super.key, this.controller});
+
+  final SplitTunnelController? controller;
 
   static List<(IconData, String, String, bool)> _apps(L l) => [
         (AppIcons.browser, l.appBrowser, l.routedThroughTunnel, true),
@@ -242,7 +363,31 @@ class SplitTunnelScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = controller;
+    if (c == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) => _build(context, c),
+    );
+  }
+
+  Widget _build(BuildContext context, SplitTunnelController? controller) {
     final l = L.of(context);
+
+    final rows = controller == null || controller.apps.isEmpty
+        ? _apps(l)
+        : [
+            for (final app in controller.apps)
+              (
+                AppIcons.browser,
+                app.name,
+                controller.isRouted(app.packageName)
+                    ? l.routedThroughTunnel
+                    : l.routedDirect,
+                controller.isRouted(app.packageName),
+              ),
+          ];
+
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -251,32 +396,40 @@ class SplitTunnelScreen extends StatelessWidget {
           const SizedBox(height: 6),
           Text(l.splitBody, style: T.caption),
           const SizedBox(height: S.x16),
-          for (final (icon, name, note, on) in _apps(l))
+          for (final (index, row) in rows.indexed)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 13),
               decoration: const BoxDecoration(border: hairlineBottom),
               child: Row(
                 children: [
-                  AppIcon(icon, size: 22),
+                  AppIcon(row.$1, size: 22),
                   const SizedBox(width: S.x12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name, style: T.settingLabel),
+                        Text(row.$2,
+                            style: T.settingLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 3),
-                        Text(note, style: T.small),
+                        Text(row.$3, style: T.small),
                       ],
                     ),
                   ),
-                  AppToggle(on),
+                  AppToggle(
+                    row.$4,
+                    onChanged: controller == null || controller.apps.isEmpty
+                        ? null
+                        : (_) => controller.toggle(controller.apps[index].packageName),
+                  ),
                 ],
               ),
             ),
           const SizedBox(height: S.x22),
           SplitRow(
-            start: SecondaryButton(l.allThroughTunnel),
-            end: SecondaryButton(l.noneThroughTunnel),
+            start: SecondaryButton(l.allThroughTunnel, onTap: controller?.routeAll),
+            end: SecondaryButton(l.noneThroughTunnel, onTap: controller?.routeNone),
           ),
         ],
       ),
@@ -286,14 +439,12 @@ class SplitTunnelScreen extends StatelessWidget {
 
 /// 16 · Security & sync.
 class SecurityScreen extends StatelessWidget {
-  const SecurityScreen({super.key});
+  const SecurityScreen({super.key, this.connection});
 
-  static List<(String, String, bool)> _rows(L l) => [
-        (l.settingKillSwitch, l.settingKillSwitchNote, true),
-        (l.settingSecureDns, l.settingSecureDnsNote, true),
-        (l.settingAutoConnect, l.settingAutoConnectNote, true),
-        (l.settingSyncLists, l.settingSyncListsNote, false),
-      ];
+  /// Null on the design canvas; live it drives the kill switch and DNS.
+  final ConnectionController? connection;
+
+
 
   static const _log = [
     ('12:04:11', 'tunnel up · vless/reality · nl-ams', C.success),
@@ -305,15 +456,47 @@ class SecurityScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = connection;
+    if (c == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) => _build(context, c),
+    );
+  }
+
+  Widget _build(BuildContext context, ConnectionController? connection) {
     final l = L.of(context);
+    final options = connection?.options;
+
+    // Only the two that actually change routing are wired; the rest stay
+    // display-only rather than pretending to do something.
+    final rows = <(String, String, bool, ValueChanged<bool>?)>[
+      (
+        l.settingKillSwitch,
+        l.settingKillSwitchNote,
+        options?.killSwitch ?? true,
+        connection == null
+            ? null
+            : (value) => connection
+                .setOptions(connection.options.copyWith(killSwitch: value)),
+      ),
+      (l.settingSecureDns, l.settingSecureDnsNote, true, null),
+      (l.settingAutoConnect, l.settingAutoConnectNote, true, null),
+      (l.settingSyncLists, l.settingSyncListsNote, false, null),
+    ];
+
     return PhoneFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(l.securityTitle, style: T.screenTitle),
           const SizedBox(height: S.x14),
-          for (final (label, caption, on) in _rows(l))
-            SettingRow(label: label, caption: caption, trailing: AppToggle(on)),
+          for (final (label, caption, on, onChanged) in rows)
+            SettingRow(
+              label: label,
+              caption: caption,
+              trailing: AppToggle(on, onChanged: onChanged),
+            ),
           const SizedBox(height: S.x22),
           SectionTitle(l.connectionLog),
           SunkenBlock(

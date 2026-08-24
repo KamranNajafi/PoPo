@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
+import '../../core/build/features.dart';
 import '../../core/discovery/fetcher.dart';
 import '../../core/discovery/http_fetcher.dart';
 import '../../core/discovery/models.dart';
@@ -45,7 +46,14 @@ class _AppFlowState extends State<AppFlow> {
     pageConcurrency: 4,
   );
 
-  RunCoordinator _ensure(BuildContext context) {
+  /// Builds the discovery machinery, or returns null on a build without it.
+  ///
+  /// Null is the whole point: constructing a DiscoveryController would keep the
+  /// engine list, the scraper and the keyword generator reachable, and the
+  /// Apple builds must not contain them at all.
+  RunCoordinator? _ensure(BuildContext context) {
+    if (!Features.enableDiscovery) return null;
+
     final existing = _coordinator;
     if (existing != null) return existing;
 
@@ -77,7 +85,7 @@ class _AppFlowState extends State<AppFlow> {
 
   Future<void> _start(BuildContext context) async {
     final coordinator = _ensure(context);
-    if (coordinator.isRunning) return;
+    if (coordinator == null || coordinator.isRunning) return;
 
     final navigator = Navigator.of(context);
     final run = coordinator.run();
@@ -99,6 +107,15 @@ class _AppFlowState extends State<AppFlow> {
   int _tab = 0;
 
   Widget _advancedBody(RunCoordinator coordinator) => switch (_tab) {
+        // With discovery compiled out there is nothing to search, so the shell
+        // opens on results and import instead.
+        0 when !Features.enableDiscovery => ResultsScreen(
+            store: coordinator.results,
+            probingSupported: coordinator.probingSupported,
+            onRetest: coordinator.retestExisting,
+            onNavigate: (index) => setState(() => _tab = index),
+            onOpen: (endpoint) => _openDetail(context, coordinator, endpoint),
+          ),
         1 => ResultsScreen(
             store: coordinator.results,
             probingSupported: coordinator.probingSupported,
@@ -118,10 +135,47 @@ class _AppFlowState extends State<AppFlow> {
           ),
       };
 
+  /// The shell for a build with no discovery: results, saved and import.
+  Widget _importOnlyShell(BuildContext context, AppScope scope) {
+    return _Framed(
+      results: scope.resultsStore,
+      trailing: IconButton(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => _Framed(
+              results: scope.resultsStore,
+              child: HistoryScreen(
+                store: scope.resultsStore,
+                onFetchSubscription: fetchSubscriptionBody,
+              ),
+            ),
+          ),
+        ),
+        icon: const Icon(Icons.add_rounded, color: C.primaryMuted, size: 22),
+      ),
+      child: ListenableBuilder(
+        listenable: scope.resultsStore,
+        builder: (context, _) => _tab == 2
+            ? SavedScreen(
+                store: scope.resultsStore,
+                onNavigate: (index) => setState(() => _tab = index),
+              )
+            : ResultsScreen(
+                store: scope.resultsStore,
+                onNavigate: (index) => setState(() => _tab = index),
+              ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final coordinator = _ensure(context);
     final scope = AppScope.of(context);
+    final coordinator = _ensure(context);
+
+    // No discovery in this build: results and import are the whole app, which
+    // is what the handoff prescribes for the Apple builds.
+    if (coordinator == null) return _importOnlyShell(context, scope);
 
     return _Framed(
       results: scope.resultsStore,

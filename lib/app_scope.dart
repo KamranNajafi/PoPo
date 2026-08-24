@@ -5,7 +5,9 @@ import 'core/util/prefs.dart';
 import 'features/keywords/keyword_store.dart';
 import 'features/results/app_settings.dart';
 import 'features/results/results_store.dart';
+import 'features/sharing/share_controller.dart';
 import 'features/tunnel/connection_controller.dart';
+import 'features/tunnel/split_tunnel_controller.dart';
 
 /// The app's long-lived controllers, handed down the tree.
 ///
@@ -17,19 +19,26 @@ class AppScope extends InheritedWidget {
     super.key,
     required this.prefs,
     required this.localeController,
-    required this.keywordStore,
+    this.keywordStore,
     required this.resultsStore,
     required this.settings,
     required this.connection,
+    this.share,
+    this.splitTunnel,
     required super.child,
   });
 
   final Prefs prefs;
   final LocaleController localeController;
-  final KeywordStore keywordStore;
+  /// Null when discovery is compiled out — see [Features.enableDiscovery].
+  final KeywordStore? keywordStore;
   final ResultsStore resultsStore;
   final AppSettings settings;
   final ConnectionController connection;
+  /// Null when sharing is compiled out.
+  final ShareController? share;
+  /// Null when per-app routing is compiled out.
+  final SplitTunnelController? splitTunnel;
 
   static AppScope of(BuildContext context) {
     final scope = maybeOf(context);
@@ -49,5 +58,7 @@ class AppScope extends InheritedWidget {
       keywordStore != oldWidget.keywordStore ||
       resultsStore != oldWidget.resultsStore ||
       settings != oldWidget.settings ||
-      connection != oldWidget.connection;
+      connection != oldWidget.connection ||
+      share != oldWidget.share ||
+      splitTunnel != oldWidget.splitTunnel;
 }

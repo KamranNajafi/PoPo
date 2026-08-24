@@ -2,6 +2,11 @@ import 'package:flutter/widgets.dart';
 
 import '../core/theme/tokens.dart';
 import '../core/util/fa.dart';
+import '../core/discovery/models.dart';
+import '../features/results/ping_display.dart';
+import '../features/results/results_store.dart';
+import '../features/sharing/share_controller.dart';
+import '../features/tunnel/connection_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../core/theme/typography.dart';
 import '../core/widgets/buttons.dart';
@@ -12,7 +17,21 @@ import '../core/widgets/surfaces.dart';
 
 /// 17 · Desktop — a 190px sidebar and a fluid content area.
 class DesktopScreen extends StatelessWidget {
-  const DesktopScreen({super.key});
+  const DesktopScreen({
+    super.key,
+    this.connection,
+    this.results,
+    this.share,
+    this.onConnect,
+    this.onRedoSetup,
+  });
+
+  /// All null on the design canvas, where the dashboard shows sample figures.
+  final ConnectionController? connection;
+  final ResultsStore? results;
+  final ShareController? share;
+  final VoidCallback? onConnect;
+  final VoidCallback? onRedoSetup;
 
   static List<(IconData, String, bool)> _nav(L l) => [
         (AppIcons.dashboard, l.desktopNavDashboard, true),
@@ -24,21 +43,63 @@ class DesktopScreen extends StatelessWidget {
         (AppIcons.settings, l.desktopNavSettings, false),
       ];
 
-  static List<(String, String)> _stats(BuildContext context, L l) => [
-        (l.statHealthyConfigs, formatNumber(context, 31)),
-        (l.statHealthyProxies, formatNumber(context, 58)),
-        (l.statConnectedDevices, formatNumber(context, 3)),
-        (l.statUsageToday, '${formatNumber(context, 1.4)} GB'),
-      ];
+  List<(String, String)> _stats(BuildContext context, L l) {
+    final store = results;
+    final healthyConfigs = store == null
+        ? 31
+        : store.all
+            .where((e) =>
+                e.kind == EndpointKind.config && e.health != Health.dead)
+            .length;
+    final healthyProxies = store == null
+        ? 58
+        : store.all
+            .where((e) => e.kind == EndpointKind.proxy && e.health != Health.dead)
+            .length;
 
-  static List<(String, String, String, Color)> _fastest(L l) => [
+    return [
+      (l.statHealthyConfigs, formatNumber(context, healthyConfigs)),
+      (l.statHealthyProxies, formatNumber(context, healthyProxies)),
+      (
+        l.statConnectedDevices,
+        formatNumber(context, share?.activeDeviceCount ?? 3)
+      ),
+      (l.statUsageToday, share?.usageToday ?? '${formatNumber(context, 1.4)} GB'),
+    ];
+  }
+
+  List<(String, String, String, Color)> _fastest(L l) {
+    final store = results;
+    if (store == null) {
+      return [
         (l.placeNlAmsterdam, 'VLESS · Reality', '42 ms', C.success),
         (l.placeDeFrankfurt, 'VMess · WS+TLS', '78 ms', C.success),
         (l.placeFiHelsinki, 'SOCKS5 · 51.15.42.7:1080', '126 ms', C.warning),
       ];
+    }
+    return [
+      for (final endpoint in store.visible.take(3))
+        (
+          endpoint.displayName,
+          protocolLine(endpoint),
+          pingLabel(endpoint),
+          pingColorOf(endpoint),
+        ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final c = connection;
+    final r = results;
+    if (c == null && r == null) return _build(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge([c, r, share]),
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final l = L.of(context);
     return Container(
       constraints: const BoxConstraints(minHeight: 380),
@@ -117,25 +178,60 @@ class DesktopScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const StatusHero(state: HeroState.working, size: 56),
+                            StatusHero(
+                              state: connection == null || connection!.isConnected
+                                  ? HeroState.working
+                                  : HeroState.idle,
+                              size: 56,
+                            ),
                             const SizedBox(width: S.x14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(l.desktopConnectedTo(l.placeNl), style: T.hero),
+                                  Text(
+                                    connection == null
+                                        ? l.desktopConnectedTo(l.placeNl)
+                                        : (connection!.isConnected
+                                            ? l.desktopConnectedTo(
+                                                connection!.endpoint?.displayName ??
+                                                    '—')
+                                            : l.settingSimpleMode),
+                                    style: T.hero,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                   const SizedBox(height: 4),
-                                  const MonoText('42 ms · 00:37:12',
-                                      style: T.monoName),
+                                  MonoText(
+                                    connection == null
+                                        ? '42 ms · 00:37:12'
+                                        : '${connection!.endpoint == null ? '—' : pingLabel(connection!.endpoint!)}'
+                                            ' · ${formatUptime(connection!.uptime)}',
+                                    style: T.monoName,
+                                  ),
                                 ],
                               ),
                             ),
                             const SizedBox(width: S.x12),
-                            SizedBox(width: 130, child: PrimaryButton(l.disconnect)),
+                            SizedBox(
+                              width: 130,
+                              child: PrimaryButton(
+                                connection == null || connection!.isConnected
+                                    ? l.disconnect
+                                    : l.connect,
+                                onTap: connection == null
+                                    ? null
+                                    : (connection!.isConnected
+                                        ? connection!.disconnect
+                                        : onConnect),
+                              ),
+                            ),
                             const SizedBox(width: S.x10),
                             SizedBox(
-                                width: 130,
-                                child: SecondaryButton(l.redoSetupShort)),
+                              width: 130,
+                              child: SecondaryButton(l.redoSetupShort,
+                                  onTap: onRedoSetup),
+                            ),
                           ],
                         ),
                         const SizedBox(height: S.x22),
@@ -254,10 +350,17 @@ class _WindowChrome extends StatelessWidget {
 
 /// 18 · Tray menu, quick tiles, and how each platform surfaces them.
 class TrayScreen extends StatelessWidget {
-  const TrayScreen({super.key});
+  const TrayScreen({super.key, this.connection, this.share});
 
-  static List<(String, String, bool)> _menu(L l) => [
-        (l.disconnect, '42 ms', true),
+  final ConnectionController? connection;
+  final ShareController? share;
+
+  List<(String, String, bool)> _menu(L l) => [
+        (
+          connection == null || connection!.isConnected ? l.disconnect : l.connect,
+          connection?.endpoint == null ? '42 ms' : pingLabel(connection!.endpoint!),
+          true,
+        ),
         (l.traySwitchServer, '', false),
         (l.redoSetupShort, '', false),
         (l.trayShareOn, '', false),
@@ -274,6 +377,15 @@ class TrayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = connection;
+    if (c == null) return _build(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge([c, share]),
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final l = L.of(context);
     return PhoneFrameless(
       child: Column(
@@ -325,13 +437,17 @@ class TrayScreen extends StatelessWidget {
             children: [
               Expanded(
                   child: _QuickTile(
-                      title: 'PoPo', state: l.connected, active: true)),
+                      title: 'PoPo',
+                      state: connection == null || connection!.isConnected
+                          ? l.connected
+                          : l.connect,
+                      active: connection?.isConnected ?? true)),
               const SizedBox(width: S.x12),
               Expanded(
                   child: _QuickTile(
                       title: l.tileShare,
-                      state: l.devicesCount(3),
-                      active: false)),
+                      state: l.devicesCount(share?.activeDeviceCount ?? 3),
+                      active: share?.isEnabled ?? false)),
             ],
           ),
           const SizedBox(height: S.x22),

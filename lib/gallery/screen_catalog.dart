@@ -7,6 +7,7 @@ import '../screens/cross_platform.dart';
 import '../screens/sharing.dart';
 import '../screens/simple_mode.dart';
 import '../app_scope.dart';
+import '../core/build/features.dart';
 import '../features/keywords/keywords_screen.dart';
 import '../features/settings/language_screen.dart';
 import '../screens/supporting.dart';
@@ -52,20 +53,26 @@ class ScreenSpec {
 }
 
 /// Every screen in the design, in the order the canvas lays them out.
+///
+/// The canvas lists them all so the design stays reviewable. What actually
+/// ships is [shippingScreens], which applies the compile-time flags.
 final kScreens = <ScreenSpec>[
-  // Advanced core
-  ScreenSpec(
-    number: '01',
-    title: (l) => l.screenSearch,
-    builder: _search,
-    availability: Availability.noApple,
-  ),
-  ScreenSpec(
-    number: '02',
-    title: (l) => l.screenScanning,
-    builder: _scanning,
-    availability: Availability.noApple,
-  ),
+  // Advanced core. The discovery screens are gated on a const flag so the
+  // compiler removes them, and everything they reach, from an Apple build.
+  if (Features.enableDiscovery) ...[
+    ScreenSpec(
+      number: '01',
+      title: (l) => l.screenSearch,
+      builder: _search,
+      availability: Availability.noApple,
+    ),
+    ScreenSpec(
+      number: '02',
+      title: (l) => l.screenScanning,
+      builder: _scanning,
+      availability: Availability.noApple,
+    ),
+  ],
   ScreenSpec(number: '03', title: (l) => l.screenResults, builder: _results),
   ScreenSpec(number: '04', title: (l) => l.screenConfigDetail, builder: _configDetail),
 
@@ -78,42 +85,47 @@ final kScreens = <ScreenSpec>[
   // Supporting
   ScreenSpec(number: '05', title: (l) => l.screenSettings, builder: _settings),
   ScreenSpec(number: '06', title: (l) => l.screenSaved, builder: _saved),
-  ScreenSpec(
-    number: '07',
-    title: (l) => l.screenKeywords,
-    builder: _keywords,
-    availability: Availability.noApple,
-  ),
+  if (Features.enableDiscovery)
+    ScreenSpec(
+      number: '07',
+      title: (l) => l.screenKeywords,
+      builder: _keywords,
+      availability: Availability.noApple,
+    ),
   ScreenSpec(number: '08', title: (l) => l.screenProxyDetail, builder: _proxyDetail),
   ScreenSpec(number: '09', title: (l) => l.screenHistory, builder: _history),
   ScreenSpec(number: '10', title: (l) => l.screenErrors, builder: _errors),
   ScreenSpec(number: '11', title: (l) => l.screenOnboarding, builder: _onboarding),
 
-  // Connection sharing
-  ScreenSpec(
-    number: '12',
-    title: (l) => l.screenProxyServer,
-    builder: _proxyServer,
-    availability: Availability.noApple,
-  ),
-  ScreenSpec(
-    number: '13',
-    title: (l) => l.screenDevices,
-    builder: _devices,
-    availability: Availability.noApple,
-  ),
-  ScreenSpec(
-    number: '14',
-    title: (l) => l.screenPairing,
-    builder: _pairing,
-    availability: Availability.noApple,
-  ),
-  ScreenSpec(
-    number: '15',
-    title: (l) => l.screenSplitTunnel,
-    builder: _splitTunnel,
-    availability: Availability.androidOnly,
-  ),
+  // Connection sharing. iOS cannot keep a background listener alive, so these
+  // are compiled out there rather than shipped as a feature that cannot work.
+  if (Features.enableSharing) ...[
+    ScreenSpec(
+      number: '12',
+      title: (l) => l.screenProxyServer,
+      builder: _proxyServer,
+      availability: Availability.noApple,
+    ),
+    ScreenSpec(
+      number: '13',
+      title: (l) => l.screenDevices,
+      builder: _devices,
+      availability: Availability.noApple,
+    ),
+    ScreenSpec(
+      number: '14',
+      title: (l) => l.screenPairing,
+      builder: _pairing,
+      availability: Availability.noApple,
+    ),
+  ],
+  if (Features.enableSplitTunnel)
+    ScreenSpec(
+      number: '15',
+      title: (l) => l.screenSplitTunnel,
+      builder: _splitTunnel,
+      availability: Availability.androidOnly,
+    ),
   ScreenSpec(number: '16', title: (l) => l.screenSecurity, builder: _security),
 
   // Cross-platform
@@ -143,13 +155,15 @@ Widget _settings(BuildContext context) {
 
   return SettingsScreen(
     settings: scope.settings,
-    keywordCount: scope.keywordStore.effective.length,
+    keywordCount: scope.keywordStore?.effective.length,
     onClearResults: scope.resultsStore.clearResults,
-    onOpenKeywords: () => Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => _framed(KeywordsScreen(store: scope.keywordStore)),
-      ),
-    ),
+    onOpenKeywords: scope.keywordStore == null
+        ? null
+        : () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => _framed(KeywordsScreen(store: scope.keywordStore)),
+              ),
+            ),
     onOpenLanguage: () => Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => _framed(LanguageScreen(controller: scope.localeController)),
@@ -196,10 +210,34 @@ Widget _proxyDetail(BuildContext _) => const ProxyDetailScreen();
 Widget _history(BuildContext _) => const HistoryScreen();
 Widget _errors(BuildContext _) => const ErrorStatesScreen();
 Widget _onboarding(BuildContext _) => const OnboardingScreen();
-Widget _proxyServer(BuildContext _) => const ProxyServerScreen();
-Widget _devices(BuildContext _) => const ConnectedDevicesScreen();
-Widget _pairing(BuildContext _) => const PairingGuideScreen();
-Widget _splitTunnel(BuildContext _) => const SplitTunnelScreen();
-Widget _security(BuildContext _) => const SecurityScreen();
-Widget _desktop(BuildContext _) => const DesktopScreen();
-Widget _tray(BuildContext _) => const TrayScreen();
+Widget _proxyServer(BuildContext context) {
+  final scope = AppScope.maybeOf(context);
+  return ProxyServerScreen(share: scope?.share, connection: scope?.connection);
+}
+Widget _devices(BuildContext context) =>
+    ConnectedDevicesScreen(share: AppScope.maybeOf(context)?.share);
+Widget _pairing(BuildContext context) =>
+    PairingGuideScreen(share: AppScope.maybeOf(context)?.share);
+Widget _splitTunnel(BuildContext context) =>
+    SplitTunnelScreen(controller: AppScope.maybeOf(context)?.splitTunnel);
+Widget _security(BuildContext context) =>
+    SecurityScreen(connection: AppScope.maybeOf(context)?.connection);
+Widget _desktop(BuildContext context) {
+  final scope = AppScope.maybeOf(context);
+  return DesktopScreen(
+    connection: scope?.connection,
+    results: scope?.resultsStore,
+    share: scope?.share,
+  );
+}
+Widget _tray(BuildContext context) {
+  final scope = AppScope.maybeOf(context);
+  return TrayScreen(connection: scope?.connection, share: scope?.share);
+}
+
+/// The screens this build ships.
+///
+/// The same list: gating happens where the entries are built, with const
+/// conditions, so a compiled-out screen is not merely filtered away — the code
+/// it reaches is gone from the binary.
+List<ScreenSpec> get shippingScreens => kScreens;

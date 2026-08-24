@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:popo/core/discovery/models.dart';
 import 'package:popo/core/util/prefs.dart';
 import 'package:popo/features/sharing/share_controller.dart';
 
