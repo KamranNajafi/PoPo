@@ -6,8 +6,12 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to build and release'
+        description: 'Version tag to build and publish, e.g. v0.1.0'
         required: true
+      prerelease:
+        description: 'Mark as a prerelease'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -17,6 +21,23 @@ env:
   GO_VERSION: '1.24'
 
 jobs:
+  version:
+    name: Resolve the version
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.pick.outputs.tag }}
+      version: ${{ steps.pick.outputs.version }}
+    steps:
+      - id: pick
+        # A tag push gives the tag in github.ref_name; a manual dispatch runs on
+        # a branch, where ref_name is the branch and the tag comes from input.
+        # Resolving it once here keeps every later job from repeating the guess.
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "building $tag"
+
   core-android:
     name: Core (Android .aar)
     runs-on: ubuntu-latest
@@ -55,7 +76,7 @@ jobs:
 
   android:
     name: Android APK
-    needs: core-android
+    needs: [version, core-android]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -85,8 +106,10 @@ jobs:
         run: flutter build apk --release --split-per-abi
 
       - name: Name the outputs after the release
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="$VERSION"
           mkdir -p dist
           for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
             abi="$(basename "$apk" | sed 's/^app-//; s/-release\.apk$//')"
@@ -102,6 +125,7 @@ jobs:
 
   desktop-linux:
     name: Desktop core (Linux)
+    needs: version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -115,8 +139,10 @@ jobs:
         run: tool/build_core_desktop.sh
 
       - name: Package
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="$VERSION"
           mkdir -p dist
           tar -czf "dist/popocore-${version}-linux-x64.tar.gz" -C linux/lib libpopocore.so
           ls -l dist
@@ -129,6 +155,7 @@ jobs:
 
   web:
     name: Web preview bundle
+    needs: version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -147,8 +174,10 @@ jobs:
         run: flutter build web --release
 
       - name: Package
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="$VERSION"
           mkdir -p dist
           tar -czf "dist/popo-${version}-web-canvas.tar.gz" -C build/web .
 
@@ -160,7 +189,7 @@ jobs:
 
   publish:
     name: Publish the release
-    needs: [android, desktop-linux, web]
+    needs: [version, android, desktop-linux, web]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -178,10 +207,14 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: PoPo ${{ github.ref_name }}
+          tag_name: ${{ needs.version.outputs.tag }}
+          # Creates the tag at this commit when it does not already exist, which
+          # is what a manual dispatch needs.
+          target_commitish: ${{ github.sha }}
+          name: PoPo ${{ needs.version.outputs.tag }}
           body_path: RELEASE_NOTES.md
           files: dist/*
-          # First release of an app whose tunnel has never run on real hardware.
-          prerelease: true
+          # Default true: the first release of an app whose tunnel has never run
+          # on real hardware.
+          prerelease: ${{ inputs.prerelease != false }}
           fail_on_unmatched_files: true
