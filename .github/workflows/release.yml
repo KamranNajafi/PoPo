@@ -1,13 +1,17 @@
 name: Release
 
+# Releases are cut by bumping VERSION, not by pushing a tag: the tag is an
+# output of the release rather than its trigger, so the version that was built
+# and the version that was tagged cannot disagree. The workflow creates the tag
+# itself when it publishes.
 on:
   push:
-    tags: ['v*']
+    paths: ['VERSION']
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Version tag to build and publish, e.g. v0.1.0'
-        required: true
+        description: 'Override the version tag, e.g. v0.1.0 (default: read VERSION)'
+        required: false
       prerelease:
         description: 'Mark as a prerelease'
         type: boolean
@@ -27,19 +31,39 @@ jobs:
     outputs:
       tag: ${{ steps.pick.outputs.tag }}
       version: ${{ steps.pick.outputs.version }}
+      already_released: ${{ steps.existing.outputs.found }}
     steps:
+      - uses: actions/checkout@v4
+
       - id: pick
-        # A tag push gives the tag in github.ref_name; a manual dispatch runs on
-        # a branch, where ref_name is the branch and the tag comes from input.
-        # Resolving it once here keeps every later job from repeating the guess.
+        # Resolved once here so no later job has to repeat the guess.
         run: |
-          tag="${{ inputs.tag || github.ref_name }}"
+          tag="${{ inputs.tag }}"
+          if [ -z "$tag" ]; then
+            tag="v$(tr -d '[:space:]' < VERSION)"
+          fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
           echo "building $tag"
 
+      - id: existing
+        # Touching VERSION for an unrelated reason should not try to republish a
+        # version that already exists, and re-running should be harmless.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.pick.outputs.tag }}" \
+               --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${{ steps.pick.outputs.tag }} is already released; skipping"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
   core-android:
     name: Core (Android .aar)
+    needs: version
+    if: needs.version.outputs.already_released == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +101,7 @@ jobs:
   android:
     name: Android APK
     needs: [version, core-android]
+    if: needs.version.outputs.already_released == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -126,6 +151,7 @@ jobs:
   desktop-linux:
     name: Desktop core (Linux)
     needs: version
+    if: needs.version.outputs.already_released == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -156,6 +182,7 @@ jobs:
   web:
     name: Web preview bundle
     needs: version
+    if: needs.version.outputs.already_released == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -190,6 +217,7 @@ jobs:
   publish:
     name: Publish the release
     needs: [version, android, desktop-linux, web]
+    if: needs.version.outputs.already_released == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
