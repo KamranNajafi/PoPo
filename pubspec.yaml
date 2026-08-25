@@ -1,7 +1,7 @@
 name: popo
 description: "PoPo — proxy and config finder. Phase 0 UI shell, no networking."
 publish_to: 'none'
-version: 0.2.1+3
+version: 0.2.2+4
 
 environment:
   sdk: ^3.13.0
