@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:popo/core/util/prefs.dart';
+import 'package:popo/gallery/gallery_page.dart';
 import 'package:popo/gallery/screen_catalog.dart';
 import 'package:popo/l10n/app_localizations.dart';
-import 'package:popo/main.dart';
 
 class _Probe extends StatelessWidget {
   const _Probe();
@@ -30,7 +29,17 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(PoPoApp(prefs: MemoryPrefs()));
+    // The gallery is no longer what the app opens on, so render it directly
+    // rather than through PoPoApp — otherwise this test silently starts
+    // asserting about onboarding instead.
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('fa'),
+        supportedLocales: L.supportedLocales,
+        localizationsDelegates: L.localizationsDelegates,
+        home: GalleryPage(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);

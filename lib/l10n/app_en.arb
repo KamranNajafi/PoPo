@@ -527,5 +527,17 @@
   "connectFailed": "Could not connect. Try another server.",
   "connecting": "Connecting…",
   "disconnecting": "Disconnecting…",
-  "connectionOptions": "Connection"
+  "connectionOptions": "Connection",
+  "settingSharingNote": "Let nearby devices use this connection",
+  "@settingSharingNote": {
+    "description": "Caption for the connection-sharing row in settings"
+  },
+  "settingSplitTunnelNote": "Choose which apps go through the tunnel",
+  "@settingSplitTunnelNote": {
+    "description": "Caption for the per-app routing row in settings"
+  },
+  "settingSecurityNote": "Kill switch, DNS and connection log",
+  "@settingSecurityNote": {
+    "description": "Caption for the security row in settings"
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/build/features.dart';
 import '../core/discovery/models.dart';
 import '../core/theme/tokens.dart';
 import '../features/results/app_settings.dart';
@@ -27,6 +28,9 @@ class SettingsScreen extends StatelessWidget {
     this.settings,
     this.onOpenKeywords,
     this.onOpenLanguage,
+    this.onOpenSharing,
+    this.onOpenSplitTunnel,
+    this.onOpenSecurity,
     this.keywordCount,
     this.onClearResults,
   });
@@ -38,6 +42,13 @@ class SettingsScreen extends StatelessWidget {
   /// Null on the design canvas, where the rows are display-only.
   final VoidCallback? onOpenKeywords;
   final VoidCallback? onOpenLanguage;
+
+  /// The three feature screens that had no way in before. Each stays null when
+  /// its feature is compiled out, and a null row is not rendered at all rather
+  /// than rendered dead — an entry that leads nowhere is worse than no entry.
+  final VoidCallback? onOpenSharing;
+  final VoidCallback? onOpenSplitTunnel;
+  final VoidCallback? onOpenSecurity;
 
   /// The live phrase count, when there is a store to read it from.
   final int? keywordCount;
@@ -117,6 +128,24 @@ class SettingsScreen extends StatelessWidget {
             caption: kLanguageNames[languageCode] ?? languageCode,
             trailing: _chevron(onOpenLanguage),
           ),
+          if (Features.enableSharing && onOpenSharing != null)
+            SettingRow(
+              label: l.screenProxyServer,
+              caption: l.settingSharingNote,
+              trailing: _chevron(onOpenSharing),
+            ),
+          if (Features.enableSplitTunnel && onOpenSplitTunnel != null)
+            SettingRow(
+              label: l.screenSplitTunnel,
+              caption: l.settingSplitTunnelNote,
+              trailing: _chevron(onOpenSplitTunnel),
+            ),
+          if (onOpenSecurity != null)
+            SettingRow(
+              label: l.securityTitle,
+              caption: l.settingSecurityNote,
+              trailing: _chevron(onOpenSecurity),
+            ),
           SettingRow(
             label: l.settingTheme,
             caption: l.settingThemeValue,
@@ -718,7 +747,15 @@ class ErrorStatesScreen extends StatelessWidget {
 
 /// 11 · Onboarding + safety.
 class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({super.key, this.onDone, this.onSkip});
+
+  /// Dismisses onboarding for good. Null on the design canvas, where the screen
+  /// is only being looked at.
+  final VoidCallback? onDone;
+
+  /// Same effect as [onDone] — skipping still counts as having seen it, because
+  /// showing this again to someone who deliberately dismissed it is a bug.
+  final VoidCallback? onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -757,9 +794,9 @@ class OnboardingScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: S.x24),
-          PrimaryButton(l.gotIt),
+          PrimaryButton(l.gotIt, onTap: onDone),
           const SizedBox(height: S.x14),
-          Center(child: TextLink(l.skip)),
+          Center(child: TextLink(l.skip, onTap: onSkip ?? onDone)),
         ],
       ),
     );

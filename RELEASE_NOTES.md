@@ -1,10 +1,31 @@
-# PoPo v0.1.0 — first preview
+# PoPo v0.2.0 — it opens as an app
 
 A cross-platform client that finds free proxy and tunnel endpoints, tests them,
 and connects through them. Persian and English, right-to-left throughout.
 
 **This is a preview.** The tunnel has never run on real hardware — see
 *What is unverified* below before you rely on it.
+
+## New in v0.2.0
+
+**The app opens on the app.** Until now launching PoPo landed you on the design
+canvas — a page of 22 screen previews, with the working app hidden behind one
+button on it. Every screen existed; almost none of them were reachable. Launch
+now goes to the real thing, and the canvas is a build flag
+(`--dart-define=SHOW_GALLERY=true`) rather than the front door. A release build
+no longer carries the previews at all, which CI checks on every push.
+
+**Onboarding, once.** First launch explains what the app does and warns about
+what these servers are. Dismissing it is remembered, so it does not come back.
+
+**Settings, and everything under it.** A gear in the shell opens settings, and
+from there: search phrases, language, connection sharing (with the pairing QR
+and the device list), per-app routing, and the security screen. Eleven screens
+that previously had no way in.
+
+**A desktop window that works.** The sidebar was a picture of a sidebar — a
+fixed selection with no click handler. Its seven entries now drive the content
+pane on Linux, Windows and macOS.
 
 ## What works
 
@@ -68,11 +89,11 @@ in CI — but no Apple binary has been produced.
 
 | If you have | Download |
 |---|---|
-| **An Android phone** (almost certainly this one) | `PoPo-v0.1.0-android-arm64-most-phones-*.apk` |
-| An Android phone from before ~2016 | `PoPo-v0.1.0-android-arm32-older-phones-*.apk` |
-| An Android emulator on a PC | `PoPo-v0.1.0-android-x86_64-emulator-*.apk` |
-| To build the Linux app yourself | `PoPo-v0.1.0-linux-x64-core-library-*.tar.gz` |
-| To review the interface in a browser | `PoPo-v0.1.0-web-design-canvas-*.tar.gz` |
+| **An Android phone** (almost certainly this one) | `PoPo-v0.2.0-android-arm64-most-phones-*.apk` |
+| An Android phone from before ~2016 | `PoPo-v0.2.0-android-arm32-older-phones-*.apk` |
+| An Android emulator on a PC | `PoPo-v0.2.0-android-x86_64-emulator-*.apk` |
+| To build the Linux app yourself | `PoPo-v0.2.0-linux-x64-core-library-*.tar.gz` |
+| To review the interface in a browser | `PoPo-v0.2.0-web-design-canvas-*.tar.gz` |
 
 If you pick the wrong Android one, it simply refuses to install — nothing breaks.
 

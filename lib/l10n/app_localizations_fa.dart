@@ -1016,4 +1016,14 @@ class LFa extends L {
 
   @override
   String get connectionOptions => 'اتصال';
+
+  @override
+  String get settingSharingNote => 'دستگاه‌های نزدیک از این اتصال استفاده کنند';
+
+  @override
+  String get settingSplitTunnelNote =>
+      'انتخاب اینکه کدام برنامه‌ها از تونل رد شوند';
+
+  @override
+  String get settingSecurityNote => 'قطع‌کن اضطراری، DNS و گزارش اتصال';
 }

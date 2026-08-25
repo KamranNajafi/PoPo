@@ -26,6 +26,7 @@ class ProxyServerScreen extends StatelessWidget {
     super.key,
     this.share,
     this.onShowQr,
+    this.onOpenDevices,
     this.connection,
   });
 
@@ -33,6 +34,10 @@ class ProxyServerScreen extends StatelessWidget {
   final ShareController? share;
   final ConnectionController? connection;
   final VoidCallback? onShowQr;
+
+  /// Opens the connected-devices list. The device count already sits on this
+  /// screen, so that line is the natural way in rather than a separate row.
+  final VoidCallback? onOpenDevices;
 
   @override
   Widget build(BuildContext context) {
@@ -89,12 +94,17 @@ class ProxyServerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Center(
-            child: Text(
-              l.shareDevicesAndUsage(
-                share?.activeDeviceCount ?? 3,
-                share?.usageToday ?? '1.4 GB',
+            child: GestureDetector(
+              onTap: onOpenDevices,
+              child: Text(
+                l.shareDevicesAndUsage(
+                  share?.activeDeviceCount ?? 3,
+                  share?.usageToday ?? '1.4 GB',
+                ),
+                style: onOpenDevices == null
+                    ? T.small
+                    : T.small.copyWith(color: C.primaryMuted),
               ),
-              style: T.small,
             ),
           ),
           if (share?.error != null) ...[

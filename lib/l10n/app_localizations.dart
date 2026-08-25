@@ -1746,6 +1746,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Connection'**
   String get connectionOptions;
+
+  /// Caption for the connection-sharing row in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Let nearby devices use this connection'**
+  String get settingSharingNote;
+
+  /// Caption for the per-app routing row in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which apps go through the tunnel'**
+  String get settingSplitTunnelNote;
+
+  /// Caption for the security row in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Kill switch, DNS and connection log'**
+  String get settingSecurityNote;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

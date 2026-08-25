@@ -153,3 +153,17 @@ jobs:
             fi
           done
           exit $fail
+
+      - name: Build with default flags
+        run: flutter build web --release
+
+      - name: Assert the design canvas is not in a shipping build
+        # The gallery was the launch screen once. It is a review tool, so a
+        # release must not carry 22 preview constructions; this is what keeps
+        # showGallery a compile-time flag rather than a decorative one.
+        run: |
+          if grep -qF 'Run a real search' build/web/main.dart.js; then
+            echo "::error::the design canvas is still in the default build"
+            exit 1
+          fi
+          echo "ok: design canvas absent from the default build"

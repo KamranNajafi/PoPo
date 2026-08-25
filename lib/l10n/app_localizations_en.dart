@@ -1035,4 +1035,14 @@ class LEn extends L {
 
   @override
   String get connectionOptions => 'Connection';
+
+  @override
+  String get settingSharingNote => 'Let nearby devices use this connection';
+
+  @override
+  String get settingSplitTunnelNote =>
+      'Choose which apps go through the tunnel';
+
+  @override
+  String get settingSecurityNote => 'Kill switch, DNS and connection log';
 }

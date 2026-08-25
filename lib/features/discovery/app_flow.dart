@@ -9,7 +9,10 @@ import '../../core/discovery/pipeline.dart';
 import '../../core/theme/tokens.dart';
 import '../../screens/advanced_core.dart';
 import '../../screens/simple_mode.dart';
+import '../../screens/sharing.dart';
 import '../../screens/supporting.dart';
+import '../keywords/keywords_screen.dart';
+import '../settings/language_screen.dart';
 import 'discovery_controller.dart';
 import 'http_fetcher_shim.dart';
 import '../tunnel/connection_controller.dart';
@@ -141,19 +144,32 @@ class _AppFlowState extends State<AppFlow> {
   Widget _importOnlyShell(BuildContext context, AppScope scope) {
     return _Framed(
       results: scope.resultsStore,
-      trailing: IconButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => _Framed(
-              results: scope.resultsStore,
-              child: HistoryScreen(
-                store: scope.resultsStore,
-                onFetchSubscription: fetchSubscriptionBody,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => _Framed(
+                  results: scope.resultsStore,
+                  child: HistoryScreen(
+                    store: scope.resultsStore,
+                    onFetchSubscription: fetchSubscriptionBody,
+                  ),
+                ),
               ),
             ),
+            icon: const Icon(
+              Icons.add_rounded,
+              color: C.primaryMuted,
+              size: 22,
+            ),
           ),
-        ),
-        icon: const Icon(Icons.add_rounded, color: C.primaryMuted, size: 22),
+          IconButton(
+            onPressed: () => openSettings(context),
+            icon: const Icon(Icons.settings_rounded, color: C.body, size: 20),
+          ),
+        ],
       ),
       child: ListenableBuilder(
         listenable: scope.resultsStore,
@@ -187,6 +203,10 @@ class _AppFlowState extends State<AppFlow> {
           IconButton(
             onPressed: () => _openHistory(context, coordinator),
             icon: const Icon(Icons.history_rounded, color: C.body, size: 20),
+          ),
+          IconButton(
+            onPressed: () => openSettings(context),
+            icon: const Icon(Icons.settings_rounded, color: C.body, size: 20),
           ),
           TextButton(
             onPressed: () => setState(() => _simple = !_simple),
@@ -366,6 +386,100 @@ void _openDetail(
       ),
     ),
   );
+}
+
+/// Settings and everything reachable from it.
+///
+/// These eleven screens existed but had no way in except the design canvas,
+/// which is the difference between a screen being built and a screen being
+/// usable. Each entry is null when its feature is compiled out, so an Apple
+/// build shows no sharing row rather than a row that leads nowhere.
+void openSettings(BuildContext context) {
+  final scope = AppScope.of(context);
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => _SettingsRoute(scope: scope)));
+}
+
+class _SettingsRoute extends StatelessWidget {
+  const _SettingsRoute({required this.scope});
+
+  final AppScope scope;
+
+  void _push(BuildContext context, Widget child) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _Framed(results: scope.resultsStore, child: child),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final keywords = scope.keywordStore;
+    final share = scope.share;
+    final split = scope.splitTunnel;
+
+    return _Framed(
+      results: scope.resultsStore,
+      child: ListenableBuilder(
+        // The keyword count and every toggle live in these two, so the rows
+        // have to rebuild when either moves.
+        listenable: Listenable.merge([scope.settings, keywords]),
+        builder: (context, _) => SettingsScreen(
+          settings: scope.settings,
+          keywordCount: keywords?.effective.length,
+          onOpenKeywords: keywords == null
+              ? null
+              : () => _push(context, KeywordsScreen(store: keywords)),
+          onOpenLanguage: () => _push(
+            context,
+            LanguageScreen(controller: scope.localeController),
+          ),
+          onOpenSharing: share == null
+              ? null
+              : () => _push(context, _SharingHub(scope: scope)),
+          onOpenSplitTunnel: split == null
+              ? null
+              : () => _push(context, SplitTunnelScreen(controller: split)),
+          onOpenSecurity: () =>
+              _push(context, SecurityScreen(connection: scope.connection)),
+          onClearResults: scope.resultsStore.clearResults,
+        ),
+      ),
+    );
+  }
+}
+
+/// Proxy server (12), with the devices list (13) and the pairing guide (14)
+/// hanging off it — the QR is the point of the screen, so it is one tap away.
+class _SharingHub extends StatelessWidget {
+  const _SharingHub({required this.scope});
+
+  final AppScope scope;
+
+  void _push(BuildContext context, Widget child) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _Framed(results: scope.resultsStore, child: child),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final share = scope.share;
+    return ListenableBuilder(
+      listenable: Listenable.merge([share, scope.connection]),
+      builder: (context, _) => ProxyServerScreen(
+        share: share,
+        connection: scope.connection,
+        onShowQr: () => _push(context, PairingGuideScreen(share: share)),
+        onOpenDevices: () =>
+            _push(context, ConnectedDevicesScreen(share: share)),
+      ),
+    );
+  }
 }
 
 /// Centres a phone-width screen on the page background.

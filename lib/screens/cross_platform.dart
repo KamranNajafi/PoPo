@@ -24,6 +24,9 @@ class DesktopScreen extends StatelessWidget {
     this.share,
     this.onConnect,
     this.onRedoSetup,
+    this.selected = 0,
+    this.onNavigate,
+    this.body,
   });
 
   /// All null on the design canvas, where the dashboard shows sample figures.
@@ -33,14 +36,26 @@ class DesktopScreen extends StatelessWidget {
   final VoidCallback? onConnect;
   final VoidCallback? onRedoSetup;
 
-  static List<(IconData, String, bool)> _nav(L l) => [
-    (AppIcons.dashboard, l.desktopNavDashboard, true),
-    (AppIcons.results, l.navResults, false),
-    (AppIcons.bookmark, l.navSaved, false),
-    (AppIcons.share, l.desktopNavShare, false),
-    (AppIcons.history, l.desktopNavHistory, false),
-    (AppIcons.simple, l.desktopNavSimple, false),
-    (AppIcons.settings, l.desktopNavSettings, false),
+  /// Which sidebar entry is lit, and what to do when one is clicked. The nav
+  /// used to carry a hardcoded selection and no handler, which made it a
+  /// picture of a sidebar rather than one.
+  final int selected;
+  final ValueChanged<int>? onNavigate;
+
+  /// Replaces the dashboard in the content pane. Null keeps the dashboard,
+  /// which is what the design canvas shows.
+  final Widget? body;
+
+  /// Sidebar entries, in order. The index is the contract with [selected] and
+  /// [onNavigate]; DesktopShell switches on the same numbers.
+  static List<(IconData, String)> _nav(L l) => [
+    (AppIcons.dashboard, l.desktopNavDashboard),
+    (AppIcons.results, l.navResults),
+    (AppIcons.bookmark, l.navSaved),
+    (AppIcons.share, l.desktopNavShare),
+    (AppIcons.history, l.desktopNavHistory),
+    (AppIcons.simple, l.desktopNavSimple),
+    (AppIcons.settings, l.desktopNavSettings),
   ];
 
   List<(String, String)> _stats(BuildContext context, L l) {
@@ -144,197 +159,235 @@ class DesktopScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: S.x20),
-                      for (final (icon, label, active) in _nav(l))
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 4),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: S.x10,
-                            horizontal: S.x12,
-                          ),
-                          decoration: active
-                              ? BoxDecoration(
-                                  color: C.accentTint,
-                                  borderRadius: R.smAll,
-                                  border: Border.all(color: C.accentBorder),
-                                )
-                              : null,
-                          child: Row(
-                            children: [
-                              AppIcon(
-                                icon,
-                                size: 18,
-                                color: active ? C.primaryMuted : C.muted,
-                              ),
-                              const SizedBox(width: S.x10),
-                              Flexible(
-                                child: Text(
-                                  label,
-                                  softWrap: false,
-                                  overflow: TextOverflow.fade,
-                                  style: T.chip.copyWith(
-                                    fontSize: 13,
-                                    color: active ? C.primaryMuted : C.body,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                      for (final (index, (icon, label)) in _nav(l).indexed)
+                        _NavItem(
+                          icon: icon,
+                          label: label,
+                          active: index == selected,
+                          onTap: onNavigate == null
+                              ? null
+                              : () => onNavigate!(index),
                         ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(S.x20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
+                  child:
+                      body ??
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(S.x20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            StatusHero(
-                              state:
-                                  connection == null || connection!.isConnected
-                                  ? HeroState.working
-                                  : HeroState.idle,
-                              size: 56,
-                            ),
-                            const SizedBox(width: S.x14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    connection == null
-                                        ? l.desktopConnectedTo(l.placeNl)
-                                        : (connection!.isConnected
-                                              ? l.desktopConnectedTo(
-                                                  connection!
-                                                          .endpoint
-                                                          ?.displayName ??
-                                                      '—',
-                                                )
-                                              : l.settingSimpleMode),
-                                    style: T.hero,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  MonoText(
-                                    connection == null
-                                        ? '42 ms · 00:37:12'
-                                        : '${connection!.endpoint == null ? '—' : pingLabel(connection!.endpoint!)}'
-                                              ' · ${formatUptime(connection!.uptime)}',
-                                    style: T.monoName,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: S.x12),
-                            SizedBox(
-                              width: 130,
-                              child: PrimaryButton(
-                                connection == null || connection!.isConnected
-                                    ? l.disconnect
-                                    : l.connect,
-                                onTap: connection == null
-                                    ? null
-                                    : (connection!.isConnected
-                                          ? connection!.disconnect
-                                          : onConnect),
-                              ),
-                            ),
-                            const SizedBox(width: S.x10),
-                            SizedBox(
-                              width: 130,
-                              child: SecondaryButton(
-                                l.redoSetupShort,
-                                onTap: onRedoSetup,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: S.x22),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            // repeat(auto-fit, minmax(150px, 1fr))
-                            final columns = (constraints.maxWidth / 164)
-                                .floor()
-                                .clamp(1, 4);
-                            return Wrap(
-                              spacing: S.x14,
-                              runSpacing: S.x14,
+                            Row(
                               children: [
-                                for (final (label, value) in _stats(context, l))
-                                  SizedBox(
-                                    width:
-                                        (constraints.maxWidth -
-                                            S.x14 * (columns - 1)) /
-                                        columns,
-                                    child: ListCard(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(label, style: T.small),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            value,
-                                            style: T.simpleHero.copyWith(
-                                              fontSize: 24,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: S.x22),
-                        SectionTitle(l.fastestOptions),
-                        for (final (name, proto, ping, color) in _fastest(
-                          l,
-                        )) ...[
-                          Container(
-                            padding: const EdgeInsets.all(S.x12),
-                            decoration: BoxDecoration(
-                              color: C.surfaceElevated,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(14),
-                              ),
-                              border: hairlineBorder(),
-                            ),
-                            child: Row(
-                              children: [
+                                StatusHero(
+                                  state:
+                                      connection == null ||
+                                          connection!.isConnected
+                                      ? HeroState.working
+                                      : HeroState.idle,
+                                  size: 56,
+                                ),
+                                const SizedBox(width: S.x14),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(name, style: T.listTitle),
-                                      const SizedBox(height: 2),
-                                      MonoText(proto, style: T.monoSub),
+                                      Text(
+                                        connection == null
+                                            ? l.desktopConnectedTo(l.placeNl)
+                                            : (connection!.isConnected
+                                                  ? l.desktopConnectedTo(
+                                                      connection!
+                                                              .endpoint
+                                                              ?.displayName ??
+                                                          '—',
+                                                    )
+                                                  : l.settingSimpleMode),
+                                        style: T.hero,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      MonoText(
+                                        connection == null
+                                            ? '42 ms · 00:37:12'
+                                            : '${connection!.endpoint == null ? '—' : pingLabel(connection!.endpoint!)}'
+                                                  ' · ${formatUptime(connection!.uptime)}',
+                                        style: T.monoName,
+                                      ),
                                     ],
                                   ),
                                 ),
-                                MonoText(
-                                  ping,
-                                  style: T.monoValue.copyWith(color: color),
+                                const SizedBox(width: S.x12),
+                                SizedBox(
+                                  width: 130,
+                                  child: PrimaryButton(
+                                    connection == null ||
+                                            connection!.isConnected
+                                        ? l.disconnect
+                                        : l.connect,
+                                    onTap: connection == null
+                                        ? null
+                                        : (connection!.isConnected
+                                              ? connection!.disconnect
+                                              : onConnect),
+                                  ),
+                                ),
+                                const SizedBox(width: S.x10),
+                                SizedBox(
+                                  width: 130,
+                                  child: SecondaryButton(
+                                    l.redoSetupShort,
+                                    onTap: onRedoSetup,
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(height: S.x10),
-                        ],
-                      ],
-                    ),
-                  ),
+                            const SizedBox(height: S.x22),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                // repeat(auto-fit, minmax(150px, 1fr))
+                                final columns = (constraints.maxWidth / 164)
+                                    .floor()
+                                    .clamp(1, 4);
+                                return Wrap(
+                                  spacing: S.x14,
+                                  runSpacing: S.x14,
+                                  children: [
+                                    for (final (label, value) in _stats(
+                                      context,
+                                      l,
+                                    ))
+                                      SizedBox(
+                                        width:
+                                            (constraints.maxWidth -
+                                                S.x14 * (columns - 1)) /
+                                            columns,
+                                        child: ListCard(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(label, style: T.small),
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                value,
+                                                style: T.simpleHero.copyWith(
+                                                  fontSize: 24,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
+                            const SizedBox(height: S.x22),
+                            SectionTitle(l.fastestOptions),
+                            for (final (name, proto, ping, color) in _fastest(
+                              l,
+                            )) ...[
+                              Container(
+                                padding: const EdgeInsets.all(S.x12),
+                                decoration: BoxDecoration(
+                                  color: C.surfaceElevated,
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(14),
+                                  ),
+                                  border: hairlineBorder(),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(name, style: T.listTitle),
+                                          const SizedBox(height: 2),
+                                          MonoText(proto, style: T.monoSub),
+                                        ],
+                                      ),
+                                    ),
+                                    MonoText(
+                                      ping,
+                                      style: T.monoValue.copyWith(color: color),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: S.x10),
+                            ],
+                          ],
+                        ),
+                      ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// One sidebar row. Pulled out of the loop so the tap target is the whole row
+/// rather than the label, which is what a sidebar is expected to do.
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.active,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.symmetric(
+            vertical: S.x10,
+            horizontal: S.x12,
+          ),
+          // A transparent box rather than null, so the row is hit-testable
+          // across its full width even when it is not the selected one.
+          decoration: BoxDecoration(
+            color: active ? C.accentTint : const Color(0x00000000),
+            borderRadius: R.smAll,
+            border: active ? Border.all(color: C.accentBorder) : null,
+          ),
+          child: Row(
+            children: [
+              AppIcon(icon, size: 18, color: active ? C.primaryMuted : C.muted),
+              const SizedBox(width: S.x10),
+              Flexible(
+                child: Text(
+                  label,
+                  softWrap: false,
+                  overflow: TextOverflow.fade,
+                  style: T.chip.copyWith(
+                    fontSize: 13,
+                    color: active ? C.primaryMuted : C.body,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

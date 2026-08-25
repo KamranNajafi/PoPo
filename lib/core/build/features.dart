@@ -44,4 +44,14 @@ abstract final class Features {
   /// True when the build has no way to find servers on its own, so the UI should
   /// lead with import rather than with search.
   static const importIsPrimaryEntry = !enableDiscovery;
+
+  /// The design canvas that lays all 22 screens out side by side.
+  ///
+  /// Off by default: it is a review tool, not a destination, and shipping it as
+  /// the launch screen is what kept this from being an app you could actually
+  /// use. Build with `--dart-define=SHOW_GALLERY=true` to get it back.
+  ///
+  /// Const for the same reason as the rest: with it false the compiler drops the
+  /// catalog, so a release binary does not carry 22 preview constructions.
+  static const showGallery = bool.fromEnvironment('SHOW_GALLERY');
 }

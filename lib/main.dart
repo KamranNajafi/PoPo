@@ -13,7 +13,7 @@ import 'features/results/results_store.dart';
 import 'features/sharing/share_controller.dart';
 import 'features/tunnel/connection_controller.dart';
 import 'features/tunnel/split_tunnel_controller.dart';
-import 'gallery/gallery_page.dart';
+import 'app_root.dart';
 import 'l10n/app_localizations.dart';
 
 export 'gallery/gallery_page.dart' show ScreenPage;
@@ -105,7 +105,7 @@ class _PoPoAppState extends State<PoPoApp> {
               onSurface: C.heading,
             ),
           ),
-          home: const GalleryPage(),
+          home: const AppRoot(),
         ),
       ),
     );
