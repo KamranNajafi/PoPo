@@ -1,10 +1,32 @@
-# PoPo v0.2.0 — it opens as an app
+# PoPo v0.2.1 — it opens as an app
 
 A cross-platform client that finds free proxy and tunnel endpoints, tests them,
 and connects through them. Persian and English, right-to-left throughout.
 
 **This is a preview.** The tunnel has never run on real hardware — see
 *What is unverified* below before you rely on it.
+
+## New in v0.2.1
+
+**The Linux desktop app is actually shipped.** Previous releases carried a
+`linux-x64-core-library` tarball, which is a shared library, not something you
+can run. There is now a `linux-x64-app` bundle: unpack it and run `./popo`.
+
+**Desktop no longer throws on launch.** It returned the platform-channel
+tunnel implementation on the theory that the desktop embedder would answer
+those channels. Nothing registers them — the generated plugin registrant is
+empty — so every desktop launch raised a MissingPluginException from the status
+channel before the window had finished opening. Desktop now reports the tunnel
+as unsupported, which is both the fix and the truth: it finds servers and tests
+them, and says plainly that it cannot connect yet. Verified by running the built
+Linux binary under a headless X server: previously one exception on startup, now
+none.
+
+**The simple/advanced choice is remembered,** and its button is no longer
+labelled with hardcoded English in a Persian-first app.
+
+**The onboarding pager dots are gone.** Two dots on a single page promised a
+second page that was never built.
 
 ## New in v0.2.0
 
@@ -78,6 +100,11 @@ connection as the real test.
 result parsers were written against known SERP structure. Expect some of them
 to need adjusting, and expect engines to block a plain client.
 
+**Desktop cannot connect yet.** The Linux app runs, searches and tests, but
+the tunnel needs the core bound to it — the shared library is built and
+published, and nothing binds to it yet. Connecting is reported as unsupported
+rather than offered and failing.
+
 **iOS and macOS are not built here.** The Apple build path exists — discovery
 and sharing compile out under `--dart-define=ENABLE_DISCOVERY=false`, verified
 in CI — but no Apple binary has been produced.
@@ -89,11 +116,12 @@ in CI — but no Apple binary has been produced.
 
 | If you have | Download |
 |---|---|
-| **An Android phone** (almost certainly this one) | `PoPo-v0.2.0-android-arm64-most-phones-*.apk` |
-| An Android phone from before ~2016 | `PoPo-v0.2.0-android-arm32-older-phones-*.apk` |
-| An Android emulator on a PC | `PoPo-v0.2.0-android-x86_64-emulator-*.apk` |
-| To build the Linux app yourself | `PoPo-v0.2.0-linux-x64-core-library-*.tar.gz` |
-| To review the interface in a browser | `PoPo-v0.2.0-web-design-canvas-*.tar.gz` |
+| **An Android phone** (almost certainly this one) | `PoPo-v0.2.1-android-arm64-most-phones-*.apk` |
+| An Android phone from before ~2016 | `PoPo-v0.2.1-android-arm32-older-phones-*.apk` |
+| An Android emulator on a PC | `PoPo-v0.2.1-android-x86_64-emulator-*.apk` |
+| **A Linux PC** | `PoPo-v0.2.1-linux-x64-app-*.tar.gz` |
+| To link the core into your own build | `PoPo-v0.2.1-linux-x64-core-library-*.tar.gz` |
+| To review the interface in a browser | `PoPo-v0.2.1-web-design-canvas-*.tar.gz` |
 
 If you pick the wrong Android one, it simply refuses to install — nothing breaks.
 

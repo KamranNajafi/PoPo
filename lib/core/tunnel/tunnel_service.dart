@@ -166,18 +166,23 @@ class PlatformTunnelService implements TunnelService {
 
 /// Picks the implementation for the platform the app is running on.
 ///
-/// Android and iOS run the tunnel in a platform service reached over channels;
-/// desktop will use dart:ffi against the same core once the shared library is
-/// bundled. Web has neither, and says so.
+/// Android and iOS run the tunnel in a platform service reached over channels.
+/// Web has no way to carry traffic and says so.
+///
+/// Desktop says so too, for now. It used to return the channel implementation
+/// on the theory that the embedder would answer, but nothing registers those
+/// channels — `fl_register_plugins` is empty, and the desktop build produces a
+/// shared library that nothing yet binds to. The result was a
+/// MissingPluginException thrown from EventChannel's listen on every launch,
+/// which no `handleError` on the stream can catch, because that failure is
+/// reported through FlutterError rather than through the stream.
+///
+/// Reporting unsupported is both the fix and the truth: the desktop app runs,
+/// finds servers and tests them, and says plainly that it cannot connect yet.
 TunnelService createTunnelService() {
   if (kIsWeb) return UnsupportedTunnelService();
   return switch (defaultTargetPlatform) {
     TargetPlatform.android || TargetPlatform.iOS => PlatformTunnelService(),
-    // Desktop goes through the same channel names, implemented by the Flutter
-    // desktop embedder once tool/build_core_desktop.sh has run.
-    TargetPlatform.linux ||
-    TargetPlatform.macOS ||
-    TargetPlatform.windows => PlatformTunnelService(),
     _ => UnsupportedTunnelService(),
   };
 }
