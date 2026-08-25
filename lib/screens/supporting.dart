@@ -18,7 +18,6 @@ import '../core/widgets/controls.dart';
 import '../core/widgets/icons.dart';
 import '../core/widgets/mono.dart';
 import '../core/widgets/phone_frame.dart';
-import '../core/widgets/status_hero.dart';
 import '../core/widgets/surfaces.dart';
 
 /// 05 · Settings.
@@ -772,7 +771,9 @@ class OnboardingScreen extends StatelessWidget {
           const SizedBox(height: S.x14),
           Text(l.onboardBody, style: T.caption, textAlign: TextAlign.center),
           const SizedBox(height: S.x20),
-          const PagerDots(count: 2, active: 0),
+          // No pager dots: this is one page, and two dots promised a second
+          // one that was never built — a false affordance on the first screen
+          // anyone sees.
           const SizedBox(height: S.x24),
           Container(
             padding: const EdgeInsets.all(S.x16),
