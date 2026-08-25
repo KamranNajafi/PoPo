@@ -10,6 +10,7 @@ import 'package:popo/l10n/app_localizations.dart';
 import 'package:popo/main.dart';
 import 'package:popo/core/widgets/buttons.dart';
 import 'package:popo/core/widgets/surfaces.dart';
+import 'package:popo/screens/simple_mode.dart';
 import 'package:popo/screens/supporting.dart';
 
 /// A launch, at phone size.
@@ -126,6 +127,31 @@ void main() {
       await tester.pumpAndSettle();
       expect(security, 1);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('simple mode', () {
+    testWidgets('the header toggle is remembered across launches', (
+      tester,
+    ) async {
+      final prefs = MemoryPrefs();
+      await prefs.setString(AppRoot.onboardingKey, 'true');
+      await _launch(tester, prefs);
+
+      // Advanced shell on a fresh install, so the button offers simple mode.
+      expect(find.byType(AppFlow), findsOneWidget);
+      final label = L.of(tester.element(find.byType(AppFlow)));
+
+      expect(find.byType(SimpleStartScreen), findsNothing);
+
+      await tester.tap(find.text(label.settingSimpleMode));
+      await tester.pumpAndSettle();
+      expect(find.byType(SimpleStartScreen), findsOneWidget);
+
+      // AppRoot opens whichever mode was last chosen, so a toggle that only
+      // moved local state would be forgotten on the next launch.
+      await _launch(tester, prefs);
+      expect(find.byType(SimpleStartScreen), findsOneWidget);
     });
   });
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
@@ -7,6 +9,7 @@ import '../../core/discovery/http_fetcher.dart';
 import '../../core/discovery/models.dart';
 import '../../core/discovery/pipeline.dart';
 import '../../core/theme/tokens.dart';
+import '../../l10n/app_localizations.dart';
 import '../../screens/advanced_core.dart';
 import '../../screens/simple_mode.dart';
 import '../../screens/sharing.dart';
@@ -84,6 +87,17 @@ class _AppFlowState extends State<AppFlow> {
     _discovery?.dispose();
     if (_fetcher case final HttpFetcher f) f.close();
     super.dispose();
+  }
+
+  /// Switches mode and remembers it.
+  ///
+  /// AppRoot opens whichever mode was last chosen, so a toggle that only moved
+  /// local state would be forgotten on the next launch — the setting and the
+  /// header button would then disagree about which mode the user is in.
+  void _setSimple(BuildContext context, bool value) {
+    final settings = AppScope.of(context).settings;
+    setState(() => _simple = value);
+    unawaited(settings.setSimpleMode(value));
   }
 
   Future<void> _start(BuildContext context) async {
@@ -190,6 +204,7 @@ class _AppFlowState extends State<AppFlow> {
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
     final coordinator = _ensure(context);
+    final l = L.of(context);
 
     // No discovery in this build: results and import are the whole app, which
     // is what the handoff prescribes for the Apple builds.
@@ -209,9 +224,9 @@ class _AppFlowState extends State<AppFlow> {
             icon: const Icon(Icons.settings_rounded, color: C.body, size: 20),
           ),
           TextButton(
-            onPressed: () => setState(() => _simple = !_simple),
+            onPressed: () => _setSimple(context, !_simple),
             child: Text(
-              _simple ? 'Advanced' : 'Simple',
+              _simple ? l.advancedMode : l.settingSimpleMode,
               style: const TextStyle(color: C.primaryMuted, fontSize: 13),
             ),
           ),
@@ -222,7 +237,7 @@ class _AppFlowState extends State<AppFlow> {
         builder: (context, _) => _simple
             ? SimpleStartScreen(
                 onStart: () => _start(context),
-                onAdvanced: () => setState(() => _simple = false),
+                onAdvanced: () => _setSimple(context, false),
               )
             : _advancedBody(coordinator),
       ),
