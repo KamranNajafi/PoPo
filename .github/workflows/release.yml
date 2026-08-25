@@ -207,105 +207,16 @@ jobs:
           path: dist/*.apk
           if-no-files-found: error
 
-  desktop-linux:
-    name: Desktop app and core (Linux)
-    needs: version
-    if: needs.version.outputs.already_released == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: core/go.sum
-
-      - name: Build the shared library
-        run: tool/build_core_desktop.sh
-
-      - name: Package
-        env:
-          VERSION: ${{ needs.version.outputs.version }}
-          STAMP: ${{ needs.version.outputs.stamp }}
-        run: |
-          mkdir -p dist
-          tar -czf "dist/PoPo-v${VERSION}-linux-x64-core-library-${STAMP}.tar.gz" \
-            -C linux/lib libpopocore.so
-          ls -l dist
-
-      - name: Install the Linux desktop toolchain
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ninja-build libgtk-3-dev
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - run: flutter pub get
-
-      - name: Build the Linux app
-        run: |
-          flutter config --enable-linux-desktop
-          flutter build linux --release
-
-      - name: Package the app
-        env:
-          VERSION: ${{ needs.version.outputs.version }}
-          STAMP: ${{ needs.version.outputs.stamp }}
-        # The whole bundle, not just the executable: a Flutter Linux build needs
-        # its data/ and lib/ beside the binary to start at all.
-        run: |
-          tar -czf "dist/PoPo-v${VERSION}-linux-x64-app-${STAMP}.tar.gz" \
-            -C build/linux/x64/release/bundle .
-          ls -l dist
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: desktop-linux
-          path: dist/*.tar.gz
-          if-no-files-found: error
-
-  web:
-    name: Web preview bundle
-    needs: version
-    if: needs.version.outputs.already_released == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - run: flutter pub get
-
-      - name: Build
-        # The design canvas, for reviewing the UI without a device. It cannot
-        # tunnel — web has no raw sockets — and the app says so.
-        run: flutter build web --release
-
-      - name: Package
-        env:
-          VERSION: ${{ needs.version.outputs.version }}
-          STAMP: ${{ needs.version.outputs.stamp }}
-        run: |
-          mkdir -p dist
-          tar -czf "dist/PoPo-v${VERSION}-web-design-canvas-${STAMP}.tar.gz" -C build/web .
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: web-bundle
-          path: dist/*.tar.gz
-          if-no-files-found: error
+  # Desktop and web are not published for now — Android is the only target
+  # being shipped. The code, the build scripts (tool/build_core_desktop.sh) and
+  # the Linux runner all stay in the repo, and CI's desktop-compiles job still
+  # builds the Linux app on every push, so an unpublished platform cannot rot
+  # unnoticed. Restore these two jobs from this file's history when the other
+  # platforms are wanted again.
 
   publish:
     name: Publish the release
-    needs: [version, android, desktop-linux, web]
+    needs: [version, android]
     if: needs.version.outputs.already_released == 'false'
     runs-on: ubuntu-latest
     steps:

@@ -167,3 +167,43 @@ jobs:
             exit 1
           fi
           echo "ok: design canvas absent from the default build"
+
+  desktop-compiles:
+    name: Desktop still compiles
+    runs-on: ubuntu-latest
+    # Desktop is not published while Android is the only shipping target, so
+    # nothing else would notice it breaking. Building it here is what makes
+    # "unpublished, not abandoned" true rather than a claim.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install the Linux desktop toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ninja-build libgtk-3-dev
+
+      - run: flutter pub get
+
+      - name: Build the Linux app
+        run: |
+          flutter config --enable-linux-desktop
+          flutter build linux --release
+
+      - name: Assert it produced a runnable bundle
+        # The executable alone is not enough: a Flutter Linux build needs its
+        # data/ and lib/ beside it, and a missing one only shows at startup.
+        run: |
+          bundle=build/linux/x64/release/bundle
+          for path in "$bundle/popo" "$bundle/data" "$bundle/lib"; do
+            if [ ! -e "$path" ]; then
+              echo "::error::missing from the bundle: $path"
+              exit 1
+            fi
+          done
+          echo "ok: runnable bundle at $bundle"

@@ -1,10 +1,22 @@
-# PoPo v0.2.2 — it opens as an app
+# PoPo v0.2.3 — Android
 
 A cross-platform client that finds free proxy and tunnel endpoints, tests them,
 and connects through them. Persian and English, right-to-left throughout.
 
 **This is a preview.** The tunnel has never run on real hardware — see
 *What is unverified* below before you rely on it.
+
+## New in v0.2.3
+
+**Android only, for now.** The release builds nothing but the Android app.
+Desktop and the web canvas are deliberately not published: shipping a Linux
+bundle that cannot connect, and a browser build that cannot tunnel at all,
+gave people two downloads that were not the thing they wanted.
+
+None of that code is gone. The desktop shell, the Linux runner and
+`tool/build_core_desktop.sh` all stay in the repo, and CI still analyses,
+tests and builds against them so they cannot rot while they are unpublished.
+The other platforms come back by restoring two jobs in the release workflow.
 
 ## New in v0.2.2
 
@@ -108,14 +120,11 @@ connection as the real test.
 result parsers were written against known SERP structure. Expect some of them
 to need adjusting, and expect engines to block a plain client.
 
-**Desktop cannot connect yet.** The Linux app runs, searches and tests, but
-the tunnel needs the core bound to it — the shared library is built and
-published, and nothing binds to it yet. Connecting is reported as unsupported
-rather than offered and failing.
-
-**iOS and macOS are not built here.** The Apple build path exists — discovery
-and sharing compile out under `--dart-define=ENABLE_DISCOVERY=false`, verified
-in CI — but no Apple binary has been produced.
+**Only Android is built.** Desktop still cannot connect even when built: the
+shared library exists but nothing binds to it yet, so connecting reports
+unsupported rather than failing. The Apple path exists and compiles out
+discovery and sharing under `--dart-define=ENABLE_DISCOVERY=false`, verified in
+CI, but no Apple binary has been produced. Those targets are for later.
 
 ## Downloads — which file?
 
@@ -124,12 +133,9 @@ in CI — but no Apple binary has been produced.
 
 | If you have | Download |
 |---|---|
-| **An Android phone** (almost certainly this one) | `PoPo-v0.2.2-android-arm64-most-phones-*.apk` |
-| An Android phone from before ~2016 | `PoPo-v0.2.2-android-arm32-older-phones-*.apk` |
-| An Android emulator on a PC | `PoPo-v0.2.2-android-x86_64-emulator-*.apk` |
-| **A Linux PC** | `PoPo-v0.2.2-linux-x64-app-*.tar.gz` |
-| To link the core into your own build | `PoPo-v0.2.2-linux-x64-core-library-*.tar.gz` |
-| To review the interface in a browser | `PoPo-v0.2.2-web-design-canvas-*.tar.gz` |
+| **An Android phone** (almost certainly this one) | `PoPo-v0.2.3-android-arm64-most-phones-*.apk` |
+| An Android phone from before ~2016 | `PoPo-v0.2.3-android-arm32-older-phones-*.apk` |
+| An Android emulator on a PC | `PoPo-v0.2.3-android-x86_64-emulator-*.apk` |
 
 If you pick the wrong Android one, it simply refuses to install — nothing breaks.
 
@@ -142,9 +148,6 @@ from one release shares it, so you can always tell which build you have.
 2. Open it. Android will ask to allow installing from this source — that is the
    normal prompt for anything not from Play, and you can revoke it afterwards.
 3. The first connection asks for VPN permission. Nothing routes without it.
-
-The web canvas is not an app: unpack it and open `index.html`. It shows all 22
-screens for review and cannot tunnel, because browsers have no raw sockets.
 
 Checksums for every file are in `SHA256SUMS.txt`.
 
