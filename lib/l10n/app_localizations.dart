@@ -1764,6 +1764,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Kill switch, DNS and connection log'**
   String get settingSecurityNote;
+
+  /// Desktop dashboard headline while the tunnel is down
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get desktopNotConnected;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

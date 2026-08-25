@@ -1026,4 +1026,7 @@ class LFa extends L {
 
   @override
   String get settingSecurityNote => 'قطع‌کن اضطراری، DNS و گزارش اتصال';
+
+  @override
+  String get desktopNotConnected => 'متصل نیست';
 }

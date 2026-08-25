@@ -139,7 +139,9 @@ class DesktopScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  width: 190,
+                  // 190 clipped 'Share connection'; the longest label sets
+                  // the floor here, not a round number.
+                  width: 214,
                   padding: const EdgeInsets.all(S.x16),
                   // RTL: the sidebar sits on the right, so its inner edge is the left one.
                   decoration: const BoxDecoration(
@@ -205,7 +207,9 @@ class DesktopScreen extends StatelessWidget {
                                                               ?.displayName ??
                                                           '—',
                                                     )
-                                                  : l.settingSimpleMode),
+                                                  // Was settingSimpleMode, so a disconnected dashboard
+                                                  // was headlined 'Simple mode'.
+                                                  : l.desktopNotConnected),
                                         style: T.hero,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,

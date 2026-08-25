@@ -277,5 +277,6 @@
   "connectionOptions": "اتصال",
   "settingSharingNote": "دستگاه‌های نزدیک از این اتصال استفاده کنند",
   "settingSplitTunnelNote": "انتخاب اینکه کدام برنامه‌ها از تونل رد شوند",
-  "settingSecurityNote": "قطع‌کن اضطراری، DNS و گزارش اتصال"
+  "settingSecurityNote": "قطع‌کن اضطراری، DNS و گزارش اتصال",
+  "desktopNotConnected": "متصل نیست"
 }

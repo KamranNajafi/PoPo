@@ -539,5 +539,9 @@
   "settingSecurityNote": "Kill switch, DNS and connection log",
   "@settingSecurityNote": {
     "description": "Caption for the security row in settings"
+  },
+  "desktopNotConnected": "Not connected",
+  "@desktopNotConnected": {
+    "description": "Desktop dashboard headline while the tunnel is down"
   }
 }

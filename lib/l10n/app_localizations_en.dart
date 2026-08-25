@@ -1045,4 +1045,7 @@ class LEn extends L {
 
   @override
   String get settingSecurityNote => 'Kill switch, DNS and connection log';
+
+  @override
+  String get desktopNotConnected => 'Not connected';
 }
